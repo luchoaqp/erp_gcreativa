@@ -16,9 +16,12 @@ import {
   Printer, 
   X,
   FileText,
-  Banknote
+  Banknote,
+  Eye
 } from 'lucide-react';
-import { productsAPI, categoriesAPI, ordersAPI } from '../api';
+import { productsAPI, categoriesAPI, ordersAPI, salesAPI, settingsAPI } from '../api';
+import PrintModal from '../components/PrintModal';
+import { buildSaleDocHTML } from '../utils/docPrint';
 import DeliveryFields, { entregaPayload, emptyDelivery, sumCargos, useCharges } from '../components/DeliveryFields';
 import { entregaLabel } from '../utils/entrega';
 import { precioPorCantidad } from '../utils/precios';
@@ -37,7 +40,8 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedOccasion, setSelectedOccasion] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [cart, setCart] = useState([]);
+  // El pedido en curso se conserva si cambias de pantalla (se guarda en esta pestaña del navegador)
+  const [cart, setCart] = useState(() => { try { return JSON.parse(sessionStorage.getItem('pos_carrito') || '[]'); } catch (e) { return []; } });
   const [loading, setLoading] = useState(true);
   const [mobileTab, setMobileTab] = useState('catalog'); // 'catalog' | 'cart'
 
@@ -60,6 +64,23 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
   });
 
   const [receiptData, setReceiptData] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [docCfg, setDocCfg] = useState({});
+  const [store, setStore] = useState({});
+  useEffect(() => {
+    salesAPI.docConfig().then((r) => { if (r.success) setDocCfg(r.config || {}); }).catch(() => {});
+    settingsAPI.get().then((r) => { if (r.success) setStore(r.settings || r.config || {}); }).catch(() => {});
+  }, []);
+  useEffect(() => {
+    try { sessionStorage.setItem('pos_carrito', JSON.stringify(cart)); } catch (e) { /* sin espacio: solo se pierde la copia */ }
+  }, [cart]);
+  // Cerrar o recargar el navegador con productos en el carrito pide confirmación
+  useEffect(() => {
+    const h = (e) => { if (cart.length) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
+  }, [cart.length]);
 
   useEffect(() => {
     loadCatalog();
@@ -152,8 +173,34 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
 
   const addonProducts = products.filter(p => p.codigo && p.codigo.startsWith('REG-ADD'));
 
-  const handleProcessOrder = async (e) => {
+  // Paso 1 (formulario): revisar la vista previa del documento antes de registrar la venta
+  const handleProcessOrder = (e) => {
     e.preventDefault();
+    if (!cart.length) { alert('Agrega al menos un producto.'); return; }
+    setShowPreview(true);
+  };
+
+  const ventaBorrador = () => ({
+    borrador: true, id: 0, numero_pedido: 'se asigna al confirmar', fecha_pedido: new Date().toISOString(),
+    cliente_nombre: clienteVarios ? 'Cliente Varios' : (formData.clienteNombre || 'Cliente Varios'),
+    cliente_telefono: clienteVarios ? '' : formData.clienteTelefono,
+    vendedor_nombre: user?.nombre,
+    ...entregaPayload(delivery),
+    items: cart.map((item) => ({
+      descripcion: item.nombre, codigo: item.codigo, cantidad: Number(item.cantidad) || 1,
+      precio_unitario: unitPrice(item), descuento: lineDto(item), subtotal: r2(lineBruto(item) - lineDto(item)),
+      detalles_personalizacion: item.personalizacion || '',
+      detalle: Number(item.desc_documentos ?? 1) !== 0 ? item.web_descripcion : ''
+    })),
+    subtotal, descuento_global: descGlobal, total: r2(total), aplica_igv: 0,
+    cargos_json: delivery.tipo_entrega === 'envio' ? delivery.cargos : [], costo_envio: envioTotal,
+    pagos: advanceAmount > 0 ? [{ fecha: new Date().toISOString(), metodo: paymentMethod, concepto: advanceAmount >= r2(total) ? 'pago_total' : 'adelanto', monto: advanceAmount }] : []
+  });
+
+  // Paso 2 (vista previa): registrar la venta
+  const crearVenta = async () => {
+    if (creating) return;
+    setCreating(true);
     try {
       const orderPayload = {
         cliente: clienteVarios ? undefined : {
@@ -206,15 +253,19 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
         setClienteVarios(false);
         setFormData({ clienteNombre: '', clienteTelefono: '', clienteEmail: '', notasTaller: '' });
         setCart([]);
+        try { sessionStorage.removeItem('pos_carrito'); } catch (e) { /* ignorar */ }
         setDtoTotal({ tipo: 'monto', valor: '' });
         setEditor(null);
         setShowCheckoutModal(false);
+        setShowPreview(false);
         setReceiptData(null);
         if (onOrderCreated) onOrderCreated();
         if (onGoToSales) onGoToSales();
       }
     } catch (err) {
       alert('Error procesando el pedido: ' + err.message);
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -747,8 +798,8 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
                     Cancelar
                   </button>
                   <button type="submit" className="btn-primary" style={{ width: 'auto' }}>
-                    <CheckCircle2 size={18} />
-                    <span>Confirmar y generar venta</span>
+                    <Eye size={18} />
+                    <span>Vista previa y generar venta</span>
                   </button>
                 </div>
               </div>
@@ -756,6 +807,27 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
           </div>
         </div>
       )}
+
+      {/* Vista previa del documento antes de registrar la venta */}
+      {showPreview && (() => {
+        const venta = ventaBorrador();
+        const bt = (bg, color, extra) => ({ padding: '11px', borderRadius: '12px', fontSize: '14px', fontWeight: 800, background: bg, color, border: 'none', cursor: creating ? 'wait' : 'pointer', ...extra });
+        return (
+          <PrintModal
+            title="Vista previa de la venta"
+            subtitle="Revisa productos, montos y entrega. La venta aún no se ha registrado."
+            docs={[{ key: 'previa', label: 'Pedido', build: (fm) => buildSaleDocHTML({ kind: 'pedido', sale: venta, cfg: docCfg, store, format: fm, toolbar: false }), message: '' }]}
+            showWhatsApp={false}
+            onClose={() => { if (!creating) setShowPreview(false); }}
+            actions={(
+              <div style={{ display: 'grid', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #E2E8F0' }}>
+                <button type="button" disabled={creating} onClick={crearVenta} style={bt('#16A34A', '#fff')}>{creating ? 'Registrando…' : 'Confirmar y generar venta'}</button>
+                <button type="button" disabled={creating} onClick={() => setShowPreview(false)} style={bt('#F1F5F9', '#475569')}>← Volver y editar</button>
+              </div>
+            )}
+          />
+        );
+      })()}
 
       {/* Modal de Ticket y Boleta Generada */}
       {receiptData && (

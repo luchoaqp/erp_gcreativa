@@ -2,6 +2,7 @@
 // Formatos: A4, A5 y Ticket 80 mm. Se muestran en un iframe y se imprimen / guardan como PDF.
 import { esc, fmtDate, r2, docInfo, atendidoPor, contactoRows, CONTACT_CSS } from './quotePrint';
 import { fechaPorConfirmar, horaPorConfirmar } from './entrega';
+import { descripcionHTML, descripcionTicket, DET_CSS_A4, DET_CSS_TICKET } from './descripcion';
 
 const num = (n) => Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const nl2br = (s) => esc(s).replace(/\n/g, '<br>');
@@ -33,7 +34,7 @@ export function buildSaleDocHTML({ kind = 'pedido', sale, comprobante, cfg = {},
 
   const isComp = kind === 'comprobante' && comprobante;
   const title = isComp ? COMP_TITLES[comprobante.tipo] : 'PEDIDO';
-  const borrador = !!(isComp && comprobante.borrador);
+  const borrador = !!(isComp && comprobante.borrador) || !!sale.borrador; // vista previa antes de generar
   const number = borrador ? 'VISTA PREVIA' : isComp ? compNumber(comprobante) : pdNumber(sale.id);
   const clienteNombre = isComp && comprobante.razon_social ? comprobante.razon_social : sale.cliente_nombre;
   const docLinea = isComp && comprobante.doc_numero ? `${comprobante.doc_tipo || 'Doc.'}: ${comprobante.doc_numero}` : (sale.cliente_documento ? `Doc.: ${sale.cliente_documento}` : '');
@@ -49,7 +50,7 @@ export function buildSaleDocHTML({ kind = 'pedido', sale, comprobante, cfg = {},
 
   const items = (sale.items || []).map((it) => ({
     desc: it.descripcion + (it.detalles_personalizacion ? ` (${it.detalles_personalizacion})` : '') + (Number(it.descuento) > 0 ? ` [Dto. -${num(it.descuento)}]` : ''),
-    codigo: it.codigo, cant: Number(it.cantidad), pu: Number(it.precio_unitario), imp: Number(it.subtotal)
+    codigo: it.codigo, cant: Number(it.cantidad), pu: Number(it.precio_unitario), imp: Number(it.subtotal), detalle: it.detalle
   }));
 
   const totalsRows = [];
@@ -85,13 +86,13 @@ export function buildSaleDocHTML({ kind = 'pedido', sale, comprobante, cfg = {},
   const qrBlock = showQR
     ? `<div class="qr"><img src="${cfg.qr_imagen}" alt="QR"><div><strong>${esc(cfg.qr_titulo || 'Paga con Yape')}</strong><br>${nl2br(cfg.qr_detalle || '')}<br><strong>Saldo: ${sym} ${num(saldo)}</strong></div></div>` : '';
   const disclaimer = isComp && comprobante.tipo !== 'nota_venta' ? 'Documento de control interno; no reemplaza el comprobante electrónico emitido ante SUNAT.' : '';
-  const estadoNota = anulada ? '<div class="anulada">VENTA ANULADA</div>' : borrador ? '<div class="anulada">VISTA PREVIA · BORRADOR · AÚN NO EMITIDO</div>' : '';
+  const estadoNota = anulada ? '<div class="anulada">VENTA ANULADA</div>' : borrador ? `<div class="anulada">${isComp ? 'VISTA PREVIA · BORRADOR · AÚN NO EMITIDO' : 'VISTA PREVIA · LA VENTA AÚN NO SE HA REGISTRADO'}</div>` : '';
 
   const head = `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(number)}</title><style>`;
 
   /* ------------------------------- TICKET 80 mm ------------------------------- */
   if (isTicket) {
-    const rowsT = items.map((i) => `<div class="it"><div>${esc(i.desc)}</div><div class="row"><span>${i.cant} x ${num(i.pu)}</span><span>${num(i.imp)}</span></div></div>`).join('');
+    const rowsT = items.map((i) => `<div class="it"><div>${esc(i.desc)}</div>${descripcionTicket(i.detalle, esc)}<div class="row"><span>${i.cant} x ${num(i.pu)}</span><span>${num(i.imp)}</span></div></div>`).join('');
     const pagosT = pagos.map((p) => `<div class="row small"><span>${fmtDate(p.fecha)} ${esc(METODOS[p.metodo] || p.metodo)} · ${esc(CONCEPTOS[p.concepto] || 'Pago')}</span><span>${num(p.monto)}</span></div>`).join('');
     return `${head}
       @page { size: 80mm auto; margin: 3mm; }
@@ -99,7 +100,7 @@ export function buildSaleDocHTML({ kind = 'pedido', sale, comprobante, cfg = {},
       .c{text-align:center} .row{display:flex;justify-content:space-between;gap:6px} hr{border:0;border-top:1px dashed #000;margin:6px 0}
       .it{margin-bottom:5px} .tot{font-size:14px;font-weight:700} .small{font-size:10.5px} .bar{text-align:center;margin-bottom:8px}
       .qr{text-align:center;margin-top:8px} .qr img{width:42mm;height:42mm;object-fit:contain;filter:grayscale(1) contrast(1000%)} .anulada{text-align:center;font-weight:700;border:1px solid #000;margin:6px 0;padding:2px}
-      ${CONTACT_CSS}
+      ${CONTACT_CSS} ${DET_CSS_TICKET}
       @media print{.no-print{display:none}}
     </style></head><body>${barHtml}
       <div class="c"><div><strong>${esc(info.nombre)}</strong></div>
@@ -122,7 +123,7 @@ export function buildSaleDocHTML({ kind = 'pedido', sale, comprobante, cfg = {},
 
   /* ------------------------------- A4 / A5 ------------------------------- */
   const fs = isA5 ? 11 : 13;
-  const rows = items.map((i, n) => `<tr><td>${n + 1}</td><td>${esc(i.desc)}${verCod && i.codigo ? ` <span class="mut">(${esc(i.codigo)})</span>` : ''}</td><td class="r">${i.cant}</td><td class="r">${num(i.pu)}</td><td class="r">${num(i.imp)}</td></tr>`).join('');
+  const rows = items.map((i, n) => `<tr><td>${n + 1}</td><td>${esc(i.desc)}${verCod && i.codigo ? ` <span class="mut">(${esc(i.codigo)})</span>` : ''}${descripcionHTML(i.detalle, esc)}</td><td class="r">${i.cant}</td><td class="r">${num(i.pu)}</td><td class="r">${num(i.imp)}</td></tr>`).join('');
   const pagosRows = pagos.map((p) => `<tr><td>${fmtDate(p.fecha)}</td><td>${esc(METODOS[p.metodo] || p.metodo)}</td><td>${esc(CONCEPTOS[p.concepto] || 'Pago')}</td><td class="r">${num(p.monto)}</td></tr>`).join('');
   const entrega = !isComp ? `
     <div class="box"><strong>Entrega</strong><br>${esc(entregaTxt)}</div>` : '';
@@ -146,7 +147,7 @@ export function buildSaleDocHTML({ kind = 'pedido', sale, comprobante, cfg = {},
     .sum b{display:block;font-size:${isA5 ? 14 : 17}px}
     .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:700;font-size:${fs - 1}px;background:${saldo <= 0.009 && !anulada ? '#d1fae5' : '#fef3c7'};color:${saldo <= 0.009 && !anulada ? '#047857' : '#b45309'}}
     .anulada{text-align:center;font-weight:800;color:#b91c1c;border:2px solid #b91c1c;border-radius:6px;padding:4px;margin:8px 0}
-    ${CONTACT_CSS}
+    ${CONTACT_CSS} ${DET_CSS_A4}
     .cg{display:flex;flex-wrap:wrap;gap:6px 34px}
     .qr{display:flex;gap:12px;align-items:center;border:1px dashed #bbb;border-radius:10px;padding:10px;margin-top:12px;width:max-content;max-width:100%}
     .qr img{width:${isA5 ? 80 : 110}px;height:${isA5 ? 80 : 110}px;object-fit:contain}

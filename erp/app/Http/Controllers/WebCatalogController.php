@@ -34,7 +34,7 @@ class WebCatalogController extends Controller
     public static function build(): array
     {
         $rows = Db::query(
-            "SELECT p.id, p.codigo, p.nombre, p.web_descripcion, p.precio_venta, p.imagen_url, p.destacado, p.categoria_id,
+            "SELECT p.id, p.codigo, p.nombre, p.web_descripcion, p.desc_web, p.precio_venta, p.imagen_url, p.destacado, p.categoria_id,
                     o.nombre AS ocasion,
                     (SELECT GROUP_CONCAT(pc.categoria_id) FROM producto_categorias pc WHERE pc.producto_id = p.id) AS cats
              FROM productos p
@@ -65,7 +65,7 @@ class WebCatalogController extends Controller
                 'id' => $r['id'],
                 'sku' => $r['codigo'],
                 'nombre' => $r['nombre'],
-                'descripcion' => Js::slice(trim((string) $r['web_descripcion']), 0, 300),
+                'descripcion' => Js::t($r['desc_web']) ? mb_substr(trim((string) $r['web_descripcion']), 0, 2000) : '',
                 'precio' => (float) $r['precio_venta'],
                 'categorias' => array_values(array_unique($slugs)),
                 'imagen' => $r['imagen_url'],
@@ -123,7 +123,7 @@ class WebCatalogController extends Controller
         try {
             $rows = Db::query(
                 "SELECT p.id, p.codigo, p.nombre, p.precio_venta, p.imagen_url, p.activo, p.destacado, p.web_visible, p.web_descripcion,
-                        p.ocasion_id, c.nombre AS categoria, o.nombre AS ocasion,
+                        p.desc_web, p.ocasion_id, c.nombre AS categoria, o.nombre AS ocasion,
                         (SELECT GROUP_CONCAT(pc.categoria_id) FROM producto_categorias pc WHERE pc.producto_id = p.id) AS cats, p.categoria_id
                  FROM productos p
                  LEFT JOIN categorias c ON c.id = p.categoria_id
@@ -157,7 +157,11 @@ class WebCatalogController extends Controller
             $b = $this->body();
             $set = [];
             if (array_key_exists('web_visible', $b)) $set['web_visible'] = Js::t($b['web_visible']) ? 1 : 0;
-            if (array_key_exists('web_descripcion', $b)) $set['web_descripcion'] = Js::t($b['web_descripcion']) ? Js::slice(trim((string) $b['web_descripcion']), 0, 300) : null;
+            if (array_key_exists('web_descripcion', $b)) {
+                $t = trim(str_replace("\r\n", "\n", (string) ($b['web_descripcion'] ?? '')));
+                $set['web_descripcion'] = $t === '' ? null : mb_substr($t, 0, 2000);
+            }
+            if (array_key_exists('desc_web', $b)) $set['desc_web'] = Js::t($b['desc_web']) ? 1 : 0;
             // Favorito = el mismo "Destacado" de la ficha del producto (portada de la web y de cada catálogo)
             if (array_key_exists('destacado', $b)) $set['destacado'] = Js::t($b['destacado']) ? 1 : 0;
             if (!$set) throw new HttpError(400, 'Envía web_visible, web_descripcion y/o destacado');

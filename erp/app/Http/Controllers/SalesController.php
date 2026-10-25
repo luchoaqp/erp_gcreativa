@@ -105,7 +105,7 @@ class SalesController extends Controller
         try {
             $rows = Db::query("\n      SELECT p.*, COALESCE(c.nombre, p.cliente_nombre, 'Cliente Varios') AS cliente_nombre,\n             c.telefono AS cliente_telefono, c.email AS cliente_email, u.nombre AS vendedor_nombre,\n             (SELECT q.numero FROM cotizaciones q WHERE q.pedido_id = p.id LIMIT 1) AS cotizacion_numero\n      FROM pedidos p\n      LEFT JOIN clientes c ON c.id = p.cliente_id\n      LEFT JOIN usuarios u ON u.id = p.usuario_id\n      WHERE p.id = ?", [$id]);
             if (!count($rows)) return $this->json(['success' => false, 'message' => 'Venta no encontrada'], 404);
-            $items = Db::query("\n      SELECT pd.*, COALESCE(pr.nombre, 'Producto') AS descripcion, pr.codigo\n      FROM pedido_detalles pd LEFT JOIN productos pr ON pr.id = pd.producto_id\n      WHERE pd.pedido_id = ? ORDER BY pd.id", [$id]);
+            $items = Db::query("\n      SELECT pd.*, COALESCE(pr.nombre, 'Producto') AS descripcion, pr.codigo,\n        CASE WHEN COALESCE(pr.desc_documentos, 1) = 1 THEN pr.web_descripcion END AS detalle\n      FROM pedido_detalles pd LEFT JOIN productos pr ON pr.id = pd.producto_id\n      WHERE pd.pedido_id = ? ORDER BY pd.id", [$id]);
             $pagos = Db::query('SELECT * FROM pagos WHERE pedido_id = ? ORDER BY fecha ASC, id ASC', [$id]);
             $comprobantes = Db::query('SELECT * FROM comprobantes WHERE pedido_id = ? ORDER BY id ASC', [$id]);
             $acc = 0;

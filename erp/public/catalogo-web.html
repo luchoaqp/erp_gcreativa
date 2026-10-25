@@ -48,7 +48,8 @@
   .item img, .item .sinfoto { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: #fdf0f6; }
   .nombre { font-weight: 600; }
   .meta { color: var(--gris); font-size: 13px; }
-  .desc { width: 100%; margin-top: 6px; font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--linea); border-radius: 8px; }
+  .desc { width: 100%; margin-top: 6px; font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--linea); border-radius: 8px; resize: vertical; line-height: 1.4; }
+  .descweb { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--gris); margin-top: 4px; cursor: pointer; }
   .desc:disabled { background: #f6f2f5; }
   .estrella { background: transparent; padding: 6px 8px; font-size: 22px; line-height: 1; color: #cdbfc8; border-radius: 10px; }
   .estrella[aria-pressed="true"] { color: #e0a800; }
@@ -162,7 +163,8 @@
         <div>
           <div class="nombre">${esc(p.nombre)}</div>
           <div class="meta">${esc(p.codigo || '')} · S/ ${Number(p.precio_venta).toFixed(2)}${p.ocasion ? ' · ' + esc(p.ocasion) : ''}${p.categoria ? ' · ' + esc(p.categoria) : ''}${on(p.activo) ? '' : ' · deshabilitado (no se publica)'}</div>
-          <input class="desc" data-desc="${p.id}" maxlength="300" value="${esc(p.web_descripcion || '')}" placeholder="Descripción para clientes (opcional, máx. 300)" ${on(p.web_visible) ? '' : 'disabled'}>
+          <textarea class="desc" data-desc="${p.id}" maxlength="2000" rows="${Math.min(6, Math.max(1, String(p.web_descripcion || '').split('\n').length))}" placeholder="Descripción para clientes (ej. Incluye: • 2 tazas…)">${esc(p.web_descripcion || '')}</textarea>
+          <label class="descweb"><input type="checkbox" data-descweb="${p.id}" ${Number(p.desc_web ?? 1) ? 'checked' : ''}> Mostrar la descripción en la web</label>
         </div>
         <button type="button" class="estrella" data-fav="${p.id}" aria-pressed="${on(p.destacado)}" title="Favorito en la web" aria-label="Favorito: ${esc(p.nombre)}">${on(p.destacado) ? '★' : '☆'}</button>
       </div>`).join('') : '<p class="vacio">No hay productos en esta vista.</p>';
@@ -208,8 +210,12 @@
       catch (e) { t.checked = !t.checked; aviso('error', e.message); }
     } else if (t.dataset.desc) {
       const p = productos.find((x) => x.id == t.dataset.desc);
-      try { await guardar(p, { web_descripcion: t.value.trim() }, 'Descripción guardada.'); }
+      try { await guardar(p, { web_descripcion: t.value.trim() }, 'Descripción guardada (también se usa en cotizaciones y documentos).'); }
       catch (e) { aviso('error', e.message); }
+    } else if (t.dataset.descweb) {
+      const p = productos.find((x) => x.id == t.dataset.descweb);
+      try { await guardar(p, { desc_web: t.checked ? 1 : 0 }, t.checked ? 'La descripción se mostrará en la web.' : 'La descripción no se mostrará en la web.'); }
+      catch (e) { t.checked = !t.checked; aviso('error', e.message); }
     }
   });
   $('lista').addEventListener('click', async (ev) => {

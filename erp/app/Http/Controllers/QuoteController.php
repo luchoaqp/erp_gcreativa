@@ -132,6 +132,7 @@ class QuoteController extends Controller
                 'producto_id' => $p['id'],
                 'codigo' => Js::or($p['codigo'], null),
                 'descripcion' => Js::slice(Js::or(Js::trim(Js::or($i['descripcion'] ?? null, '')), $p['nombre']), 0, 255),
+                'detalle' => self::detalle($i['detalle'] ?? null),
                 'cantidad' => $cantidad,
                 'precio_unitario' => self::r2($precio),
             ];
@@ -139,11 +140,19 @@ class QuoteController extends Controller
         return $out;
     }
 
+    /** Texto que va debajo del producto en la cotización (ej. qué incluye el box) */
+    private static function detalle($v): ?string
+    {
+        if (!is_string($v)) return null;
+        $t = trim(str_replace("\r\n", "\n", $v));
+        return $t === '' ? null : mb_substr($t, 0, 2000);
+    }
+
     private static function insertItems($cotizacionId, array $items): void
     {
         foreach ($items as $it) {
-            Db::query("INSERT INTO cotizacion_detalles (cotizacion_id, producto_id, codigo, descripcion, cantidad, precio_unitario, subtotal)\n       VALUES (?, ?, ?, ?, ?, ?, ?)", [
-                $cotizacionId, $it['producto_id'], $it['codigo'], $it['descripcion'], $it['cantidad'], $it['precio_unitario'], self::r2($it['precio_unitario'] * $it['cantidad']),
+            Db::query("INSERT INTO cotizacion_detalles (cotizacion_id, producto_id, codigo, descripcion, detalle, cantidad, precio_unitario, subtotal)\n       VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [
+                $cotizacionId, $it['producto_id'], $it['codigo'], $it['descripcion'], $it['detalle'] ?? null, $it['cantidad'], $it['precio_unitario'], self::r2($it['precio_unitario'] * $it['cantidad']),
             ]);
         }
     }

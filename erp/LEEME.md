@@ -64,20 +64,28 @@ Es el mismo ERP de siempre (mismas pantallas, misma base de datos), pero el "mot
 - El ERP escribe `catalogo.json` y copia las fotos a la web. Los cambios se ven al instante, sin recompilar nada.
 - Solo se muestran los catálogos con al menos un producto publicado.
 
-## 4. Actualizaciones futuras del ERP
+## 4. Descripción para clientes (cotizaciones, documentos y web)
 
-Cuando haya una versión nueva:
+- En la ficha de cada **producto** o **pack**, la sección *Descripción para clientes* guarda el texto que ve el cliente debajo del nombre, por ejemplo qué incluye un box.
+  - Las líneas que empiezan con `•` o `-` salen como lista.
+  - En los packs, el botón **Armar desde lo que lleva** escribe la lista a partir de los productos del pack.
+- Las casillas **Mostrar en: Cotizaciones · Documentos de venta · Página web** deciden dónde aparece.
+- **Cotizaciones:** al agregar el producto, la descripción se copia en la línea y se puede editar solo para esa cotización.
+- **Nota interna:** el campo de "Más datos" no lo ve el cliente.
 
-1. Recibirás un zip solo con lo que cambió, normalmente `app/`, `routes/`, `database/` y/o `public/assets`.
-2. Súbelo y extráelo encima de `erp/`. **Nunca reemplaces tu `.env` ni `public/uploads/`.**
-3. Si la versión trae cambios en la base de datos:
-   - Entra al ERP como administrador.
-   - Abre `https://erp.gcreativa.com/api/sistema/estado` para ver el estado.
-   - Luego ejecuta la actualización: haz `POST /api/sistema/actualizar`, o pídeme el botón.
-   - Esto aplica solo las migraciones pendientes y limpia la caché.
-4. Antes de cada actualización, saca una **Copia de Seguridad** desde el ERP.
+## 5. Vista previa antes de guardar
 
-## 5. Dónde está cada cosa
+- **Cotizaciones:** "Vista previa y guardar" muestra el documento tal como lo recibirá el cliente (A4, A5 o ticket) antes de guardarlo.
+- **Punto de venta:** "Vista previa y generar venta" muestra el pedido antes de registrarlo.
+- **Pedido en curso:** si cambias de pantalla, el carrito del Punto de venta se conserva. Si cierras el navegador con productos en el carrito, el ERP pide confirmación.
+
+## 6. Actualizaciones futuras del ERP
+
+1. Recibirás un zip solo con lo que cambió. Súbelo y usa **Extraer** encima de `erp/`. **Nunca reemplaces tu `.env` ni `public/uploads/`.**
+2. **La base de datos se actualiza sola:** en la primera petición después de subir los archivos, el ERP aplica las migraciones nuevas. Queda constancia en `storage/app/esquema-*.ok` y, si algo falla, en `storage/logs/laravel.log`.
+3. Antes de cada actualización, saca una **Copia de Seguridad** desde el ERP.
+
+## 7. Dónde está cada cosa
 
 | Qué | Dónde |
 |---|---|
@@ -91,14 +99,14 @@ Cuando haya una versión nueva:
 | Estructura de la base | `database/schema/erp_schema.sql` + `database/migrations/` |
 | Configuración propia del ERP | `config/erp.php` (lee el `.env`) |
 
-## 6. Cambiar el frontend
+## 8. Cambiar el frontend
 
 El código de las pantallas sigue siendo tu carpeta `frontend/` de siempre. Para publicar un cambio:
 
 1. En tu PC, dentro de `frontend/`, ejecuta `npm run build`.
 2. Sube el **contenido** de `frontend/dist/` a `erp/public/`. Reemplaza `index.html` y `assets/`, y no toques `index.php`, `.htaccess` ni `uploads/`.
 
-## 7. Seguridad
+## 9. Seguridad
 
 - El `.env` y las carpetas internas no son accesibles desde el navegador.
 - `APP_DEBUG=false` en producción: los errores no muestran detalles al público, solo quedan en `storage/logs/`.

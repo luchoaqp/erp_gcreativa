@@ -1,3 +1,4 @@
+import { descripcionHTML, descripcionTicket, DET_CSS_A4, DET_CSS_TICKET } from './descripcion';
 // Generación del documento imprimible de una cotización (PDF/A4 y Ticket 80 mm).
 // Se abre en una ventana nueva: "Imprimir" -> "Guardar como PDF" o impresora térmica.
 
@@ -161,7 +162,7 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
 
   if (format === 'ticket') {
     const items = d.lines.map((l) => `
-      <div class="it"><div>${esc(l.descripcion)}</div>
+      <div class="it"><div>${esc(l.descripcion)}</div>${descripcionTicket(l.detalle, esc)}
       <div class="row"><span>${l.cantidad} x ${num(l.pu)}</span><span>${num(l.importe)}</span></div></div>`).join('');
     return `${head}
       @page { size: 80mm auto; margin: 3mm; }
@@ -170,9 +171,9 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
       hr{border:0;border-top:1px dashed #000;margin:6px 0} .it{margin-bottom:5px}
       .tot{font-size:14px;font-weight:700} .qr{text-align:center;margin-top:8px} .qr img{width:42mm;height:42mm;object-fit:contain;filter:grayscale(1) contrast(1000%)} .adv{text-align:center;margin:8px 0;padding:6px;border:1px solid #000;border-radius:6px} .advt{font-size:11px} .advm{font-size:20px;font-weight:800;margin-top:2px} .advs{display:flex;justify-content:space-between;font-size:11px;margin-top:4px;border-top:1px dashed #000;padding-top:3px} .tnota{text-align:left;margin-top:6px}
       .small{font-size:10.5px} .bar{text-align:center;margin-bottom:8px}
-      ${CONTACT_CSS}
+      ${CONTACT_CSS} ${DET_CSS_TICKET}
       @media print{.no-print{display:none}}
-    </style></head><body>${toolbar}
+    </style></head><body>${toolbar}${q.borrador ? `<div style="text-align:center;font-weight:700;border:1.5px dashed #B45309;color:#B45309;border-radius:8px;padding:4px;margin:0 0 10px">VISTA PREVIA · AÚN NO GUARDADA</div>` : ''}
       <div class="c"><div><strong>${esc(info.nombre)}</strong></div>
       <div class="small">${contactoRows(info, { center: true })}</div></div>
       <hr><div class="c"><strong>${esc(titulo)}</strong><br>${esc(q.numero)}</div>
@@ -189,7 +190,7 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
 
   // ---- A4 ----
   const rows = d.lines.map((l, i) => `
-    <tr><td>${i + 1}</td><td>${esc(l.descripcion)}${verCod && l.codigo ? ` <span class="mut">(${esc(l.codigo)})</span>` : ''}</td>
+    <tr><td>${i + 1}</td><td>${esc(l.descripcion)}${verCod && l.codigo ? ` <span class="mut">(${esc(l.codigo)})</span>` : ''}${descripcionHTML(l.detalle, esc)}</td>
     <td class="r">${l.cantidad}</td><td class="r">${num(l.pu)}</td><td class="r">${num(l.importe)}</td></tr>`).join('');
   return `${head}
     @page { size: ${isA5 ? 'A5' : 'A4'}; margin: ${isA5 ? '8mm' : '14mm'}; }
@@ -199,7 +200,7 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
     .brand{display:flex;gap:12px;align-items:center} .brand h1{margin:0;font-size:${isA5 ? 18 : 24}px;color:${nameColor}}
     .mut{color:#777} .r{text-align:right} .doc{text-align:right} .doc h2{margin:0;font-size:${isA5 ? 17 : 22}px} .doc .n{font-weight:700;font-size:15px}
     .client{background:#f6f6f8;border-radius:10px;padding:12px 14px;margin:16px 0;line-height:1.6;display:flex;flex-wrap:wrap;gap:6px 34px}
-    ${CONTACT_CSS}
+    ${CONTACT_CSS} ${DET_CSS_A4}
     table{width:100%;border-collapse:collapse} th{background:${accent};color:#fff;text-align:left;padding:9px 8px;font-size:12px}
     th.r{text-align:right} td{padding:9px 8px;border-bottom:1px solid #eee}
     .tots{width:${isA5 ? 230 : 300}px;margin:14px 0 0 auto} .tots .row{display:flex;justify-content:space-between;padding:4px 0}
@@ -217,7 +218,7 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
     .terminos{margin-top:16px;width:100%;padding:12px 16px;background:#fff;color:rgba(0,0,0,.8);border:1px solid #ddd;border-radius:8px;line-height:1.5;font-size:${isA5 ? 10.5 : 12}px;-webkit-print-color-adjust:exact;print-color-adjust:exact} .terminos strong{display:block;margin-bottom:4px;font-size:${isA5 ? 12 : 13.5}px}
     .foot{margin-top:22px;border-top:1px dashed #ccc;padding-top:10px;color:#666;font-size:12px}
     @media print{.no-print{display:none} body{padding:0}}
-  </style></head><body>${toolbar}
+  </style></head><body>${toolbar}${q.borrador ? `<div style="text-align:center;font-weight:700;border:1.5px dashed #B45309;color:#B45309;border-radius:8px;padding:4px;margin:0 0 10px">VISTA PREVIA · AÚN NO GUARDADA</div>` : ''}
     <div class="top">
       <div class="brand">${logo}<div><h1>${esc(info.nombre)}</h1>
         <div class="mut">${contactoRows(info)}</div></div></div>

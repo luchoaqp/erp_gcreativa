@@ -180,6 +180,14 @@ class ProductController extends Controller
             'es_pack' => $esPack,
         ];
         if ($has('activo')) $data['activo'] = self::bool($b['activo']);
+        // Descripción para clientes (cotizaciones, documentos de venta y web). La "descripcion" de arriba es interna.
+        if ($has('web_descripcion')) {
+            $txt = trim(str_replace("\r\n", "\n", Js::str($b['web_descripcion'] ?? '')));
+            $data['web_descripcion'] = $txt === '' ? null : mb_substr($txt, 0, 2000);
+        }
+        foreach (['desc_cotizacion', 'desc_documentos', 'desc_web'] as $flag) {
+            if ($has($flag)) $data[$flag] = self::bool($b[$flag]);
+        }
         if (!$esPack && $has('stock') && $b['stock'] !== '') $data['stock'] = max(0, Js::round(Js::or(Js::num($b['stock']), 0)));
         if ($esPack) $data['stock'] = 0;
 

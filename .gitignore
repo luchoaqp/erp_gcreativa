@@ -8,7 +8,7 @@ erp/storage/app/backups/*
 erp/storage/opcache/
 
 # Dependencias y compilados
-node_modules/
+node_modules
 erp/vendor/
 frontend/dist/
 web/dist/

@@ -1,5 +1,5 @@
 ---
-import { sitio, categorias } from '../data/sitio.js';
+import { sitio } from '../data/sitio.js';
 
 const anio = new Date().getFullYear();
 ---
@@ -14,11 +14,9 @@ const anio = new Date().getFullYear();
         <a class="reclamos" href="/contacto/#reclamos">Libro de Reclamaciones</a>
       </div>
       <div>
-        <h2>Categorías</h2>
-        <ul>
-          {categorias.slice(0, 7).map((o) => (
-            <li><a href={`/catalogo/?categoria=${o.slug}`}>{o.nombre}</a></li>
-          ))}
+        <h2>Catálogos</h2>
+        <ul id="pie-catalogos">
+          <li><a href="/catalogo/">Ver todos</a></li>
         </ul>
       </div>
       <div>
@@ -46,3 +44,16 @@ const anio = new Date().getFullYear();
     </div>
   </div>
 </footer>
+
+<script>
+  // Lista de catálogos del pie, según lo publicado desde el ERP
+  import { cargarCatalogo } from '../lib/catalogo.js';
+  const ul = document.getElementById('pie-catalogos');
+  cargarCatalogo()
+    .then((d) => {
+      const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+      const items = d.catalogos.slice(0, 8).map((c) => `<li><a href="/catalogo/?catalogo=${encodeURIComponent(c.slug)}">${esc(c.nombre)}</a></li>`);
+      if (items.length) ul.innerHTML = items.join('') + '<li><a href="/catalogo/">Ver todos</a></li>';
+    })
+    .catch(() => {});
+</script>

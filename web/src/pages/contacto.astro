@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { sitio, categorias } from '../data/sitio.js';
+import { sitio } from '../data/sitio.js';
 import { iconoWhatsApp, iconoCorreo, iconoUbicacion, iconoReloj } from '../components/Iconos.js';
 ---
 <Base titulo="Contacto" descripcion="Escríbenos por WhatsApp o correo para pedir tu regalo personalizado o cotizar regalos corporativos.">
@@ -48,10 +48,10 @@ import { iconoWhatsApp, iconoCorreo, iconoUbicacion, iconoReloj } from '../compo
           <input id="f-nombre" name="nombre" type="text" autocomplete="name" required />
         </div>
         <div class="campo">
-          <label for="f-ocasion">Categoría</label>
+          <label for="f-ocasion">Ocasión</label>
           <select id="f-ocasion" name="ocasion">
             <option value="">Aún no lo sé</option>
-            {categorias.map((o) => <option value={o.nombre}>{o.nombre}</option>)}
+            <option value="Otra">Otra</option>
           </select>
         </div>
         <div class="campo">
@@ -72,13 +72,23 @@ import { iconoWhatsApp, iconoCorreo, iconoUbicacion, iconoReloj } from '../compo
 <script>
   // Hoy: arma el mensaje y abre WhatsApp. Más adelante podrá enviarse a la API de erp.gcreativa.com.
   import { enlaceWhatsApp } from '../lib/render.js';
+  import { cargarCatalogo } from '../lib/catalogo.js';
+
+  // Ocasiones = catálogos publicados desde el ERP
+  const sel = document.getElementById('f-ocasion');
+  cargarCatalogo()
+    .then((d) => {
+      const otra = sel.querySelector('option[value="Otra"]');
+      for (const c of d.catalogos) sel.insertBefore(new Option(c.nombre, c.nombre), otra);
+    })
+    .catch(() => {});
 
   document.getElementById('form-contacto').addEventListener('submit', (ev) => {
     ev.preventDefault();
     const d = new FormData(ev.currentTarget);
     const partes = [
       `Hola Genia Creativa, soy ${d.get('nombre')}.`,
-      d.get('ocasion') && `Categoría: ${d.get('ocasion')}.`,
+      d.get('ocasion') && `Ocasión: ${d.get('ocasion')}.`,
       d.get('fecha') && `Fecha de entrega: ${d.get('fecha')}.`,
       `${d.get('mensaje')}`,
     ].filter(Boolean);

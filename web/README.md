@@ -56,17 +56,25 @@ Para actualizaciones posteriores repite los pasos 3 y 4 (sin tocar WordPress).
 
 ## 5. Conectado al ERP (erp.gcreativa.com) ✅
 
-- En el ERP abre `https://erp.gcreativa.com/catalogo-web`, activa los productos que quieres mostrar
-  (y, si quieres, una descripción para clientes) y pulsa **Publicar catálogo**.
-- El ERP escribe `public_html/data/catalogo.json` y copia las fotos a `public_html/img/catalogo/`.
-  La portada (destacados ★) y el catálogo lo vuelven a leer en el navegador: **no hay que recompilar**.
-- Los filtros de la web son los de `src/data/sitio.js`. Un producto entra en "Graduaciones" si en el ERP
-  tiene la categoría **o** la ocasión "Graduaciones" (se compara el slug: "Día del Maestro" → `dia-del-maestro`).
-- Productos sin foto muestran `/img/sin-foto.svg`.
-- ⚠️ Al subir una versión nueva de la web, **no reemplaces** `public_html/data/catalogo.json` ni
-  `public_html/img/catalogo/` (son los que publica el ERP). Si los reemplazas, basta con volver a pulsar
-  "Publicar catálogo".
-- El formulario de contacto hoy abre WhatsApp; luego podrá enviar a la API del ERP.
+La web **no tiene productos ni catálogos escritos en el código**. Todo sale del archivo
+`/data/catalogo.json`, que escribe el ERP cuando pulsas **Publicar catálogo**.
+
+| Lo que ves en la web | Dónde se gestiona en el ERP |
+|---|---|
+| **Catálogos**: tarjetas de Inicio, filtros del Catálogo, lista del pie y opciones de Contacto | **Categorías & Ocasiones → Ocasiones**: nombre + emoji. Orden: el de creación |
+| Productos de cada catálogo | La **ocasión** de cada producto, en su ficha |
+| Producto en varios catálogos | Además de su ocasión, una **categoría con el mismo nombre** que otra ocasión |
+| Nombre, precio y foto | La ficha del producto |
+| Descripción para clientes | `erp.gcreativa.com/catalogo-web` |
+| "Los más pedidos" y foto de portada de cada catálogo | Productos marcados ★ destacado |
+
+- Solo aparecen los catálogos con al menos un producto publicado.
+- Los productos sin ocasión salen al final, en "Más regalos".
+- Los enlaces se pueden compartir: `gcreativa.com/catalogo/?catalogo=navidad`.
+
+⚠️ Al subir una versión nueva de la web, **no reemplaces** `data/catalogo.json` ni `img/catalogo/`:
+son del ERP. El zip de la web se entrega sin esas carpetas. Si algún día se pierden,
+basta con volver a pulsar "Publicar catálogo".
 
 ## Estructura
 

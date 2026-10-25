@@ -14,8 +14,8 @@ class JwtAuth
     public static function secret(): string
     {
         $s = (string) config('erp.jwt_secret');
-        if ($s === '') throw new \RuntimeException('Falta JWT_SECRET en el archivo .env');
-        return $s;
+        // Sin JWT_SECRET en el .env se deriva una clave propia de esta instalación (nunca una fija en el código)
+        return $s !== '' ? $s : hash_hmac('sha256', 'erp-jwt', (string) config('app.key'));
     }
 
     public function handle(Request $request, Closure $next)

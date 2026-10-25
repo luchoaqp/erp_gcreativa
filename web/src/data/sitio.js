@@ -20,14 +20,7 @@ export const sitio = {
   urlCatalogo: '/data/catalogo.json',
 };
 
-// Categorías del catálogo. El slug se usa en los filtros: /catalogo/?categoria=para-ellas
-// Deben coincidir con los slugs del módulo "Categorías & Ocasiones" del ERP.
-export const categorias = [
-  { slug: 'para-ellas', nombre: 'Para ellas', color: '#B8327A' },
-  { slug: 'para-ellos', nombre: 'Para ellos', color: '#2E4A7D' },
-  { slug: 'padrinos', nombre: 'Padrinos', color: '#7A3F8F' },
-  { slug: 'graduaciones', nombre: 'Graduaciones', color: '#2F6F5E' },
-  { slug: 'profesiones', nombre: 'Profesiones', color: '#0F6E8C' },
-  { slug: 'navidad', nombre: 'Navidad', color: '#B3261E' },
-  { slug: 'dia-del-maestro', nombre: 'Día del Maestro', color: '#8A5A00' },
-];
+// Los CATÁLOGOS de la web (Para ellas, Navidad, Graduaciones…) ya no se escriben aquí:
+// salen de las OCASIONES del ERP cada vez que pulsas "Publicar catálogo" (erp.gcreativa.com/catalogo-web).
+// Estos son solo los tonos que se reparten entre ellos, en orden.
+export const tonosCatalogos = ['#B8327A', '#2E4A7D', '#7A3F8F', '#2F6F5E', '#0F6E8C', '#B3261E', '#8A5A00', '#5B4FA8'];

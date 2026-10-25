@@ -198,7 +198,7 @@ p { margin: 0 0 1em; }
   --tono: var(--baya);
   --giro: 0deg;
   position: relative;
-  display: inline-flex; align-items: center;
+  display: inline-flex; align-items: center; gap: 6px;
   min-height: 52px;
   padding: 0 22px 0 40px;
   font: 600 var(--t-base) / 1.1 var(--fuente-texto);
@@ -341,3 +341,55 @@ p { margin: 0 0 1em; }
 }
 .wa-flotante:hover { transform: scale(1.06); color: #fff; }
 .wa-flotante svg { width: 30px; height: 30px; }
+
+/* ---------- Catálogos (ocasiones publicadas desde el ERP) ---------- */
+.catalogos { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: clamp(14px, 2vw, 22px); }
+.catalogo-tarjeta {
+  --tono: var(--baya);
+  display: flex; flex-direction: column;
+  background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio);
+  overflow: hidden; text-decoration: none; color: var(--ciruela);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.catalogo-tarjeta:hover { transform: translateY(-3px); box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--tono) 70%, transparent); color: var(--ciruela); }
+.catalogo-tarjeta__foto {
+  position: relative; aspect-ratio: 4 / 3; overflow: hidden;
+  background: color-mix(in srgb, var(--tono) 14%, white);
+  display: grid; place-items: center;
+}
+.catalogo-tarjeta__foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.catalogo-tarjeta__icono {
+  position: relative; font-size: 2.6rem; line-height: 1;
+}
+.catalogo-tarjeta__foto img + .catalogo-tarjeta__icono {
+  position: absolute; left: 12px; bottom: 12px; font-size: 1.4rem;
+  background: var(--papel); border-radius: 999px; width: 44px; height: 44px; display: grid; place-items: center;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+}
+.catalogo-tarjeta__texto { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px 16px; border-top: 4px solid var(--tono); }
+.catalogo-tarjeta__texto strong { font-family: var(--fuente-titulo); font-size: 1.15rem; }
+.catalogo-tarjeta__texto span { font-size: var(--t-sm); color: var(--ciruela-suave); }
+
+.segmento { --tono: var(--baya); margin-top: 36px; }
+.segmento:first-child { margin-top: 8px; }
+.segmento__titulo {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px;
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  padding-bottom: 10px; margin-bottom: 18px;
+  border-bottom: 3px solid color-mix(in srgb, var(--tono) 35%, white);
+}
+.segmento__titulo small { font: 500 var(--t-sm) var(--fuente-texto); color: var(--ciruela-suave); }
+
+.aviso-vacio { color: var(--ciruela-suave); }
+
+/* Tarjetas "fantasma" mientras llega el catálogo */
+.esqueleto { min-height: 300px; border: 0; background: linear-gradient(100deg, var(--petalo-claro) 30%, var(--petalo) 50%, var(--petalo-claro) 70%); background-size: 300% 100%; animation: brillo 1.4s ease-in-out infinite; }
+.catalogo-tarjeta.esqueleto { min-height: 230px; }
+@keyframes brillo { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .esqueleto { animation: none; } }
+@media (max-width: 560px) {
+  .catalogos { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .catalogo-tarjeta__texto { padding: 10px 12px 12px; }
+  .catalogo-tarjeta__texto strong { font-size: 1rem; }
+  .esqueleto { min-height: 220px; }
+}

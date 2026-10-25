@@ -47,7 +47,7 @@ class WebCatalogController extends Controller
 
         $productos = [];
         $usadas = [];
-        $ocasiones = [];
+        $ocasionesUsadas = [];
         foreach ($rows as $r) {
             $ids = Js::t($r['cats']) ? array_map('intval', explode(',', (string) $r['cats'])) : (Js::t($r['categoria_id']) ? [(int) $r['categoria_id']] : []);
             $slugs = [];
@@ -59,7 +59,7 @@ class WebCatalogController extends Controller
             if (Js::t($r['ocasion'])) {
                 $os = self::slug($r['ocasion']);
                 $slugs[] = $os;
-                $ocasiones[$os] = $r['ocasion'];
+                $ocasionesUsadas[$os] = true;
             }
             $productos[] = [
                 'id' => $r['id'],
@@ -77,9 +77,18 @@ class WebCatalogController extends Controller
             if (!isset($usadas[$id])) continue;
             $categorias[] = ['slug' => $c['slug'], 'nombre' => $c['nombre'], 'color' => $c['color_badge'], 'tipo' => 'categoria'];
         }
-        foreach ($ocasiones as $slug => $nombre) {
-            if (in_array($slug, array_column($categorias, 'slug'), true)) continue;
-            $categorias[] = ['slug' => $slug, 'nombre' => $nombre, 'color' => null, 'tipo' => 'ocasion'];
+        // Las ocasiones son los "catálogos" de la web: van en el orden en que se crearon en el ERP, con su emoji.
+        // Si una categoría se llama igual que una ocasión, cuenta como ese catálogo (así un producto puede estar en varios).
+        $porSlug = array_column($categorias, null, 'slug');
+        $vistas = [];
+        foreach (Db::query('SELECT id, nombre, icono FROM ocasiones ORDER BY id') as $o) {
+            $slug = self::slug((string) $o['nombre']);
+            if ($slug === '' || isset($vistas[$slug])) continue;
+            $vistas[$slug] = true;
+            $usada = isset($ocasionesUsadas[$slug]) || isset($porSlug[$slug]);
+            if (!$usada) continue;
+            $categorias = array_values(array_filter($categorias, fn ($c) => $c['slug'] !== $slug));
+            $categorias[] = ['slug' => $slug, 'nombre' => $o['nombre'], 'color' => null, 'tipo' => 'ocasion', 'icono' => Js::t($o['icono']) ? $o['icono'] : null];
         }
         return [
             'version' => gmdate('Y-m-d\TH:i:s\Z'),

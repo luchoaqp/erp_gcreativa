@@ -54,21 +54,13 @@ Es el mismo ERP de siempre (mismas pantallas, misma base de datos), pero el "mot
 
 > Fotos y Excel grandes: el ERP acepta archivos de hasta 50 MB. Si una subida falla, ve a cPanel → *Editor INI MultiPHP* y sube `upload_max_filesize` y `post_max_size` a `60M`. El archivo `public/.user.ini` ya lo intenta automáticamente.
 
-## 3. Catálogo de la web (gcreativa.com) ← NUEVO
+## 3. Catálogo de la web (gcreativa.com)
 
-1. En el ERP abre **`https://erp.gcreativa.com/catalogo-web`**. Usa la misma sesión del ERP.
-2. Activa el interruptor de los productos que quieres mostrar en la web.
-   - Opcionalmente, escribe una descripción para clientes. La descripción interna del ERP **no** se publica, porque puede tener costos o notas.
-3. Pulsa **Publicar catálogo**.
-   - El ERP escribe `catalogo.json` y copia las fotos a la web.
-   - La web lo muestra al instante, sin recompilar nada.
-
-Así se arman los filtros de la web:
-
-- **Categorías propias de la web.** Se definen en `src/data/sitio.js` de la web: Para ellas, Para ellos, Padrinos, Graduaciones, Profesiones, Navidad y Día del Maestro.
-- **Cómo cae un producto en un filtro.** Un producto aparece en "Para ellas" si en el ERP tiene la categoría **Para ellas**, o la ocasión **Para ellas**. Lo mismo para las demás.
-- **Cómo se compara el nombre.** Por su *slug*: "Día del Maestro" → `dia-del-maestro`.
-- **Productos destacados.** Los marcados con ★ en el ERP aparecen en "Los más pedidos" de la portada.
+- **Catálogos de la web = Ocasiones del ERP.** Créalas en *Categorías & Ocasiones* con nombre y emoji. La web las muestra en el orden en que se crearon.
+- **Productos de cada catálogo:** se toma la *ocasión* de cada producto. Si quieres un producto en varios catálogos, agrégale además una *categoría* que se llame igual que la otra ocasión.
+- **Publicar:** en **`https://erp.gcreativa.com/catalogo-web`** activas los productos que salen en la web, escribes la descripción para clientes (la descripción interna **no** se publica) y pulsas **Publicar catálogo**.
+- El ERP escribe `catalogo.json` y copia las fotos a la web. Los cambios se ven al instante, sin recompilar nada.
+- Solo se muestran los catálogos con al menos un producto publicado.
 
 ## 4. Actualizaciones futuras del ERP
 

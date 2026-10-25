@@ -1,7 +1,57 @@
 {
   "version": "2026-10-25-borrador-2",
   "actualizado": "2026-10-25T00:00:00-05:00",
-  "categorias": [],
+  "categorias": [
+    {
+      "slug": "para-ellas",
+      "nombre": "Para ellas",
+      "color": null,
+      "tipo": "ocasion",
+      "icono": "💐"
+    },
+    {
+      "slug": "para-ellos",
+      "nombre": "Para ellos",
+      "color": null,
+      "tipo": "ocasion",
+      "icono": "🎁"
+    },
+    {
+      "slug": "padrinos",
+      "nombre": "Padrinos",
+      "color": null,
+      "tipo": "ocasion",
+      "icono": "🤍"
+    },
+    {
+      "slug": "graduaciones",
+      "nombre": "Graduaciones",
+      "color": null,
+      "tipo": "ocasion",
+      "icono": "🎓"
+    },
+    {
+      "slug": "profesiones",
+      "nombre": "Profesiones",
+      "color": null,
+      "tipo": "ocasion",
+      "icono": "🩺"
+    },
+    {
+      "slug": "navidad",
+      "nombre": "Navidad",
+      "color": null,
+      "tipo": "ocasion",
+      "icono": "🎄"
+    },
+    {
+      "slug": "dia-del-maestro",
+      "nombre": "Día del Maestro",
+      "color": null,
+      "tipo": "ocasion",
+      "icono": "🍎"
+    }
+  ],
   "productos": [
     {
       "id": 1,

@@ -224,6 +224,7 @@ export default function Quotes({ user, onConverted }) {
         <QuoteForm
           initial={formFor === 'new' ? null : formFor}
           cfg={cfg}
+          store={store}
           sym={sym}
           onClose={() => setFormFor(null)}
           onSaved={(id) => { setFormFor(null); loadList(); openDetail(id); }}
@@ -303,7 +304,7 @@ function DetailView({ q, sym, onPrint, onWhatsApp, onEdit, onConvert, onAnnul, o
           <tbody>
             {d.lines.map((l) => (
               <tr key={l.id} style={{ borderTop: '1px solid #EEF3F0', fontSize: '13.5px' }}>
-                <td style={{ padding: '10px 8px' }}>{l.descripcion}</td>
+                <td style={{ padding: '10px 8px' }}>{l.descripcion}{l.detalle && <div style={{ fontSize: '12px', color: '#64748B', whiteSpace: 'pre-line', marginTop: '3px' }}>{l.detalle}</div>}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'right' }}>{l.cantidad}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'right' }}>{l.pu.toFixed(2)}</td>
                 <td style={{ padding: '10px 8px', textAlign: 'right' }}>{l.importe.toFixed(2)}</td>
@@ -349,7 +350,7 @@ const Row = ({ a, b }) => (
 );
 
 /* --------------------------- Crear / Editar --------------------------- */
-function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
+function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
   const duplicating = !!(initial && initial.__duplicate);
   const editing = !!initial && !duplicating;
   const pct = Number(cfg.igv_porcentaje ?? 18);
@@ -364,6 +365,7 @@ function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
   const [cliQuery, setCliQuery] = useState(initial && initial.cliente_nombre !== 'Cliente Varios' ? initial.cliente_nombre : '');
   const [cliResults, setCliResults] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [form, setForm] = useState({
     cliente_id: initial?.cliente_id || null,
     cliente_telefono: initial?.cliente_telefono || '',
@@ -385,7 +387,7 @@ function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
   });
   const [lines, setLines] = useState(
     initial ? initial.items.map((i) => ({
-      producto_id: i.producto_id, codigo: i.codigo, descripcion: i.descripcion,
+      producto_id: i.producto_id, codigo: i.codigo, descripcion: i.descripcion, detalle: i.detalle || '',
       cantidad: i.cantidad, precio_unitario: String(i.precio_unitario)
     })) : []
   );
@@ -417,7 +419,9 @@ function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
     setLines((prev) => {
       const i = prev.findIndex((l) => l.producto_id === p.id);
       if (i >= 0) return prev.map((l, k) => (k === i ? withTier({ ...l, cantidad: Number(l.cantidad) + 1 }) : l));
-      return [...prev, { producto_id: p.id, codigo: p.codigo, descripcion: p.nombre, cantidad: 1, precio_unitario: String(precioPorCantidad(p, 1)), precio_manual: false }];
+      // La descripción para clientes del producto (ej. qué incluye el box) se copia y se puede editar en esta cotización
+      const detalle = Number(p.desc_cotizacion ?? 1) !== 0 && p.web_descripcion ? p.web_descripcion : '';
+      return [...prev, { producto_id: p.id, codigo: p.codigo, descripcion: p.nombre, detalle, cantidad: 1, precio_unitario: String(precioPorCantidad(p, 1)), precio_manual: false }];
     });
     setProdQuery('');
   };
@@ -446,6 +450,27 @@ function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
   const igv = form.aplicar_igv ? r2(subtotal * pct / 100) : 0; // embalaje/traslado no llevan IGV
   const total = r2(subtotal + envio + igv);
 
+  // Paso 1: revisar el documento tal como lo verá el cliente; paso 2: confirmar y guardar
+  const verPrevia = () => {
+    if (lines.length === 0) { alert('Agrega al menos un producto.'); return; }
+    if (lines.some((l) => !(Number(l.cantidad) >= 1))) { alert('Revisa las cantidades: deben ser al menos 1.'); return; }
+    setPreview(true);
+  };
+  const borrador = () => {
+    const hoy = new Date();
+    const vence = new Date(hoy.getTime() + (Number(form.vigencia_dias) || 0) * 86400000);
+    const iso = (d) => d.toLocaleDateString('en-CA');
+    return {
+      borrador: true, numero: editing ? initial.numero : 'VISTA PREVIA', fecha: iso(hoy), fecha_vencimiento: iso(vence),
+      cliente_nombre: cliQuery.trim() || 'Cliente Varios', cliente_telefono: form.cliente_telefono, cliente_documento: form.cliente_documento,
+      vendedor_nombre: initial?.vendedor_nombre,
+      aplicar_igv: form.aplicar_igv ? 1 : 0, mostrar_igv: form.aplicar_igv && form.mostrar_igv ? 1 : 0, igv_porcentaje: pct,
+      costo_envio: envio, cargos_json: cargos, subtotal, igv_monto: igv, total,
+      nota: form.nota, mostrar_terminos: form.mostrar_terminos ? 1 : 0, adelanto_tipo: form.adelanto_tipo, adelanto_valor: Number(form.adelanto_valor) || 0,
+      items: lines.map((l) => ({ codigo: l.codigo, descripcion: l.descripcion, detalle: l.detalle, cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario) }))
+    };
+  };
+
   const save = async () => {
     if (lines.length === 0) { alert('Agrega al menos un producto.'); return; }
     const payload = {
@@ -462,7 +487,7 @@ function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
       adelanto_tipo: form.adelanto_tipo,
       adelanto_valor: Number(form.adelanto_valor) || 0,
       items: lines.map((l) => ({
-        producto_id: l.producto_id, descripcion: l.descripcion,
+        producto_id: l.producto_id, descripcion: l.descripcion, detalle: (l.detalle || '').trim(),
         cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario)
       }))
     };
@@ -534,7 +559,16 @@ function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
           <tbody>
             {lines.map((l, i) => (
               <tr key={l.producto_id} style={{ borderTop: '1px solid #EEF3F0' }}>
-                <td style={{ padding: '6px' }}><input style={inputStyle} value={l.descripcion} onChange={(e) => setLine(i, { descripcion: e.target.value })} /></td>
+                <td style={{ padding: '6px' }}>
+                  <input style={inputStyle} value={l.descripcion} onChange={(e) => setLine(i, { descripcion: e.target.value })} />
+                  {(l.detalle || l.verDetalle) ? (
+                    <textarea rows={Math.min(6, Math.max(2, String(l.detalle || '').split('\n').length))} value={l.detalle || ''} placeholder="Descripción para el cliente (ej. qué incluye). Déjala vacía para no mostrarla."
+                      onChange={(e) => setLine(i, { detalle: e.target.value })}
+                      style={{ ...inputStyle, marginTop: '4px', fontSize: '12.5px', color: '#475569', resize: 'vertical', lineHeight: 1.4 }} />
+                  ) : (
+                    <button type="button" onClick={() => setLine(i, { verDetalle: true })} style={{ fontSize: '11.5px', color: 'var(--primary)', background: 'none', border: 0, cursor: 'pointer', padding: '3px 0', fontWeight: 700 }}>+ Agregar descripción</button>
+                  )}
+                </td>
                 <td style={{ padding: '6px' }}><input type="number" min="1" style={inputStyle} value={l.cantidad} onChange={(e) => setLine(i, { cantidad: e.target.value })} /></td>
                 <td style={{ padding: '6px' }}>
                   <input type="number" min="0" step="0.01" style={inputStyle} value={l.precio_unitario} onChange={(e) => setLine(i, { precio_unitario: e.target.value })} />
@@ -610,10 +644,29 @@ function QuoteForm({ initial, cfg, sym, onClose, onSaved }) {
 
       <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
         <button onClick={onClose} style={btn('#F1F5F9', '#475569')}>Cancelar</button>
-        <button onClick={save} disabled={saving} className="btn-primary" style={{ flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px' }}>
-          <Check size={17} /> {saving ? 'Guardando...' : editing ? 'Guardar cambios' : 'Guardar cotización'}
+        <button onClick={verPrevia} disabled={saving} className="btn-primary" style={{ flex: 1, padding: '11px', borderRadius: '12px', fontSize: '14px' }}>
+          <Eye size={17} /> {saving ? 'Guardando...' : editing ? 'Vista previa y guardar cambios' : 'Vista previa y guardar'}
         </button>
       </div>
+      {preview && (() => {
+        const q = borrador();
+        const bt = (bg, color, extra) => ({ padding: '11px', borderRadius: '12px', fontSize: '14px', fontWeight: 800, background: bg, color, border: 'none', cursor: saving ? 'wait' : 'pointer', ...extra });
+        return (
+          <PrintModal
+            title={editing ? `Vista previa · ${initial.numero}` : 'Vista previa de la cotización'}
+            subtitle="Así la verá tu cliente. Aún no se ha guardado."
+            docs={[{ key: 'previa', label: 'Cotización', build: (fm) => buildQuoteHTML(q, cfg, store, fm, { toolbar: false }), message: '' }]}
+            showWhatsApp={false}
+            onClose={() => setPreview(false)}
+            actions={(
+              <div style={{ display: 'grid', gap: '8px', paddingBottom: '10px', borderBottom: '1px solid #E2E8F0' }}>
+                <button disabled={saving} onClick={save} style={bt('#16A34A', '#fff')}>{saving ? 'Guardando…' : editing ? 'Confirmar y guardar cambios' : 'Confirmar y guardar cotización'}</button>
+                <button disabled={saving} onClick={() => setPreview(false)} style={bt('#F1F5F9', '#475569')}>← Volver y editar</button>
+              </div>
+            )}
+          />
+        );
+      })()}
     </Modal>
   );
 }

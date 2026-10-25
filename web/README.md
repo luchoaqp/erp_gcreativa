@@ -65,7 +65,7 @@ La web **no tiene productos ni catálogos escritos en el código**. Todo sale de
 | Productos de cada catálogo | La **ocasión** de cada producto, en su ficha |
 | Producto en varios catálogos | Además de su ocasión, una **categoría con el mismo nombre** que otra ocasión |
 | Nombre, precio y foto | La ficha del producto |
-| Descripción para clientes | `erp.gcreativa.com/catalogo-web` |
+| Descripción para clientes (qué incluye; las líneas con • salen como lista) | Ficha del producto o pack → *Descripción para clientes* (con la casilla "Página web"), o `/catalogo-web` |
 | "Destacados" (vista inicial del Catálogo), "Los más pedidos" y portada de cada catálogo | La ★ (favorito) en `/catalogo-web` o "Destacado" en la ficha del producto. De cada catálogo sin favorito se muestra su primer producto |
 
 - Solo aparecen los catálogos con al menos un producto publicado.

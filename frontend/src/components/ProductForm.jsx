@@ -3,6 +3,7 @@ import { X, Package, Calculator, Boxes, Camera, Plus, ChevronDown, Trash2, Facto
 import { productsAPI, categoriesAPI } from '../api';
 import { imageToDataUrls } from '../utils/image';
 import { imgSrc } from '../utils/img';
+import ClientDescription from './ClientDescription';
 import ComponentEditor, { totalsOf } from './ComponentEditor';
 import './party.css';
 
@@ -22,7 +23,8 @@ const emptyForm = () => ({
   unidad: 'NIU', moneda: 'PEN', categoria_id: '', ocasion_id: '', marca_id: '', nombre_secundario: '', modelo: '', linea: '', codigo_fabrica: '',
   descripcion: '', categorias_ids: [], es_personalizable: true, destacado: false, activo: 1,
   precio_editable: true, precio_por_cantidad: false, proveedor_id: '', ganancia_pct: '', calcular_con_ganancia: false,
-  es_insumo: false, precio_insumo: '', requiere_insumos: false
+  es_insumo: false, precio_insumo: '', requiere_insumos: false,
+  web_descripcion: '', desc_cotizacion: true, desc_documentos: true, desc_web: true
 });
 
 export default function ProductForm({ productId, duplicateFrom, categories, catalog, onClose, onSaved, onCategoryCreated }) {
@@ -256,7 +258,7 @@ export default function ProductForm({ productId, duplicateFrom, categories, cata
                   </div>
                   <div style={{ border: '1px solid #E4EAF0', borderRadius: 12, padding: '10px 14px' }}>
                     <button type="button" onClick={() => setMore((v) => !v)} style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 0, cursor: 'pointer', textAlign: 'left' }}>
-                      <span><strong style={{ color: '#1C2A38' }}>Más datos</strong><br /><span style={{ fontSize: 12, color: '#788A9B' }}>Nombre secundario, modelo, línea, código de fábrica y descripción</span></span>
+                      <span><strong style={{ color: '#1C2A38' }}>Más datos</strong><br /><span style={{ fontSize: 12, color: '#788A9B' }}>Nombre secundario, modelo, línea, código de fábrica y nota interna</span></span>
                       <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: 13 }}>{more ? 'Ocultar' : 'Mostrar'} <ChevronDown size={14} style={{ verticalAlign: 'middle', transform: more ? 'rotate(180deg)' : 'none' }} /></span>
                     </button>
                     {more && (
@@ -267,7 +269,7 @@ export default function ProductForm({ productId, duplicateFrom, categories, cata
                           <div className="pm-f"><label>Línea</label><input className="pm-in" value={f.linea || ''} onChange={(e) => set({ linea: e.target.value })} /></div>
                           <div className="pm-f"><label>Código de fábrica</label><input className="pm-in" value={f.codigo_fabrica || ''} onChange={(e) => set({ codigo_fabrica: e.target.value })} /></div>
                         </div>
-                        <div className="pm-f"><label>Descripción</label><textarea rows={2} className="pm-in" value={f.descripcion || ''} onChange={(e) => set({ descripcion: e.target.value })} /></div>
+                        <div className="pm-f"><label>Nota interna (no la ve el cliente)</label><textarea rows={2} className="pm-in" value={f.descripcion || ''} onChange={(e) => set({ descripcion: e.target.value })} /></div>
                         <div className="pm-row wrap" style={{ alignItems: 'center', gap: 20 }}>
                           <label style={{ fontSize: 13 }}>Stock mínimo (alerta): <input type="number" min="0" className="pm-in" style={{ width: 80, display: 'inline-block', marginLeft: 6 }} value={f.stock_minimo} onChange={(e) => set({ stock_minimo: e.target.value })} /></label>
                           <label style={{ fontSize: 13 }}><input type="checkbox" checked={f.es_personalizable} onChange={(e) => set({ es_personalizable: e.target.checked })} /> Personalizable</label>
@@ -277,6 +279,7 @@ export default function ProductForm({ productId, duplicateFrom, categories, cata
                       </div>
                     )}
                   </div>
+                  <ClientDescription value={f} onChange={set} />
                 </div>
               )}
 

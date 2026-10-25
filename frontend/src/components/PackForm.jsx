@@ -4,6 +4,7 @@ import { productsAPI, categoriesAPI } from '../api';
 import { imageToDataUrls } from '../utils/image';
 import { imgSrc } from '../utils/img';
 import ComponentEditor, { totalsOf } from './ComponentEditor';
+import ClientDescription, { sugerenciaDesdeComponentes } from './ClientDescription';
 import './party.css';
 
 const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
@@ -17,7 +18,7 @@ const Step = ({ n, title, sub }) => (
 );
 
 export default function PackForm({ packId, catalog, categories, onClose, onSaved }) {
-  const [f, setF] = useState({ nombre: '', precio_venta: '', codigo: '', codigo_barras: '', categoria_id: '', ocasion_id: '', marca_id: '', imagen_url: '', descripcion: '', unidad: 'NIU', activo: 1 });
+  const [f, setF] = useState({ nombre: '', precio_venta: '', codigo: '', codigo_barras: '', categoria_id: '', ocasion_id: '', marca_id: '', imagen_url: '', descripcion: '', unidad: 'NIU', activo: 1, web_descripcion: '', desc_cotizacion: true, desc_documentos: true, desc_web: true });
   const [ocasiones, setOcasiones] = useState([]);
   const [items, setItems] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -36,7 +37,8 @@ export default function PackForm({ packId, catalog, categories, onClose, onSaved
         setF({
           nombre: p.nombre || '', precio_venta: p.precio_venta ?? '', codigo: p.codigo || '', codigo_barras: p.codigo_barras || '',
           categoria_id: p.categoria_id || '', ocasion_id: p.ocasion_id || '', marca_id: p.marca_id || '', imagen_url: p.imagen_url || '', descripcion: p.descripcion || '',
-          unidad: p.unidad || 'NIU', activo: p.activo
+          unidad: p.unidad || 'NIU', activo: p.activo,
+          web_descripcion: p.web_descripcion || '', desc_cotizacion: p.desc_cotizacion ?? 1, desc_documentos: p.desc_documentos ?? 1, desc_web: p.desc_web ?? 1
         });
         const comps = p.componentes || [];
         setItems(comps);
@@ -132,7 +134,10 @@ export default function PackForm({ packId, catalog, categories, onClose, onSaved
                 <button type="button" className="pm-btn-outline" style={{ fontSize: 12.5, padding: '5px 10px' }} disabled={!items.length} onClick={() => set({ precio_venta: String(r2(tot.costo * 1.5)) })}>Sugerir con 50% de ganancia</button>
               </div>
 
-              <Step n={3} title="Datos adicionales" sub="Opcional: códigos, categoría, marca e imagen." />
+              <Step n={3} title="Descripción para clientes" sub="Qué incluye: sale debajo del nombre en cotizaciones, documentos y la web." />
+              <ClientDescription value={f} onChange={set} sugerencia={sugerenciaDesdeComponentes(items)} titulo={false} />
+
+              <Step n={4} title="Datos adicionales" sub="Opcional: códigos, categoría, marca e imagen." />
               <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 16 }}>
                 <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 120, height: 120, border: '1.5px dashed #C9D2E5', borderRadius: 14, background: '#F7F9FB', cursor: 'pointer', overflow: 'hidden', color: '#788A9B', fontSize: 12, gap: 6 }}>
                   {f.imagen_url ? <img src={imgSrc(f.imagen_url)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <><Camera size={22} />Imagen</>}
@@ -149,7 +154,7 @@ export default function PackForm({ packId, catalog, categories, onClose, onSaved
                     <div className="pm-f"><label>Marca</label>
                       <select className="pm-in" value={f.marca_id} onChange={(e) => set({ marca_id: e.target.value })}><option value="">Sin marca</option>{brands.map((b) => <option key={b.id} value={b.id}>{b.nombre}</option>)}</select></div>
                   </div>
-                  <div className="pm-f"><label>Descripción</label><textarea rows={2} className="pm-in" value={f.descripcion || ''} onChange={(e) => set({ descripcion: e.target.value })} /></div>
+                  <div className="pm-f"><label>Nota interna (no la ve el cliente)</label><textarea rows={2} className="pm-in" value={f.descripcion || ''} onChange={(e) => set({ descripcion: e.target.value })} /></div>
                 </div>
               </div>
             </>

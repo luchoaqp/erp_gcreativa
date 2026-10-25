@@ -9,7 +9,7 @@ import React, { useEffect, useRef, useState } from 'react';
  * Se monta una sola vez en App.jsx; no requiere cambios en cada formulario.
  */
 const MODAL_SEL = '.pm-modal-bg, .modal-overlay';
-const SAVE_RE = /^\s*(guardar|actualizar)/i;
+const SAVE_RE = /^\s*(guardar|actualizar|vista previa y guardar)/i;
 const CLOSE_RE = /^\s*(cancelar|cerrar|salir|volver)\s*$/i;
 
 const isEditable = (modal) => !!modal.querySelector('form') || [...modal.querySelectorAll('button')].some((b) => SAVE_RE.test(b.textContent || ''));
@@ -39,7 +39,9 @@ export default function UnsavedGuard() {
     const onClick = (e) => {
       if (!(e.target instanceof Element)) return;
       const btn = e.target.closest('button');
-      if (!btn || btn.type === 'submit' || btn.closest('[data-guard-dialog]')) return;
+      // Un <button> sin type cuenta como "submit" para el navegador aunque no esté en un formulario:
+      // solo se deja pasar el que realmente envía un formulario (ese guarda).
+      if (!btn || (btn.type === 'submit' && btn.form) || btn.closest('[data-guard-dialog]')) return;
       const modal = btn.closest(MODAL_SEL);
       if (!modal) return;
       const label = (btn.getAttribute('aria-label') || btn.getAttribute('title') || btn.textContent || '').trim();

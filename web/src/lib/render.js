@@ -12,6 +12,23 @@ export function enlaceWhatsApp(mensaje) {
 }
 
 const SIN_FOTO = '/img/sin-foto.svg';
+
+// Descripción del ERP ("Incluye:\n• 2 tazas…"): las líneas que empiezan con •, - o "* " se muestran como lista
+const VINETA = /^(?:[•·▪●◦\-–—]|\*(?=\s))\s*(.+)$/;
+export function descripcionHTML(texto) {
+  const lineas = String(texto || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (!lineas.length) return '';
+  let html = '';
+  let lista = [];
+  const cerrar = () => { if (lista.length) { html += `<ul>${lista.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`; lista = []; } };
+  for (const l of lineas) {
+    const m = VINETA.exec(l);
+    if (m) lista.push(m[1]);
+    else { cerrar(); html += `<p>${esc(l)}</p>`; }
+  }
+  cerrar();
+  return `<div class="producto__desc">${html}</div>`;
+}
 const GIROS = [-3, 2, -1.5, 3, -2.5, 1.5, -2, 2.5];
 
 /**
@@ -34,7 +51,7 @@ export function tarjetaProducto(p, cat = { catalogos: [], nombres: new Map() }) 
   <div class="producto__cuerpo">
     ${chips ? `<ul class="producto__categorias" aria-label="Catálogos">${chips}</ul>` : ''}
     <h3 class="producto__nombre">${esc(p.nombre)}</h3>
-    ${p.descripcion ? `<p class="producto__desc">${esc(p.descripcion)}</p>` : ''}
+    ${descripcionHTML(p.descripcion)}
     <div class="producto__pie">
       <p class="producto__precio"><span>Desde</span> ${precioSoles(p.precio)}</p>
       <a class="boton boton--chico" href="${enlaceWhatsApp(msg)}" target="_blank" rel="noopener">Pedir</a>

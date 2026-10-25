@@ -26,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'roles' => \App\Http\Middleware\AuthorizeRoles::class,
             'acceso' => \App\Http\Middleware\ModuleAccess::class,
         ]);
+        // Cambios de base de datos de cada actualización: se aplican solos en la primera petición a la API
+        $middleware->prependToGroup('api', \App\Http\Middleware\AutoMigrate::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->dontReport([\App\Support\HttpError::class]);

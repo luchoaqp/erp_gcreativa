@@ -117,12 +117,14 @@ class WebCatalogController extends Controller
     }
 
     /** Lista para la pantalla /catalogo-web: todos los productos vendibles con su marca de visibilidad */
+    /** Lista para la pantalla /catalogo-web: productos vendibles con su ocasión, categorías y estado en la web */
     public function products()
     {
         try {
             $rows = Db::query(
                 "SELECT p.id, p.codigo, p.nombre, p.precio_venta, p.imagen_url, p.activo, p.destacado, p.web_visible, p.web_descripcion,
-                        c.nombre AS categoria, o.nombre AS ocasion
+                        p.ocasion_id, c.nombre AS categoria, o.nombre AS ocasion,
+                        (SELECT GROUP_CONCAT(pc.categoria_id) FROM producto_categorias pc WHERE pc.producto_id = p.id) AS cats, p.categoria_id
                  FROM productos p
                  LEFT JOIN categorias c ON c.id = p.categoria_id
                  LEFT JOIN ocasiones o ON o.id = p.ocasion_id
@@ -130,11 +132,20 @@ class WebCatalogController extends Controller
                  ORDER BY p.activo DESC, p.web_visible DESC, p.nombre"
             );
             foreach ($rows as &$r) {
-                $img = (string) $r['imagen_url'];
-                if (str_starts_with($img, 'data:')) $r['imagen_url'] = null; // la lista no necesita base64 pesados
+                if (str_starts_with((string) $r['imagen_url'], 'data:')) $r['imagen_url'] = null; // la lista no necesita base64 pesados
+                $ids = Js::t($r['cats']) ? array_map('intval', explode(',', (string) $r['cats'])) : [];
+                if (Js::t($r['categoria_id'])) $ids[] = (int) $r['categoria_id'];
+                $r['categoria_ids'] = array_values(array_unique($ids));
+                unset($r['cats']);
             }
             unset($r);
-            return $this->json(['success' => true, 'productos' => $rows, 'destino' => config('erp.catalogo_web_path')]);
+            return $this->json([
+                'success' => true,
+                'productos' => $rows,
+                'ocasiones' => Db::query('SELECT id, nombre, icono FROM ocasiones ORDER BY id'),
+                'categorias' => Db::query('SELECT id, nombre FROM categorias WHERE estado = 1 ORDER BY nombre'),
+                'destino' => config('erp.catalogo_web_path'),
+            ]);
         } catch (\Throwable $e) {
             return $this->sendError($e, 'Error al listar productos');
         }
@@ -147,7 +158,9 @@ class WebCatalogController extends Controller
             $set = [];
             if (array_key_exists('web_visible', $b)) $set['web_visible'] = Js::t($b['web_visible']) ? 1 : 0;
             if (array_key_exists('web_descripcion', $b)) $set['web_descripcion'] = Js::t($b['web_descripcion']) ? Js::slice(trim((string) $b['web_descripcion']), 0, 300) : null;
-            if (!$set) throw new HttpError(400, 'Envía web_visible y/o web_descripcion');
+            // Favorito = el mismo "Destacado" de la ficha del producto (portada de la web y de cada catálogo)
+            if (array_key_exists('destacado', $b)) $set['destacado'] = Js::t($b['destacado']) ? 1 : 0;
+            if (!$set) throw new HttpError(400, 'Envía web_visible, web_descripcion y/o destacado');
             $r = Db::query('UPDATE productos SET ? WHERE id = ?', [$set, $id]);
             if (!$r['affectedRows']) throw new HttpError(404, 'Producto no encontrado');
             return $this->json(['success' => true]);

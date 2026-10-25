@@ -12,15 +12,15 @@ import { esqueleto, enlaceWhatsApp } from '../lib/render.js';
 
   <section class="seccion" style="padding-top:24px">
     <div class="contenedor">
-      <div class="etiquetas" id="catalogo-filtros" role="group" aria-label="Elegir catálogo"></div>
+      <div class="etiquetas etiquetas--fila" id="catalogo-filtros" role="group" aria-label="Elegir catálogo"></div>
 
       <div class="catalogo__barra">
+        <h2 class="catalogo__titulo" id="catalogo-titulo"></h2>
         <span id="catalogo-conteo" aria-live="polite">Cargando catálogo…</span>
-        <button class="catalogo__limpiar" type="button" id="catalogo-limpiar" hidden>Ver todos los catálogos</button>
       </div>
 
-      <div id="catalogo-contenido" aria-busy="true">
-        <div class="grilla"><Fragment set:html={esqueleto(8)} /></div>
+      <div class="grilla" id="catalogo-grilla" aria-busy="true">
+        <Fragment set:html={esqueleto(8)} />
       </div>
 
       <div class="catalogo__vacio" id="catalogo-vacio" hidden>

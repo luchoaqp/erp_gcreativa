@@ -58,6 +58,8 @@ Es el mismo ERP de siempre (mismas pantallas, misma base de datos), pero el "mot
 
 - **Catálogos de la web = Ocasiones del ERP.** Créalas en *Categorías & Ocasiones* con nombre y emoji. La web las muestra en el orden en que se crearon.
 - **Productos de cada catálogo:** se toma la *ocasión* de cada producto. Si quieres un producto en varios catálogos, agrégale además una *categoría* que se llame igual que la otra ocasión.
+- **Favoritos ★:** en `/catalogo-web` la estrella marca el producto como *Destacado*, que es lo mismo que la casilla de la ficha. Aparece primero en "Destacados", la vista inicial del catálogo de la web, y como portada de su catálogo.
+- **Pestañas:** en `/catalogo-web` puedes ver los productos por *Ocasiones* o por *Categorías*, y filtrarlos por estado (en la web, favoritos, sin publicar).
 - **Publicar:** en **`https://erp.gcreativa.com/catalogo-web`** activas los productos que salen en la web, escribes la descripción para clientes (la descripción interna **no** se publica) y pulsas **Publicar catálogo**.
 - El ERP escribe `catalogo.json` y copia las fotos a la web. Los cambios se ven al instante, sin recompilar nada.
 - Solo se muestran los catálogos con al menos un producto publicado.

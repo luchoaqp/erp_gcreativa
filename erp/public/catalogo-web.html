@@ -6,10 +6,10 @@
 <title>Catálogo web · ERP Genia Creativa</title>
 <link rel="icon" href="/favicon.svg">
 <style>
-  :root { --rosa: #de569a; --baya: #b8327a; --amarillo: #fdc408; --tinta: #2b1a2b; --gris: #6b5f6b; --linea: #eadfe7; --fondo: #faf6f9; --verde: #15803d; }
+  :root { --rosa: #de569a; --baya: #b8327a; --baya-suave: #fbe4ef; --amarillo: #fdc408; --tinta: #2b1a2b; --gris: #6b5f6b; --linea: #eadfe7; --fondo: #faf6f9; --verde: #15803d; }
   * { box-sizing: border-box; }
   body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--tinta); background: var(--fondo); }
-  header { position: sticky; top: 0; z-index: 2; background: #fff; border-bottom: 1px solid var(--linea); padding: 14px 16px; }
+  header { position: sticky; top: 0; z-index: 3; background: #fff; border-bottom: 1px solid var(--linea); padding: 12px 16px; }
   .fila { max-width: 1100px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   h1 { font-size: 20px; margin: 0; flex: 1 1 auto; }
   h1 small { display: block; font-size: 13px; font-weight: 400; color: var(--gris); }
@@ -18,21 +18,41 @@
   .principal { background: var(--baya); color: #fff; font-weight: 600; }
   .principal:disabled { opacity: .55; cursor: wait; }
   .secundario { background: #fff; color: var(--baya); border: 1.5px solid var(--baya); }
-  .barra { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
-  input[type=search], select { font: inherit; padding: 8px 12px; border: 1px solid var(--linea); border-radius: 10px; background: #fff; min-width: 0; }
-  input[type=search] { flex: 1 1 220px; }
+
+  /* Pestañas por ocasión / categoría */
+  .vistas { display: flex; gap: 6px; margin-bottom: 10px; }
+  .vistas button { padding: 7px 14px; background: #fff; border: 1px solid var(--linea); color: var(--gris); font-weight: 600; }
+  .vistas button[aria-selected="true"] { background: var(--tinta); border-color: var(--tinta); color: #fff; }
+  .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 10px; margin-bottom: 8px; scrollbar-width: thin; border-bottom: 1px solid var(--linea); }
+  .tabs button { flex: 0 0 auto; padding: 8px 14px; background: #fff; border: 1px solid var(--linea); color: var(--tinta); white-space: nowrap; }
+  .tabs button .n { display: inline-block; margin-left: 6px; min-width: 22px; padding: 0 6px; border-radius: 999px; background: var(--fondo); color: var(--gris); font-size: 12px; text-align: center; }
+  .tabs button[aria-selected="true"] { background: var(--baya); border-color: var(--baya); color: #fff; }
+  .tabs button[aria-selected="true"] .n { background: rgb(255 255 255 / .25); color: #fff; }
+  .tabs button:focus-visible, .vistas button:focus-visible, .estado button:focus-visible { outline: 3px solid var(--amarillo); outline-offset: 1px; }
+
+  .barra { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; align-items: center; }
+  input[type=search] { font: inherit; padding: 8px 12px; border: 1px solid var(--linea); border-radius: 10px; background: #fff; flex: 1 1 220px; min-width: 0; }
+  .estado { display: inline-flex; max-width: 100%; overflow-x: auto; background: #fff; border: 1px solid var(--linea); border-radius: 999px; padding: 3px; }
+  .estado button { padding: 6px 12px; background: transparent; color: var(--gris); font-size: 14px; white-space: nowrap; flex: 0 0 auto; }
+  .estado button[aria-pressed="true"] { background: var(--baya-suave); color: var(--baya); font-weight: 600; }
+  .resumen { color: var(--gris); font-size: 14px; }
+  .resumen b { color: var(--baya); }
+
   .aviso { padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; display: none; }
   .aviso.ok { display: block; background: #e8f6ec; color: var(--verde); }
   .aviso.error { display: block; background: #fdecec; color: #b42318; }
   .aviso.info { display: block; background: #fff8e1; color: #7a5b00; }
   .lista { display: grid; gap: 8px; }
-  .item { display: grid; grid-template-columns: auto 56px 1fr; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--linea); border-radius: 14px; padding: 10px 12px; }
+  .item { display: grid; grid-template-columns: auto 56px 1fr auto; gap: 12px; align-items: center; background: #fff; border: 1px solid var(--linea); border-radius: 14px; padding: 10px 12px; }
   .item.inactivo { opacity: .55; }
   .item img, .item .sinfoto { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: #fdf0f6; }
   .nombre { font-weight: 600; }
   .meta { color: var(--gris); font-size: 13px; }
   .desc { width: 100%; margin-top: 6px; font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--linea); border-radius: 8px; }
   .desc:disabled { background: #f6f2f5; }
+  .estrella { background: transparent; padding: 6px 8px; font-size: 22px; line-height: 1; color: #cdbfc8; border-radius: 10px; }
+  .estrella[aria-pressed="true"] { color: #e0a800; }
+  .estrella:hover { background: var(--fondo); }
   .interruptor { position: relative; width: 46px; height: 26px; }
   .interruptor input { opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; position: absolute; z-index: 1; }
   .interruptor span { position: absolute; inset: 0; border-radius: 99px; background: #d8ccd5; transition: .15s; }
@@ -40,100 +60,168 @@
   .interruptor input:checked + span { background: var(--rosa); }
   .interruptor input:checked + span::after { left: 23px; }
   .interruptor input:focus-visible + span { outline: 3px solid var(--amarillo); }
-  .contador { font-weight: 600; color: var(--baya); }
   .vacio { text-align: center; color: var(--gris); padding: 40px 0; }
+  .ayuda { font-size: 13px; color: var(--gris); margin: 4px 0 0; }
+  @media (max-width: 560px) {
+    .item { grid-template-columns: auto 48px 1fr; }
+    .item img, .item .sinfoto { width: 48px; height: 48px; }
+    .estrella { grid-column: 3; justify-self: start; padding: 2px 0; font-size: 18px; }
+    .estrella::after { content: " Favorito"; font-size: 13px; color: var(--gris); }
+  }
 </style>
 </head>
 <body>
 <header>
   <div class="fila">
-    <h1>Catálogo de la web<small>Elige qué productos se muestran en gcreativa.com y publícalos.</small></h1>
+    <h1>Catálogo de la web<small>Elige qué productos se muestran en gcreativa.com, marca tus favoritos ★ y publica.</small></h1>
     <a class="btn secundario" href="/">Volver al ERP</a>
     <button class="principal" id="publicar" type="button">Publicar catálogo</button>
   </div>
 </header>
 <main>
   <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <div class="vistas" role="tablist" aria-label="Agrupar por">
+    <button type="button" role="tab" data-vista="ocasion" aria-selected="true">Ocasiones</button>
+    <button type="button" role="tab" data-vista="categoria" aria-selected="false">Categorías</button>
+  </div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Filtrar"></div>
+
   <div class="barra">
     <input type="search" id="buscar" placeholder="Buscar por nombre o código…" aria-label="Buscar producto">
-    <select id="filtro" aria-label="Filtro">
-      <option value="todos">Todos</option>
-      <option value="web">Solo en la web</option>
-      <option value="noweb">No están en la web</option>
-    </select>
-    <span><span class="contador" id="contador">0</span> en la web</span>
+    <div class="estado" role="group" aria-label="Estado en la web">
+      <button type="button" data-estado="todos" aria-pressed="true">Todos</button>
+      <button type="button" data-estado="web" aria-pressed="false">En la web</button>
+      <button type="button" data-estado="fav" aria-pressed="false">★ Favoritos</button>
+      <button type="button" data-estado="noweb" aria-pressed="false">Sin publicar</button>
+    </div>
   </div>
+  <p class="resumen" id="resumen"></p>
+  <p class="ayuda">★ Favorito: aparece primero en "Destacados" de la web y como portada de su catálogo. Los catálogos de la web son las <b>ocasiones</b>.</p>
+
   <div class="lista" id="lista"><p class="vacio">Cargando…</p></div>
 </main>
 <script>
   const TOKEN = (() => { try { return localStorage.getItem('token_tienda_regalos'); } catch (e) { return null; } })();
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  let productos = [];
+  const on = (v) => !!Number(v);
+  let productos = [], ocasiones = [], categorias = [];
+  const estado = { vista: 'ocasion', tab: 'todas', filtro: 'todos', q: '' };
+  try { Object.assign(estado, JSON.parse(sessionStorage.getItem('catalogo-web-vista') || '{}'), { q: '' }); } catch (e) { /* sin guardado */ }
 
   function aviso(tipo, texto) { const a = $('aviso'); a.className = 'aviso ' + tipo; a.textContent = texto; }
 
   async function api(ruta, opciones = {}) {
     const r = await fetch('/api' + ruta, { ...opciones, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + TOKEN } });
     const j = await r.json().catch(() => ({}));
-    if (r.status === 401 || r.status === 403 && /Token/.test(j.message || '')) { location.href = '/'; throw new Error('Sesión vencida'); }
+    if (r.status === 401 || (r.status === 403 && /Token/.test(j.message || ''))) { location.href = '/'; throw new Error('Sesión vencida'); }
     if (!r.ok || j.success === false) throw new Error(j.message || 'Error ' + r.status);
     return j;
   }
 
+  const enTab = (p, tab = estado.tab, vista = estado.vista) =>
+    tab === 'todas' ? true
+    : tab === 'sin' ? (vista === 'ocasion' ? !p.ocasion_id : !p.categoria_ids.length)
+    : vista === 'ocasion' ? String(p.ocasion_id) === tab
+    : p.categoria_ids.map(String).includes(tab);
+  const enFiltro = (p) =>
+    estado.filtro === 'todos' ? true
+    : estado.filtro === 'web' ? on(p.web_visible)
+    : estado.filtro === 'fav' ? on(p.destacado)
+    : !on(p.web_visible);
+
+  function pintarTabs() {
+    const grupos = estado.vista === 'ocasion'
+      ? ocasiones.map((o) => ({ id: String(o.id), texto: `${o.icono ? o.icono + ' ' : ''}${o.nombre}` }))
+      : categorias.map((c) => ({ id: String(c.id), texto: c.nombre }));
+    const tabs = [{ id: 'todas', texto: 'Todas' }, ...grupos, { id: 'sin', texto: estado.vista === 'ocasion' ? 'Sin ocasión' : 'Sin categoría' }]
+      .map((t) => ({ ...t, n: productos.filter((p) => enTab(p, t.id)).length }))
+      .filter((t) => t.id === 'todas' || t.n > 0);
+    if (!tabs.some((t) => t.id === estado.tab)) estado.tab = 'todas';
+    $('tabs').innerHTML = tabs.map((t) =>
+      `<button type="button" role="tab" data-tab="${esc(t.id)}" aria-selected="${t.id === estado.tab}">${esc(t.texto)}<span class="n">${t.n}</span></button>`).join('');
+    for (const b of document.querySelectorAll('[data-vista]')) b.setAttribute('aria-selected', String(b.dataset.vista === estado.vista));
+    for (const b of document.querySelectorAll('[data-estado]')) b.setAttribute('aria-pressed', String(b.dataset.estado === estado.filtro));
+  }
+
   function pintar() {
-    const q = $('buscar').value.trim().toLowerCase();
-    const f = $('filtro').value;
-    const lista = productos.filter((p) =>
-      (!q || (p.nombre + ' ' + (p.codigo || '')).toLowerCase().includes(q)) &&
-      (f === 'todos' || (f === 'web') === !!Number(p.web_visible)));
-    $('contador').textContent = productos.filter((p) => Number(p.web_visible) && Number(p.activo)).length;
+    try { sessionStorage.setItem('catalogo-web-vista', JSON.stringify({ vista: estado.vista, tab: estado.tab, filtro: estado.filtro })); } catch (e) { /* sin guardado */ }
+    pintarTabs();
+    const q = estado.q.trim().toLowerCase();
+    const lista = productos.filter((p) => enTab(p) && enFiltro(p) && (!q || (p.nombre + ' ' + (p.codigo || '')).toLowerCase().includes(q)));
+    const enWeb = productos.filter((p) => on(p.web_visible) && on(p.activo));
+    $('resumen').innerHTML = `Mostrando <b>${lista.length}</b> · <b>${enWeb.length}</b> en la web · <b>${enWeb.filter((p) => on(p.destacado)).length}</b> favoritos publicados`;
     $('lista').innerHTML = lista.length ? lista.map((p) => `
-      <div class="item ${Number(p.activo) ? '' : 'inactivo'}">
+      <div class="item ${on(p.activo) ? '' : 'inactivo'}">
         <label class="interruptor" title="Mostrar en la web">
-          <input type="checkbox" data-id="${p.id}" ${Number(p.web_visible) ? 'checked' : ''} aria-label="Mostrar ${esc(p.nombre)} en la web">
+          <input type="checkbox" data-id="${p.id}" ${on(p.web_visible) ? 'checked' : ''} aria-label="Mostrar ${esc(p.nombre)} en la web">
           <span></span>
         </label>
         ${p.imagen_url ? `<img src="${esc(p.imagen_url)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'sinfoto'}))">` : '<div class="sinfoto"></div>'}
         <div>
           <div class="nombre">${esc(p.nombre)}</div>
-          <div class="meta">${esc(p.codigo || '')} · S/ ${Number(p.precio_venta).toFixed(2)}${p.categoria ? ' · ' + esc(p.categoria) : ''}${p.ocasion ? ' · ' + esc(p.ocasion) : ''}${Number(p.destacado) ? ' · ★ destacado' : ''}${Number(p.activo) ? '' : ' · deshabilitado (no se publica)'}</div>
-          <input class="desc" data-desc="${p.id}" maxlength="300" value="${esc(p.web_descripcion || '')}" placeholder="Descripción para clientes (opcional, máx. 300)" ${Number(p.web_visible) ? '' : 'disabled'}>
+          <div class="meta">${esc(p.codigo || '')} · S/ ${Number(p.precio_venta).toFixed(2)}${p.ocasion ? ' · ' + esc(p.ocasion) : ''}${p.categoria ? ' · ' + esc(p.categoria) : ''}${on(p.activo) ? '' : ' · deshabilitado (no se publica)'}</div>
+          <input class="desc" data-desc="${p.id}" maxlength="300" value="${esc(p.web_descripcion || '')}" placeholder="Descripción para clientes (opcional, máx. 300)" ${on(p.web_visible) ? '' : 'disabled'}>
         </div>
-      </div>`).join('') : '<p class="vacio">No hay productos con ese filtro.</p>';
+        <button type="button" class="estrella" data-fav="${p.id}" aria-pressed="${on(p.destacado)}" title="Favorito en la web" aria-label="Favorito: ${esc(p.nombre)}">${on(p.destacado) ? '★' : '☆'}</button>
+      </div>`).join('') : '<p class="vacio">No hay productos en esta vista.</p>';
+  }
+
+  async function guardar(p, cambios, okTexto) {
+    await api('/web-catalog/productos/' + p.id, { method: 'PUT', body: JSON.stringify(cambios) });
+    Object.assign(p, cambios);
+    aviso('info', okTexto + ' Pulsa «Publicar catálogo» para que se vea en la web.');
   }
 
   async function cargar() {
     if (!TOKEN) { aviso('error', 'Primero inicia sesión en el ERP.'); $('lista').innerHTML = '<p class="vacio"><a href="/">Ir a iniciar sesión</a></p>'; return; }
     try {
       const j = await api('/web-catalog/productos');
-      productos = j.productos;
+      productos = j.productos.map((p) => ({ ...p, categoria_ids: p.categoria_ids || [] }));
+      ocasiones = j.ocasiones || [];
+      categorias = j.categorias || [];
       if (!j.destino) aviso('info', 'Falta configurar CATALOGO_WEB_PATH en el .env del ERP: puedes marcar productos, pero aún no se podrá publicar.');
       pintar();
     } catch (e) { aviso('error', e.message); }
   }
 
+  document.querySelector('.vistas').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-vista]'); if (!b) return;
+    estado.vista = b.dataset.vista; estado.tab = 'todas'; pintar();
+  });
+  $('tabs').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-tab]'); if (!b) return;
+    estado.tab = b.dataset.tab; pintar();
+  });
+  document.querySelector('.estado').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-estado]'); if (!b) return;
+    estado.filtro = b.dataset.estado; pintar();
+  });
+  $('buscar').addEventListener('input', (ev) => { estado.q = ev.target.value; pintar(); });
+
   $('lista').addEventListener('change', async (ev) => {
     const t = ev.target;
     if (t.dataset.id) {
       const p = productos.find((x) => x.id == t.dataset.id);
-      try {
-        await api('/web-catalog/productos/' + p.id, { method: 'PUT', body: JSON.stringify({ web_visible: t.checked }) });
-        p.web_visible = t.checked ? 1 : 0;
-        aviso('info', 'Cambios guardados. Pulsa «Publicar catálogo» para que se vean en la web.');
-        pintar();
-      } catch (e) { t.checked = !t.checked; aviso('error', e.message); }
+      try { await guardar(p, { web_visible: t.checked ? 1 : 0 }, 'Cambios guardados.'); pintar(); }
+      catch (e) { t.checked = !t.checked; aviso('error', e.message); }
     } else if (t.dataset.desc) {
       const p = productos.find((x) => x.id == t.dataset.desc);
-      try {
-        await api('/web-catalog/productos/' + p.id, { method: 'PUT', body: JSON.stringify({ web_descripcion: t.value }) });
-        p.web_descripcion = t.value.trim();
-        aviso('info', 'Descripción guardada. Pulsa «Publicar catálogo» para que se vea en la web.');
-      } catch (e) { aviso('error', e.message); }
+      try { await guardar(p, { web_descripcion: t.value.trim() }, 'Descripción guardada.'); }
+      catch (e) { aviso('error', e.message); }
     }
   });
-  $('buscar').addEventListener('input', pintar);
-  $('filtro').addEventListener('change', pintar);
+  $('lista').addEventListener('click', async (ev) => {
+    const b = ev.target.closest('[data-fav]'); if (!b) return;
+    const p = productos.find((x) => x.id == b.dataset.fav);
+    const nuevo = on(p.destacado) ? 0 : 1;
+    try {
+      await guardar(p, { destacado: nuevo }, nuevo ? '★ Marcado como favorito.' : 'Quitado de favoritos.');
+      if (nuevo && !on(p.web_visible)) aviso('info', '★ Marcado como favorito. Ojo: este producto aún no está activado para la web.');
+      pintar();
+    } catch (e) { aviso('error', e.message); }
+  });
   $('publicar').addEventListener('click', async () => {
     const b = $('publicar'); b.disabled = true; b.textContent = 'Publicando…';
     try { const j = await api('/web-catalog/publicar', { method: 'POST', body: '{}' }); aviso('ok', j.message); }

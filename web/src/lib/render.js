@@ -47,11 +47,12 @@ export function grillaProductos(lista, cat) {
   return lista.map((p) => tarjetaProducto(p, cat)).join('');
 }
 
-/** Etiquetas de catálogo: modo "enlace" (lleva al catálogo filtrado) o "filtro" (botones del Catálogo) */
-export function etiquetasCatalogos(catalogos, modo = 'enlace') {
-  return catalogos
+/** Etiquetas de catálogo: modo "enlace" (lleva al catálogo filtrado) o "filtro" (botones del Catálogo).
+ *  extras: etiquetas adicionales al inicio/fin, ej. { slug: 'destacados', nombre: 'Destacados', icono: '⭐' } */
+export function etiquetasCatalogos(catalogos, modo = 'enlace', extras = { antes: [], despues: [] }) {
+  return [...(extras.antes || []), ...catalogos, ...(extras.despues || [])]
     .map((c, i) => {
-      const estilo = `--tono:${c.tono};--giro:${GIROS[i % GIROS.length]}deg`;
+      const estilo = `--tono:${c.tono || 'var(--baya)'};--giro:${GIROS[i % GIROS.length]}deg`;
       const texto = `${c.icono ? `<span aria-hidden="true">${esc(c.icono)}</span> ` : ''}<span>${esc(c.nombre)}</span>`;
       if (modo === 'filtro') {
         return `<button type="button" class="etiqueta" style="${estilo}" data-catalogo="${esc(c.slug)}" aria-pressed="false">${texto}</button>`;
@@ -75,29 +76,18 @@ export function tarjetasCatalogos(catalogos) {
     .join('');
 }
 
-/** Catálogo completo separado por ocasión (vista segmentada) */
-export function seccionesCatalogo(datos, soloSlug = null) {
-  const lista = soloSlug ? datos.catalogos.filter((c) => c.slug === soloSlug) : datos.catalogos;
-  const html = lista.map((c) => {
+/**
+ * Selección inicial del Catálogo: los favoritos (★ en el ERP) y, de cada catálogo que no tenga
+ * ningún favorito, su primer producto. Así siempre se ve al menos un regalo de cada ocasión.
+ */
+export function seleccionDestacada(datos) {
+  const elegidos = new Map();
+  for (const p of datos.productos) if (p.destacado) elegidos.set(p.id, p);
+  for (const c of datos.catalogos) {
     const suyos = datos.productos.filter((p) => (p.categorias || []).includes(c.slug));
-    return `
-<section class="segmento" style="--tono:${c.tono}" aria-labelledby="seg-${esc(c.slug)}">
-  <h2 class="segmento__titulo" id="seg-${esc(c.slug)}">${c.icono ? `<span aria-hidden="true">${esc(c.icono)}</span> ` : ''}${esc(c.nombre)} <small>${c.total} ${c.total === 1 ? 'regalo' : 'regalos'}</small></h2>
-  <div class="grilla">${grillaProductos(suyos, datos)}</div>
-</section>`;
-  });
-  if (!soloSlug) {
-    const conCatalogo = new Set(datos.catalogos.map((c) => c.slug));
-    const otros = datos.productos.filter((p) => !(p.categorias || []).some((s) => conCatalogo.has(s)));
-    if (otros.length) {
-      html.push(`
-<section class="segmento" aria-labelledby="seg-otros">
-  <h2 class="segmento__titulo" id="seg-otros">Más regalos <small>${otros.length}</small></h2>
-  <div class="grilla">${grillaProductos(otros, datos)}</div>
-</section>`);
-    }
+    if (!suyos.some((p) => p.destacado) && suyos[0]) elegidos.set(suyos[0].id, suyos[0]);
   }
-  return html.join('');
+  return [...elegidos.values()];
 }
 
 /** Tarjetas "fantasma" mientras carga */

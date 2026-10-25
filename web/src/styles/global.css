@@ -395,3 +395,15 @@ p { margin: 0 0 1em; }
   .catalogo-tarjeta__texto strong { font-size: 1rem; }
   .esqueleto { min-height: 220px; }
 }
+
+/* Portada: mientras llegan los textos/fotos publicados desde el ERP (máx. ~1 s) */
+.hero__texto, .hero__fotos { transition: opacity 0.35s ease; }
+.hero--cargando .hero__texto, .hero--cargando .hero__fotos { opacity: 0; }
+.hero__campana {
+  display: inline-block; margin: 0 0 14px; padding: 5px 14px; border-radius: 999px;
+  background: var(--amarillo); color: var(--ciruela); font: 700 var(--t-sm) var(--fuente-texto); letter-spacing: 0.02em;
+}
+.hero__campana[hidden] { display: none; }
+
+/* "Los más pedidos": 3 columnas (máx. 2 filas) */
+@media (min-width: 861px) { .grilla--3 { grid-template-columns: repeat(3, 1fr); } }

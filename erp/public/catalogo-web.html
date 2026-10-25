@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Catálogo web · ERP Genia Creativa</title>
+<title>Gestión de la web · ERP Genia Creativa</title>
 <link rel="icon" href="/favicon.svg">
 <style>
   :root { --rosa: #de569a; --baya: #b8327a; --baya-suave: #fbe4ef; --amarillo: #fdc408; --tinta: #2b1a2b; --gris: #6b5f6b; --linea: #eadfe7; --fondo: #faf6f9; --verde: #15803d; }
@@ -63,6 +63,72 @@
   .interruptor input:focus-visible + span { outline: 3px solid var(--amarillo); }
   .vacio { text-align: center; color: var(--gris); padding: 40px 0; }
   .ayuda { font-size: 13px; color: var(--gris); margin: 4px 0 0; }
+
+  /* Secciones del panel */
+  .secciones { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .secciones button { padding: 9px 16px; background: #fff; border: 1px solid var(--linea); color: var(--tinta); font-weight: 600; }
+  .secciones button[aria-selected="true"] { background: var(--tinta); border-color: var(--tinta); color: #fff; }
+
+  /* Campañas */
+  .activa-barra { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #fff; border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
+  .activa-barra b { color: var(--baya); }
+  .camp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
+  .camp { background: #fff; border: 1px solid var(--linea); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .camp.activa { border: 2px solid var(--rosa); box-shadow: 0 6px 18px -10px var(--rosa); }
+  .camp__fotos { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; height: 130px; background: var(--baya-suave); }
+  .camp__fotos > div { background: #f6eef3 center / cover no-repeat; display: grid; place-items: center; color: var(--gris); font-size: 11px; }
+  .camp__fotos > div:first-child { grid-row: span 2; }
+  .camp__cuerpo { padding: 10px 12px; flex: 1; }
+  .camp__nombre { font-weight: 700; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .camp__titulo { color: var(--gris); font-size: 13px; margin-top: 2px; }
+  .chip { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--fondo); color: var(--gris); }
+  .chip.on { background: var(--rosa); color: #fff; }
+  .camp__acc { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 12px 12px; }
+  .mini { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--linea); background: #fff; color: var(--tinta); cursor: pointer; }
+  .mini.rosa { background: var(--baya); border-color: var(--baya); color: #fff; }
+  .mini.peligro { color: #b42318; }
+  .nueva { border: 2px dashed var(--linea); background: transparent; border-radius: 14px; min-height: 200px; color: var(--baya); font-weight: 700; font-size: 15px; cursor: pointer; }
+  .nueva:disabled { color: var(--gris); cursor: not-allowed; }
+
+  /* Editor */
+  .velo { position: fixed; inset: 0; z-index: 10; background: rgb(30 20 30 / .5); display: flex; align-items: flex-start; justify-content: center; padding: 20px 12px; overflow-y: auto; }
+  .velo[hidden] { display: none; }
+  .ventana { background: #fff; border-radius: 16px; width: 100%; max-width: 1040px; box-shadow: 0 20px 50px rgb(0 0 0 / .3); }
+  .ventana__cab, .ventana__pie { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 18px; }
+  .ventana__cab { border-bottom: 1px solid var(--linea); font-size: 17px; }
+  .ventana__pie { border-top: 1px solid var(--linea); justify-content: flex-end; }
+  .ventana__cuerpo { padding: 16px 18px; }
+  .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .campo { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; color: var(--tinta); margin-bottom: 10px; }
+  .campo input, .campo textarea, .campo select { font: inherit; font-weight: 400; font-size: 14px; padding: 8px 10px; border: 1px solid var(--linea); border-radius: 10px; background: #fff; resize: vertical; }
+  .campo-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fotos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .foto { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; }
+  .foto__img { aspect-ratio: 1; border-radius: 10px; background: #f6eef3 center / cover no-repeat; border: 1px solid var(--linea); display: grid; place-items: center; color: var(--gris); font-weight: 400; font-size: 11px; text-align: center; padding: 4px; }
+  .foto .mini { text-align: center; padding: 5px 8px; }
+
+  /* Vista previa de la portada (misma distribución que la web) */
+  .previa-tit { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .previa { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: center; background: #fff5fa; border-radius: 14px; padding: 16px; border: 1px solid var(--linea); }
+  .previa__campana { display: inline-block; background: var(--amarillo); border-radius: 999px; padding: 2px 9px; font-size: 10px; font-weight: 700; margin-bottom: 6px; }
+  .previa__campana:empty { display: none; }
+  .previa__h { font-weight: 800; font-size: 20px; line-height: 1.1; color: #3a1c3a; }
+  .previa__p { font-size: 11.5px; color: #64506a; margin: 6px 0 10px; white-space: pre-line; }
+  .previa__btn { display: inline-block; background: var(--baya); color: #fff; border-radius: 999px; padding: 5px 12px; font-size: 11px; font-weight: 700; }
+  .previa__fotos { position: relative; aspect-ratio: 1 / .95; }
+  .pf { position: absolute; border-radius: 12px; background: #f6eef3 center / cover no-repeat; box-shadow: 0 6px 16px -8px rgb(0 0 0 / .35); }
+  .pf--a { width: 62%; aspect-ratio: 1; left: 0; top: 4%; z-index: 2; }
+  .pf--b { width: 44%; aspect-ratio: 1; right: 0; top: 0; }
+  .pf--c { width: 46%; aspect-ratio: 1; right: 4%; bottom: 0; z-index: 3; border: 4px solid #fff; }
+
+  /* Textos */
+  .textos fieldset { border: 1px solid var(--linea); border-radius: 14px; background: #fff; padding: 12px 14px; margin: 0 0 12px; }
+  .textos legend { font-weight: 700; padding: 0 6px; }
+  .textos .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  .textos .acciones { position: sticky; bottom: 0; background: var(--fondo); padding: 10px 0; display: flex; justify-content: flex-end; gap: 8px; }
+  @media (max-width: 760px) {
+    .editor-grid, .textos .grid2, .campo-fila { grid-template-columns: 1fr; }
+  }
   @media (max-width: 560px) {
     .item { grid-template-columns: auto 48px 1fr; }
     .item img, .item .sinfoto { width: 48px; height: 48px; }
@@ -74,14 +140,22 @@
 <body>
 <header>
   <div class="fila">
-    <h1>Catálogo de la web<small>Elige qué productos se muestran en gcreativa.com, marca tus favoritos ★ y publica.</small></h1>
+    <h1>Gestión de la web<small>Productos, portada, campañas y textos de gcreativa.com. Nada cambia en la web hasta que pulses «Publicar web».</small></h1>
+    <a class="btn secundario" id="ver-web" href="https://gcreativa.com" target="_blank" rel="noopener">Ver la web ↗</a>
     <a class="btn secundario" href="/">Volver al ERP</a>
-    <button class="principal" id="publicar" type="button">Publicar catálogo</button>
+    <button class="principal" id="publicar" type="button">Publicar web</button>
   </div>
 </header>
 <main>
   <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
 
+  <nav class="secciones" role="tablist" aria-label="Secciones">
+    <button type="button" role="tab" data-sec="productos" aria-selected="true">🛍️ Productos</button>
+    <button type="button" role="tab" data-sec="portada" aria-selected="false">🎄 Portada y campañas</button>
+    <button type="button" role="tab" data-sec="textos" aria-selected="false">✏️ Textos y contacto</button>
+  </nav>
+
+  <section id="sec-productos">
   <div class="vistas" role="tablist" aria-label="Agrupar por">
     <button type="button" role="tab" data-vista="ocasion" aria-selected="true">Ocasiones</button>
     <button type="button" role="tab" data-vista="categoria" aria-selected="false">Categorías</button>
@@ -101,7 +175,81 @@
   <p class="ayuda">★ Favorito: aparece primero en "Destacados" de la web y como portada de su catálogo. Los catálogos de la web son las <b>ocasiones</b>.</p>
 
   <div class="lista" id="lista"><p class="vacio">Cargando…</p></div>
+  </section>
+
+  <!-- ===================== PORTADA Y CAMPAÑAS ===================== -->
+  <section id="sec-portada" hidden>
+    <div class="activa-barra" id="activa-barra"></div>
+    <p class="ayuda">La portada del Inicio tiene un encabezado, un texto, un botón al catálogo y 3 fotos. La <b>portada general</b> se usa todo el año; cuando activas una <b>campaña</b> (ej. Navidad), la reemplaza hasta que la desactives. Solo una puede estar activa.</p>
+    <div class="camp-grid" id="camp-grid"><p class="vacio">Cargando…</p></div>
+  </section>
+
+  <!-- ===================== TEXTOS Y CONTACTO ===================== -->
+  <section id="sec-textos" hidden>
+    <p class="ayuda">Si dejas un campo vacío, la web usa el texto original (el que ves en gris).</p>
+    <form id="form-textos" class="textos"></form>
+  </section>
 </main>
+
+<!-- Editor de campaña -->
+<div class="velo" id="editor" hidden>
+  <form class="ventana" id="form-camp" autocomplete="off">
+    <div class="ventana__cab">
+      <strong id="editor-titulo">Campaña</strong>
+      <button type="button" class="secundario" data-cerrar>Cerrar</button>
+    </div>
+    <div class="ventana__cuerpo">
+      <div class="editor-grid">
+        <div>
+          <label class="campo" id="campo-ocasion">Ocasión (opcional, completa nombre y botón)
+            <select name="ocasion_id"><option value="">— Sin ocasión —</option></select>
+          </label>
+          <label class="campo" id="campo-nombre">Nombre de la campaña *
+            <input name="nombre" maxlength="80" placeholder="Ej. Navidad" required>
+          </label>
+          <label class="campo">Encabezado *
+            <input name="titulo" maxlength="160" placeholder="Ej. Esta Navidad, regala momentos" required>
+          </label>
+          <label class="campo">Texto
+            <textarea name="texto" maxlength="600" rows="3" placeholder="Ej. Canastas y boxes navideños personalizados, con delivery en Lima."></textarea>
+          </label>
+          <div class="campo-fila">
+            <label class="campo">Texto del botón
+              <input name="boton_texto" maxlength="60" placeholder="Ver catálogo">
+            </label>
+            <label class="campo">El botón lleva a
+              <select name="boton_destino"><option value="">Todo el catálogo</option></select>
+            </label>
+          </div>
+          <div class="fotos">
+            <div class="foto" data-foto="1"><span>Foto grande</span><div class="foto__img"></div><label class="mini">Cambiar<input type="file" accept="image/*" hidden></label><button type="button" class="mini quitar">Quitar</button></div>
+            <div class="foto" data-foto="2"><span>Foto arriba</span><div class="foto__img"></div><label class="mini">Cambiar<input type="file" accept="image/*" hidden></label><button type="button" class="mini quitar">Quitar</button></div>
+            <div class="foto" data-foto="3"><span>Foto abajo</span><div class="foto__img"></div><label class="mini">Cambiar<input type="file" accept="image/*" hidden></label><button type="button" class="mini quitar">Quitar</button></div>
+          </div>
+          <p class="ayuda">Usa fotos cuadradas (se recortan al centro). Se reducen solas a 1400 px para que la web cargue rápido.</p>
+        </div>
+        <div>
+          <div class="previa-tit">Así se verá la portada</div>
+          <div class="previa" id="previa">
+            <div class="previa__texto">
+              <span class="previa__campana" id="pv-campana"></span>
+              <div class="previa__h" id="pv-titulo"></div>
+              <div class="previa__p" id="pv-texto"></div>
+              <span class="previa__btn" id="pv-boton"></span>
+            </div>
+            <div class="previa__fotos">
+              <div class="pf pf--a" id="pv-1"></div><div class="pf pf--b" id="pv-2"></div><div class="pf pf--c" id="pv-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ventana__pie">
+      <button type="button" class="secundario" data-cerrar>Cancelar</button>
+      <button type="submit" class="principal" id="guardar-camp">Guardar</button>
+    </div>
+  </form>
+</div>
 <script>
   const TOKEN = (() => { try { return localStorage.getItem('token_tienda_regalos'); } catch (e) { return null; } })();
   const $ = (id) => document.getElementById(id);
@@ -173,7 +321,7 @@
   async function guardar(p, cambios, okTexto) {
     await api('/web-catalog/productos/' + p.id, { method: 'PUT', body: JSON.stringify(cambios) });
     Object.assign(p, cambios);
-    aviso('info', okTexto + ' Pulsa «Publicar catálogo» para que se vea en la web.');
+    aviso('info', okTexto + ' Pulsa «Publicar web» para que se vea.');
   }
 
   async function cargar() {
@@ -229,11 +377,193 @@
     } catch (e) { aviso('error', e.message); }
   });
   $('publicar').addEventListener('click', async () => {
+    if (sucio && !confirm('Tienes cambios sin guardar (textos o campaña). Se publicará lo último que guardaste. ¿Continuar?')) return;
     const b = $('publicar'); b.disabled = true; b.textContent = 'Publicando…';
     try { const j = await api('/web-catalog/publicar', { method: 'POST', body: '{}' }); aviso('ok', j.message); }
     catch (e) { aviso('error', e.message); }
-    finally { b.disabled = false; b.textContent = 'Publicar catálogo'; }
+    finally { b.disabled = false; b.textContent = 'Publicar web'; }
   });
+
+  /* ===================== Secciones del panel ===================== */
+  const secciones = ['productos', 'portada', 'textos'];
+  function verSeccion(sec) {
+    for (const k of secciones) $('sec-' + k).hidden = k !== sec;
+    for (const b of document.querySelectorAll('[data-sec]')) b.setAttribute('aria-selected', String(b.dataset.sec === sec));
+    try { sessionStorage.setItem('web-seccion', sec); } catch (e) { /* sin guardado */ }
+    if ((sec === 'portada' || sec === 'textos') && !web) cargarWeb();
+  }
+  document.querySelector('.secciones').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-sec]'); if (b) verSeccion(b.dataset.sec);
+  });
+
+  /* ===================== Portada y campañas ===================== */
+  let web = null;          // respuesta de /web-site
+  let editando = null;     // campaña en edición (copia)
+  let sucio = false;       // cambios sin guardar en el editor o en textos
+  const urlFoto = (src) => !src ? '' : /^data:/.test(src) ? src : /^\/img\//.test(src) ? (web?.web_url || '') + src : src;
+  const fondo = (src) => src ? `background-image:url('${String(urlFoto(src)).replace(/'/g, '%27')}')` : '';
+
+  async function cargarWeb() {
+    try {
+      web = await api('/web-site');
+      $('ver-web').href = web.web_url || $('ver-web').href;
+      pintarCampanas(); pintarTextos();
+    } catch (e) { aviso('error', e.message); }
+  }
+
+  function pintarCampanas() {
+    const camps = web.campanas;
+    const activa = camps.find((c) => on(c.activa) && !on(c.es_portada));
+    $('activa-barra').innerHTML = activa
+      ? `Portada en la web: <b>campaña ${esc(activa.nombre)}</b> <button type="button" class="mini" data-desactivar>Volver a la portada general</button>`
+      : 'Portada en la web: <b>portada general</b> (ninguna campaña activa)';
+    const n = camps.filter((c) => !on(c.es_portada)).length;
+    $('camp-grid').innerHTML = camps.map((c) => {
+      const esActiva = on(c.es_portada) ? !activa : on(c.activa);
+      return `
+      <div class="camp ${esActiva ? 'activa' : ''}">
+        <div class="camp__fotos">${[c.imagen1, c.imagen2, c.imagen3].map((f) => `<div style="${fondo(f)}">${f ? '' : 'sin foto'}</div>`).join('')}</div>
+        <div class="camp__cuerpo">
+          <div class="camp__nombre">${c.ocasion_icono ? esc(c.ocasion_icono) + ' ' : ''}${esc(c.nombre)} ${esActiva ? '<span class="chip on">En la web</span>' : ''}${on(c.es_portada) ? '<span class="chip">Todo el año</span>' : ''}</div>
+          <div class="camp__titulo">${esc(c.titulo)}</div>
+        </div>
+        <div class="camp__acc">
+          <button type="button" class="mini" data-editar="${c.id}">Editar</button>
+          ${esActiva ? '' : on(c.es_portada) ? '' : `<button type="button" class="mini rosa" data-activar="${c.id}">Activar</button>`}
+          ${on(c.es_portada) ? '' : `<button type="button" class="mini peligro" data-eliminar="${c.id}">Eliminar</button>`}
+        </div>
+      </div>`;
+    }).join('') + `<button type="button" class="nueva" data-nueva ${n >= web.max_campanas ? 'disabled' : ''}>+ Nueva campaña<br><small>${n} de ${web.max_campanas}</small></button>`;
+  }
+
+  $('sec-portada').addEventListener('click', async (ev) => {
+    const t = ev.target.closest('button'); if (!t) return;
+    try {
+      if (t.dataset.editar) abrirEditor(web.campanas.find((c) => c.id == t.dataset.editar));
+      else if (t.hasAttribute('data-nueva')) abrirEditor(null);
+      else if (t.dataset.activar) { const j = await api(`/web-site/campanas/${t.dataset.activar}/activar`, { method: 'POST', body: '{}' }); web.campanas = j.campanas; pintarCampanas(); aviso('info', j.message); }
+      else if (t.hasAttribute('data-desactivar')) { const j = await api('/web-site/campanas/desactivar', { method: 'POST', body: '{}' }); web.campanas = j.campanas; pintarCampanas(); aviso('info', j.message); }
+      else if (t.dataset.eliminar) {
+        const c = web.campanas.find((x) => x.id == t.dataset.eliminar);
+        if (!confirm(`¿Eliminar la campaña «${c.nombre}»? Sus fotos también se borrarán.`)) return;
+        const j = await api(`/web-site/campanas/${c.id}`, { method: 'DELETE' }); web.campanas = j.campanas; pintarCampanas(); aviso('info', j.message);
+      }
+    } catch (e) { aviso('error', e.message); }
+  });
+
+  const fc = $('form-camp');
+  function abrirEditor(c) {
+    editando = c ? { ...c } : { id: null, es_portada: 0, nombre: '', titulo: '', texto: '', boton_texto: 'Ver catálogo', boton_destino: '', ocasion_id: '', imagen1: null, imagen2: null, imagen3: null };
+    const port = on(editando.es_portada);
+    $('editor-titulo').textContent = port ? 'Portada general' : c ? `Campaña: ${c.nombre}` : 'Nueva campaña';
+    $('campo-ocasion').hidden = port; $('campo-nombre').hidden = port;
+    fc.ocasion_id.innerHTML = '<option value="">— Sin ocasión —</option>' + web.ocasiones.map((o) => `<option value="${o.id}">${esc((o.icono ? o.icono + ' ' : '') + o.nombre)}</option>`).join('');
+    fc.boton_destino.innerHTML = '<option value="">Todo el catálogo</option>' + web.ocasiones.map((o) => `<option value="${esc(o.slug)}">Catálogo ${esc(o.nombre)}</option>`).join('');
+    for (const k of ['nombre', 'titulo', 'texto', 'boton_texto', 'boton_destino']) fc[k].value = editando[k] || '';
+    fc.ocasion_id.value = editando.ocasion_id || '';
+    fc.nombre.required = !port;
+    sucio = false;
+    pintarEditor();
+    $('editor').hidden = false;
+    fc.titulo.focus();
+  }
+  function pintarEditor() {
+    for (const i of [1, 2, 3]) {
+      const src = editando['imagen' + i];
+      const box = fc.querySelector(`[data-foto="${i}"] .foto__img`);
+      box.style.cssText = fondo(src); box.textContent = src ? '' : 'Sin foto';
+      $('pv-' + i).style.cssText = fondo(src);
+    }
+    $('pv-campana').textContent = on(editando.es_portada) ? '' : (fc.nombre.value ? `Campaña ${fc.nombre.value}` : '');
+    $('pv-titulo').textContent = fc.titulo.value || 'Encabezado';
+    $('pv-texto').textContent = fc.texto.value;
+    $('pv-boton').textContent = fc.boton_texto.value || 'Ver catálogo';
+  }
+  fc.addEventListener('input', () => { sucio = true; pintarEditor(); });
+  fc.ocasion_id.addEventListener('change', () => {
+    const o = web.ocasiones.find((x) => x.id == fc.ocasion_id.value);
+    if (!o) return;
+    if (!fc.nombre.value) fc.nombre.value = o.nombre;
+    fc.boton_destino.value = o.slug;
+    if (!fc.boton_texto.value || fc.boton_texto.value === 'Ver catálogo') fc.boton_texto.value = `Ver catálogo ${o.nombre}`;
+    sucio = true; pintarEditor();
+  });
+  // Fotos: se reducen a 1400 px en el navegador antes de subirlas
+  function reducir(file) {
+    return new Promise((ok, mal) => {
+      if (!/^image\//.test(file.type)) return mal(new Error('Elige un archivo de imagen'));
+      const url = URL.createObjectURL(file); const img = new Image();
+      img.onload = () => {
+        const max = 1400, k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        const webp = c.toDataURL('image/webp', 0.85);
+        ok(webp.startsWith('data:image/webp') ? webp : c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('No se pudo leer la imagen')); };
+      img.src = url;
+    });
+  }
+  fc.querySelector('.fotos').addEventListener('change', async (ev) => {
+    const inp = ev.target; const box = inp.closest('[data-foto]'); if (!box || !inp.files?.[0]) return;
+    try { editando['imagen' + box.dataset.foto] = await reducir(inp.files[0]); sucio = true; pintarEditor(); }
+    catch (e) { aviso('error', e.message); }
+    inp.value = '';
+  });
+  fc.querySelector('.fotos').addEventListener('click', (ev) => {
+    const b = ev.target.closest('.quitar'); if (!b) return;
+    editando['imagen' + b.closest('[data-foto]').dataset.foto] = null; sucio = true; pintarEditor();
+  });
+  function cerrarEditor() {
+    if (sucio && !confirm('Tienes cambios sin guardar en esta campaña. ¿Salir sin guardar?')) return;
+    sucio = false; $('editor').hidden = true; editando = null;
+  }
+  for (const b of document.querySelectorAll('[data-cerrar]')) b.addEventListener('click', cerrarEditor);
+  $('editor').addEventListener('mousedown', (ev) => { if (ev.target === $('editor')) cerrarEditor(); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('editor').hidden) cerrarEditor(); });
+  fc.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const b = $('guardar-camp'); b.disabled = true; b.textContent = 'Guardando…';
+    const datos = { nombre: fc.nombre.value, titulo: fc.titulo.value, texto: fc.texto.value, boton_texto: fc.boton_texto.value, boton_destino: fc.boton_destino.value, ocasion_id: fc.ocasion_id.value || null, imagen1: editando.imagen1 || '', imagen2: editando.imagen2 || '', imagen3: editando.imagen3 || '' };
+    const nueva = !editando.id;
+    try {
+      const j = !nueva
+        ? await api(`/web-site/campanas/${editando.id}`, { method: 'PUT', body: JSON.stringify(datos) })
+        : await api('/web-site/campanas', { method: 'POST', body: JSON.stringify(datos) });
+      web.campanas = j.campanas; sucio = false; $('editor').hidden = true; editando = null;
+      pintarCampanas(); aviso('info', nueva ? j.message + '. Actívala cuando empiece la temporada y pulsa «Publicar web».' : j.message);
+    } catch (e) { aviso('error', e.message); }
+    finally { b.disabled = false; b.textContent = 'Guardar'; }
+  });
+
+  /* ===================== Textos y contacto ===================== */
+  const GRUPOS = [
+    ['Portada', [['hero_dato', 'Frase bajo los botones'], ['hero_boton_whatsapp', 'Botón de WhatsApp']]],
+    ['Sección «Nuestros catálogos»', [['catalogos_titulo', 'Título'], ['catalogos_texto', 'Texto', true]]],
+    ['Sección «Los más pedidos»', [['destacados_titulo', 'Título'], ['destacados_texto', 'Texto', true]]],
+    ['Sección «Así de fácil es pedir»', [['pasos_titulo', 'Título'], ['paso1_titulo', 'Paso 1'], ['paso1_texto', 'Paso 1 · texto', true], ['paso2_titulo', 'Paso 2'], ['paso2_texto', 'Paso 2 · texto', true], ['paso3_titulo', 'Paso 3'], ['paso3_texto', 'Paso 3 · texto', true]]],
+    ['Sección «Empresas»', [['empresas_titulo', 'Título'], ['empresas_boton', 'Botón'], ['empresas_texto', 'Texto', true]]],
+    ['Datos de contacto (pie de página y Contacto)', [['whatsapp', 'WhatsApp (con código de país, ej. 51921663818)'], ['telefono_visible', 'Teléfono como se muestra'], ['email', 'Correo'], ['direccion', 'Dirección / zona'], ['horario', 'Horario de atención'], ['pie_frase', 'Frase del pie de página'], ['instagram', 'Instagram (enlace)'], ['facebook', 'Facebook (enlace)'], ['tiktok', 'TikTok (enlace)']]],
+  ];
+  function pintarTextos() {
+    const t = web.textos, d = web.defaults;
+    $('form-textos').innerHTML = GRUPOS.map(([titulo, campos]) => `
+      <fieldset><legend>${esc(titulo)}</legend><div class="grid2">
+        ${campos.map(([k, label, largo]) => `<label class="campo"${largo ? ' style="grid-column:1/-1"' : ''}>${esc(label)}
+          ${largo ? `<textarea name="${k}" rows="2" placeholder="${esc(d[k])}">${esc(t[k] === d[k] ? '' : t[k])}</textarea>` : `<input name="${k}" placeholder="${esc(d[k])}" value="${esc(t[k] === d[k] ? '' : t[k])}">`}
+        </label>`).join('')}
+      </div></fieldset>`).join('') + '<div class="acciones"><button type="submit" class="principal">Guardar textos</button></div>';
+  }
+  $('form-textos').addEventListener('input', () => { sucio = true; });
+  $('form-textos').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const textos = Object.fromEntries([...new FormData(ev.target)].map(([k, v]) => [k, String(v)]));
+    try { const j = await api('/web-site/textos', { method: 'PUT', body: JSON.stringify({ textos }) }); web.textos = j.textos; sucio = false; pintarTextos(); aviso('info', j.message); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    catch (e) { aviso('error', e.message); }
+  });
+  window.addEventListener('beforeunload', (e) => { if (sucio) { e.preventDefault(); e.returnValue = ''; } });
+
+  verSeccion((() => { try { return sessionStorage.getItem('web-seccion') || 'productos'; } catch (e) { return 'productos'; } })());
   cargar();
 </script>
 </body>

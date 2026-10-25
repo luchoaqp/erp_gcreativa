@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, ShoppingBag, Truck, Gift, Users, BarChart3, Settings, Database,
-  LogOut, Sparkles, PackageSearch, Coins, Send, FileBarChart, Store, ShoppingCart, X, Layers, ShieldCheck, FileText, Briefcase, Boxes, Wrench, ChevronDown, Wallet, BookOpen, Cog, PackageOpen
+  LogOut, Sparkles, PackageSearch, Coins, Send, FileBarChart, Store, ShoppingCart, X, Layers, ShieldCheck, FileText, Briefcase, Boxes, Wrench, ChevronDown, Wallet, BookOpen, Cog, PackageOpen, Globe, ExternalLink
 } from 'lucide-react';
 import './sidebar-groups.css';
 
@@ -25,7 +25,9 @@ const ITEMS = {
   suppliers: { id: 'suppliers', label: 'Proveedores', icon: Store },
   users: { id: 'users', label: 'Usuarios y Roles', icon: ShieldCheck },
   settings: { id: 'settings', label: 'Configuración Empresa', icon: Settings },
-  backup: { id: 'backup', label: 'Copia de Seguridad', icon: Database }
+  backup: { id: 'backup', label: 'Copia de Seguridad', icon: Database },
+  // Acceso directo: abre la gestión de gcreativa.com en otra ventana (misma sesión del ERP)
+  web: { id: 'web', label: 'Gestionar la web', icon: Globe, external: '/catalogo-web' }
 };
 
 // Estructura del menú: grupos plegables y accesos directos
@@ -33,6 +35,7 @@ const NAV = [
   { type: 'item', id: 'dashboard' },
   { type: 'group', id: 'comercial', label: 'Comercial', icon: Briefcase, items: ['pos', 'quotes', 'reports', 'orders', 'shipments', 'purchases'] },
   { type: 'group', id: 'productos', label: 'Productos', icon: PackageOpen, items: ['inventory', 'categories', 'catalogs'] },
+  { type: 'group', id: 'pagina_web', label: 'Página web', icon: Globe, items: ['web'] },
   { type: 'group', id: 'gestion', label: 'Gestión', icon: Boxes, items: ['expenses', 'kardex', 'kardex_valorizado', 'reportes', 'workshop'] },
   { type: 'group', id: 'clientes', label: 'Clientes y Proveedores', icon: Users, items: ['customers', 'suppliers'] },
   { type: 'group', id: 'operaciones', label: 'Operaciones', icon: Wrench, items: ['users', 'settings', 'backup'] }
@@ -55,7 +58,7 @@ export default function Sidebar({
   });
 
   // Kardex comparte el permiso de Productos y Envíos el de Pedidos
-  const PERM_OF = { kardex: 'inventory', kardex_valorizado: 'inventory', expenses: 'purchases', catalogs: 'inventory', workshop: 'inventory', shipments: 'orders', reportes: 'reports' };
+  const PERM_OF = { kardex: 'inventory', kardex_valorizado: 'inventory', expenses: 'purchases', catalogs: 'inventory', web: 'inventory', workshop: 'inventory', shipments: 'orders', reportes: 'reports' };
   const isAllowed = (rawId) => {
     const id = PERM_OF[rawId] || rawId;
     if (id === 'dashboard') return true;
@@ -94,10 +97,11 @@ export default function Sidebar({
     const count = countFor(id);
     return (
       <div key={id} className="nav-item-container">
-        <button className={`nav-link ${isActive ? 'active' : ''}`} onClick={() => setActiveTab(id)}>
+        <button className={`nav-link ${isActive ? 'active' : ''}`} onClick={() => (item.external ? window.open(item.external, 'gestion-web') : setActiveTab(id))} title={item.external ? 'Se abre en una ventana nueva' : undefined}>
           <Icon className="nav-icon" size={18} strokeWidth={isActive ? 2.3 : 1.8} />
           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.label}</span>
           {item.badge && <span className="nav-badge">{item.badge}</span>}
+          {item.external && <ExternalLink size={14} style={{ marginLeft: 'auto', opacity: 0.7, flex: 'none' }} />}
           {count > 0 && (
             <span className="nav-badge" title={id === 'orders' ? 'Pedidos no entregados' : 'Productos con stock bajo'} style={badgeColorFor(id) ? { background: badgeColorFor(id), color: '#fff' } : {}}>{count}</span>
           )}

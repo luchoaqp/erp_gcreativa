@@ -28,6 +28,7 @@ const canonica = new URL(Astro.url.pathname, sitio.url).href;
     <meta property="og:description" content={descripcion} />
     <meta property="og:url" content={canonica} />
     <meta property="og:locale" content="es_PE" />
+    <noscript><style>.hero--cargando .hero__texto, .hero--cargando .hero__fotos { opacity: 1; }</style></noscript>
   </head>
   <body>
     <a class="saltar" href="#contenido">Saltar al contenido</a>
@@ -36,8 +37,15 @@ const canonica = new URL(Astro.url.pathname, sitio.url).href;
       <slot />
     </main>
     <Pie />
-    <a class="wa-flotante" href={enlaceWhatsApp('Hola Genia Creativa, quiero hacer un pedido.')} target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+    <a class="wa-flotante" data-contacto="wa-mensaje" data-mensaje="Hola Genia Creativa, quiero hacer un pedido." href={enlaceWhatsApp('Hola Genia Creativa, quiero hacer un pedido.')} target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
       <Fragment set:html={iconoWhatsApp} />
     </a>
+    <script>
+      // Textos, contacto y portada publicados desde el ERP (erp.gcreativa.com → Publicar web)
+      import { cargarSitio, aplicarSitio } from '../lib/sitio.js';
+      const hero = document.getElementById('hero');
+      const t = hero ? setTimeout(() => hero.classList.remove('hero--cargando'), 900) : 0;
+      cargarSitio().then((d) => { clearTimeout(t); aplicarSitio(d); });
+    </script>
   </body>
 </html>

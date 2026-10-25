@@ -17,19 +17,19 @@ import { iconoWhatsApp, iconoCorreo, iconoUbicacion, iconoReloj } from '../compo
         <ul class="datos">
           <li>
             <span class="datos__icono"><Fragment set:html={iconoWhatsApp} /></span>
-            <div><strong>WhatsApp</strong><a href={`https://wa.me/${sitio.whatsapp}`} target="_blank" rel="noopener">{sitio.telefonoVisible}</a></div>
+            <div><strong>WhatsApp</strong><a data-contacto="whatsapp" href={`https://wa.me/${sitio.whatsapp}`} target="_blank" rel="noopener">{sitio.telefonoVisible}</a></div>
           </li>
           <li>
             <span class="datos__icono"><Fragment set:html={iconoCorreo} /></span>
-            <div><strong>Correo</strong><a href={`mailto:${sitio.email}`}>{sitio.email}</a></div>
+            <div><strong>Correo</strong><a data-contacto="email" href={`mailto:${sitio.email}`}>{sitio.email}</a></div>
           </li>
           <li>
             <span class="datos__icono"><Fragment set:html={iconoUbicacion} /></span>
-            <div><strong>Ubicación</strong><span>{sitio.direccion}</span></div>
+            <div><strong>Ubicación</strong><span data-contacto="direccion">{sitio.direccion}</span></div>
           </li>
           <li>
             <span class="datos__icono"><Fragment set:html={iconoReloj} /></span>
-            <div><strong>Horario</strong><span>{sitio.horario}</span></div>
+            <div><strong>Horario</strong><span data-contacto="horario">{sitio.horario}</span></div>
           </li>
         </ul>
 

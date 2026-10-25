@@ -25,4 +25,6 @@ return [
     'catalogo_web_path' => env('CATALOGO_WEB_PATH'),
     'catalogo_web_imagenes' => env('CATALOGO_WEB_IMAGENES'),
     'catalogo_web_url_imagenes' => env('CATALOGO_WEB_URL_IMAGENES', '/img/catalogo'),
+    // Dirección pública de la web (para el botón "Ver la web" y las vistas previas del panel)
+    'web_url' => env('WEB_URL', 'https://gcreativa.com'),
 ];

@@ -4,27 +4,28 @@ import { enlaceWhatsApp, esqueleto } from '../lib/render.js';
 import { iconoWhatsApp } from '../components/Iconos.js';
 ---
 <Base>
-  <section class="hero">
+  <section class="hero hero--cargando" id="hero">
     <div class="contenedor hero__grid">
       <div class="hero__texto">
-        <h1>Detalles que se quedan en la memoria</h1>
-        <p>Regalos personalizados para ellas, para ellos, padrinos, graduados y empresas. Armamos cada caja a mano, con tu dedicatoria, y la llevamos hasta la puerta.</p>
+        <p class="hero__campana" id="hero-campana" hidden></p>
+        <h1 id="hero-titulo">Detalles que se quedan en la memoria</h1>
+        <p id="hero-texto">Regalos personalizados para ellas, para ellos, padrinos, graduados y empresas. Armamos cada caja a mano, con tu dedicatoria, y la llevamos hasta la puerta.</p>
         <div class="hero__acciones">
-          <a class="boton" href="/catalogo/">Ver catálogo</a>
-          <a class="boton boton--borde" href={enlaceWhatsApp('Hola Genia Creativa, quiero armar un regalo personalizado.')} target="_blank" rel="noopener">
-            <Fragment set:html={iconoWhatsApp} /> Pedir por WhatsApp
+          <a class="boton" id="hero-boton" href="/catalogo/">Ver catálogo</a>
+          <a class="boton boton--borde" data-contacto="wa-mensaje" data-mensaje="Hola Genia Creativa, quiero armar un regalo personalizado." href={enlaceWhatsApp('Hola Genia Creativa, quiero armar un regalo personalizado.')} target="_blank" rel="noopener">
+            <Fragment set:html={iconoWhatsApp} /> <span data-t="hero_boton_whatsapp">Pedir por WhatsApp</span>
           </a>
         </div>
-        <p class="hero__dato">Delivery en Lima con fecha y hora de entrega</p>
+        <p class="hero__dato" data-t="hero_dato">Delivery en Lima con fecha y hora de entrega</p>
       </div>
 
       <div class="hero__fotos">
         <svg class="hero__cinta" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0 80 C 180 10, 320 120, 500 60 S 820 10, 1000 70" />
         </svg>
-        <figure class="hero__foto hero__foto--a"><img src="/img/productos/caja-rose.svg" alt="Caja sorpresa con lazo dorado" width="800" height="800" fetchpriority="high" /></figure>
-        <figure class="hero__foto hero__foto--b"><img src="/img/productos/desayuno.svg" alt="Desayuno sorpresa con globo" width="800" height="800" /></figure>
-        <figure class="hero__foto hero__foto--c"><img src="/img/productos/canasta-navidad.svg" alt="Canasta navideña con panetón" width="800" height="800" /></figure>
+        <figure class="hero__foto hero__foto--a"><img id="hero-img-1" src="/img/productos/caja-rose.svg" alt="Caja sorpresa con lazo dorado" width="800" height="800" fetchpriority="high" /></figure>
+        <figure class="hero__foto hero__foto--b"><img id="hero-img-2" src="/img/productos/desayuno.svg" alt="Desayuno sorpresa con globo" width="800" height="800" /></figure>
+        <figure class="hero__foto hero__foto--c"><img id="hero-img-3" src="/img/productos/canasta-navidad.svg" alt="Canasta navideña con panetón" width="800" height="800" /></figure>
       </div>
     </div>
   </section>
@@ -32,37 +33,35 @@ import { iconoWhatsApp } from '../components/Iconos.js';
   <section class="seccion seccion--petalo" aria-labelledby="catalogos-titulo">
     <div class="contenedor">
       <div class="seccion__intro">
-        <h2 id="catalogos-titulo">Nuestros catálogos</h2>
-        <p>Elige la ocasión y te mostramos los regalos pensados para ella.</p>
+        <h2 id="catalogos-titulo" data-t="catalogos_titulo">Nuestros catálogos</h2>
+        <p data-t="catalogos_texto">Elige la ocasión y te mostramos los regalos pensados para ella.</p>
       </div>
-      <div class="catalogos" id="inicio-catalogos" aria-busy="true">
-        <Fragment set:html={esqueleto(4, 'catalogo-tarjeta')} />
-      </div>
+      <nav class="etiquetas" id="inicio-catalogos" aria-label="Catálogos" aria-busy="true"></nav>
+      <p style="margin-top:28px"><a class="boton boton--borde" href="/catalogo/">Ver todo el catálogo</a></p>
     </div>
   </section>
 
   <section class="seccion" aria-labelledby="destacados-titulo" id="inicio-destacados-seccion">
     <div class="contenedor">
       <div class="seccion__intro">
-        <h2 id="destacados-titulo">Los más pedidos</h2>
-        <p>Los favoritos de nuestros clientes. Todos se pueden personalizar con nombre, foto o mensaje.</p>
+        <h2 id="destacados-titulo" data-t="destacados_titulo">Los más pedidos</h2>
+        <p data-t="destacados_texto">Los favoritos de nuestros clientes. Todos se pueden personalizar con nombre, foto o mensaje.</p>
       </div>
-      <div class="grilla" id="inicio-destacados" aria-busy="true">
-        <Fragment set:html={esqueleto(4)} />
+      <div class="grilla grilla--3" id="inicio-destacados" aria-busy="true">
+        <Fragment set:html={esqueleto(3)} />
       </div>
-      <p style="margin-top:32px"><a class="boton boton--borde" href="/catalogo/">Ver todo el catálogo</a></p>
     </div>
   </section>
 
   <section class="seccion seccion--petalo" aria-labelledby="pasos-titulo">
     <div class="contenedor">
       <div class="seccion__intro">
-        <h2 id="pasos-titulo">Así de fácil es pedir</h2>
+        <h2 id="pasos-titulo" data-t="pasos_titulo">Así de fácil es pedir</h2>
       </div>
       <ol class="pasos">
-        <li><h3>Elige tu regalo</h3><p>Mira el catálogo y toca «Pedir» en el que te guste.</p></li>
-        <li><h3>Personalízalo</h3><p>Por WhatsApp nos cuentas el nombre, la dedicatoria y los detalles.</p></li>
-        <li><h3>Lo entregamos</h3><p>Coordinamos fecha, hora y dirección. Te avisamos cuando llegue.</p></li>
+        <li><h3 data-t="paso1_titulo">Elige tu regalo</h3><p data-t="paso1_texto">Mira el catálogo y toca «Pedir» en el que te guste.</p></li>
+        <li><h3 data-t="paso2_titulo">Personalízalo</h3><p data-t="paso2_texto">Por WhatsApp nos cuentas el nombre, la dedicatoria y los detalles.</p></li>
+        <li><h3 data-t="paso3_titulo">Lo entregamos</h3><p data-t="paso3_texto">Coordinamos fecha, hora y dirección. Te avisamos cuando llegue.</p></li>
       </ol>
     </div>
   </section>
@@ -71,10 +70,10 @@ import { iconoWhatsApp } from '../components/Iconos.js';
     <div class="contenedor">
       <div class="banda">
         <div>
-          <h2>Regalos para tu empresa</h2>
-          <p>Kits para colaboradores, clientes y eventos, con el logo de tu marca. Cotizamos por volumen y entregamos en tus oficinas.</p>
+          <h2 data-t="empresas_titulo">Regalos para tu empresa</h2>
+          <p data-t="empresas_texto">Kits para colaboradores, clientes y eventos, con el logo de tu marca. Cotizamos por volumen y entregamos en tus oficinas.</p>
         </div>
-        <a class="boton" href={enlaceWhatsApp('Hola Genia Creativa, quiero cotizar regalos corporativos para mi empresa.')} target="_blank" rel="noopener">Cotizar para empresas</a>
+        <a class="boton" data-contacto="wa-mensaje" data-mensaje="Hola Genia Creativa, quiero cotizar regalos corporativos para mi empresa." href={enlaceWhatsApp('Hola Genia Creativa, quiero cotizar regalos corporativos para mi empresa.')} target="_blank" rel="noopener" data-t="empresas_boton">Cotizar para empresas</a>
       </div>
     </div>
   </section>
@@ -82,24 +81,24 @@ import { iconoWhatsApp } from '../components/Iconos.js';
 
 <script>
   import { cargarCatalogo } from '../lib/catalogo.js';
-  import { tarjetasCatalogos, grillaProductos } from '../lib/render.js';
+  import { etiquetasCatalogos, grillaProductos } from '../lib/render.js';
 
-  // Catálogos y destacados: siempre lo último publicado desde el ERP
+  // Catálogos (etiquetas) y "Los más pedidos" (productos con ★, máximo 2 filas de 3): lo último publicado desde el ERP
   const zonaCatalogos = document.getElementById('inicio-catalogos');
   const zonaDestacados = document.getElementById('inicio-destacados');
+  const seccionDestacados = document.getElementById('inicio-destacados-seccion');
   cargarCatalogo()
     .then((datos) => {
       zonaCatalogos.innerHTML = datos.catalogos.length
-        ? tarjetasCatalogos(datos.catalogos)
+        ? etiquetasCatalogos(datos.catalogos, 'enlace')
         : '<p class="aviso-vacio">Muy pronto publicaremos nuestros catálogos.</p>';
-      const destacados = datos.productos.filter((p) => p.destacado);
-      const lista = (destacados.length ? destacados : datos.productos).slice(0, 4);
-      if (lista.length) zonaDestacados.innerHTML = grillaProductos(lista, datos);
-      else document.getElementById('inicio-destacados-seccion').hidden = true;
+      const destacados = datos.productos.filter((p) => p.destacado).slice(0, 6);
+      if (destacados.length) zonaDestacados.innerHTML = grillaProductos(destacados, datos);
+      else seccionDestacados.hidden = true;
     })
     .catch(() => {
       zonaCatalogos.innerHTML = '<p class="aviso-vacio">No pudimos cargar los catálogos. <a href="/catalogo/">Ver catálogo</a></p>';
-      document.getElementById('inicio-destacados-seccion').hidden = true;
+      seccionDestacados.hidden = true;
     })
     .finally(() => { zonaCatalogos.removeAttribute('aria-busy'); zonaDestacados.removeAttribute('aria-busy'); });
 </script>

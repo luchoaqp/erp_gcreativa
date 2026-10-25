@@ -216,6 +216,19 @@ Route::middleware('jwt')->prefix('web-catalog')->group(function () {
     Route::post('publicar', [C\WebCatalogController::class, 'publish'])->middleware('roles:admin,vendedor');
 });
 
+// ---------- Textos, portada y campañas de la web (NUEVO) ----------
+Route::middleware('jwt')->prefix('web-site')->group(function () {
+    Route::get('/', [C\WebSiteController::class, 'show']);
+    Route::middleware('roles:admin,vendedor')->group(function () {
+        Route::put('textos', [C\WebSiteController::class, 'saveTextos']);
+        Route::post('campanas', [C\WebSiteController::class, 'createCampana']);
+        Route::post('campanas/desactivar', [C\WebSiteController::class, 'desactivar']);
+        Route::put('campanas/{id}', [C\WebSiteController::class, 'updateCampana']);
+        Route::delete('campanas/{id}', [C\WebSiteController::class, 'deleteCampana']);
+        Route::post('campanas/{id}/activar', [C\WebSiteController::class, 'activar']);
+    });
+});
+
 // ---------- Mantenimiento sin SSH (NUEVO) ----------
 Route::middleware(['jwt', 'roles:admin'])->prefix('sistema')->group(function () {
     Route::get('estado', [C\MaintenanceController::class, 'status']);

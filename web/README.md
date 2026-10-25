@@ -56,25 +56,18 @@ Para actualizaciones posteriores repite los pasos 3 y 4 (sin tocar WordPress).
 
 ## 5. Conectado al ERP (erp.gcreativa.com) ✅
 
-La web **no tiene productos ni catálogos escritos en el código**. Todo sale del archivo
-`/data/catalogo.json`, que escribe el ERP cuando pulsas **Publicar catálogo**.
+Casi todo lo que se ve en la web se gestiona desde el ERP: **Página web → Gestionar la web**, y luego **Publicar web**. El ERP escribe dos archivos que la web lee al abrirse, así que **no hay que recompilar**:
 
-| Lo que ves en la web | Dónde se gestiona en el ERP |
+| Archivo | Qué contiene |
 |---|---|
-| **Catálogos**: tarjetas de Inicio, filtros del Catálogo, lista del pie y opciones de Contacto | **Categorías & Ocasiones → Ocasiones**: nombre + emoji. Orden: el de creación |
-| Productos de cada catálogo | La **ocasión** de cada producto, en su ficha |
-| Producto en varios catálogos | Además de su ocasión, una **categoría con el mismo nombre** que otra ocasión |
-| Nombre, precio y foto | La ficha del producto |
-| Descripción para clientes (qué incluye; las líneas con • salen como lista) | Ficha del producto o pack → *Descripción para clientes* (con la casilla "Página web"), o `/catalogo-web` |
-| "Destacados" (vista inicial del Catálogo), "Los más pedidos" y portada de cada catálogo | La ★ (favorito) en `/catalogo-web` o "Destacado" en la ficha del producto. De cada catálogo sin favorito se muestra su primer producto |
+| `data/catalogo.json` | Productos publicados, catálogos (ocasiones) con su emoji, descripciones y favoritos ★ |
+| `data/sitio.json` | Portada (general o campaña activa: encabezado, texto, botón y 3 fotos), textos de las secciones y datos de contacto |
 
-- Solo aparecen los catálogos con al menos un producto publicado.
-- Los productos sin ocasión salen al final, en "Más regalos".
-- Los enlaces se pueden compartir: `gcreativa.com/catalogo/?catalogo=navidad`.
+En el HTML, los elementos editables llevan `data-t="clave"` (textos) o `data-contacto="..."` (WhatsApp, correo, redes). La portada usa `id="hero-..."`. Si `sitio.json` no existe, la web muestra los textos con los que se compiló.
 
-⚠️ Al subir una versión nueva de la web, **no reemplaces** `data/catalogo.json` ni `img/catalogo/`:
-son del ERP. El zip de la web se entrega sin esas carpetas. Si algún día se pierden,
-basta con volver a pulsar "Publicar catálogo".
+⚠️ Al subir una versión nueva de la web, **no reemplaces** `data/` ni `img/catalogo/`: son del ERP. Los zips de actualización se entregan sin esas carpetas. Si algún día se pierden, basta con volver a pulsar «Publicar web».
+
+Lo único que sigue en el código: el menú, las páginas «Quiénes somos» y «Contacto» (salvo los datos de contacto), el logo (`public/img/logo-genia-creativa.png`) y las fotos originales de la portada general (`public/img/productos/`).
 
 ## Estructura
 

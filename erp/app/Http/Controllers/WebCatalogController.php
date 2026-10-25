@@ -98,6 +98,17 @@ class WebCatalogController extends Controller
         ];
     }
 
+    /** Escribe un JSON de forma segura (archivo temporal + renombrar) con permisos de lectura para la web */
+    private static function escribir(string $ruta, array $datos): void
+    {
+        $tmp = $ruta . '.tmp';
+        $json = json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        if (@file_put_contents($tmp, $json) === false || !@rename($tmp, $ruta)) {
+            throw new HttpError(500, 'No se pudo escribir ' . $ruta . ' (revisa permisos de la carpeta)');
+        }
+        @chmod($ruta, 0644);
+    }
+
     /** "Día del Maestro" → "dia-del-maestro" */
     public static function slug(string $s): string
     {
@@ -195,7 +206,7 @@ class WebCatalogController extends Controller
                     if ($dirImg !== '') {
                         if (!is_dir($dirImg)) @mkdir($dirImg, 0775, true);
                         $src = ImageStore::fullDir() . '/' . $name;
-                        if (is_file($src) && !is_file($dirImg . '/' . $name)) @copy($src, $dirImg . '/' . $name);
+                        if (is_file($src) && !is_file($dirImg . '/' . $name)) { @copy($src, $dirImg . '/' . $name); @chmod($dirImg . '/' . $name, 0644); }
                         $p['imagen'] = $urlImg . '/' . $name;
                     } else {
                         $p['imagen'] = $erpUrl . $img;
@@ -206,12 +217,21 @@ class WebCatalogController extends Controller
 
             $dir = dirname($destino);
             if (!is_dir($dir) && !@mkdir($dir, 0775, true)) throw new HttpError(500, 'No se pudo crear la carpeta ' . $dir);
-            $tmp = $destino . '.tmp';
-            $json = json_encode($cat, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-            if (@file_put_contents($tmp, $json) === false || !@rename($tmp, $destino)) {
-                throw new HttpError(500, 'No se pudo escribir ' . $destino . ' (revisa permisos de la carpeta)');
-            }
-            return $this->json(['success' => true, 'message' => 'Catálogo publicado en la web: ' . count($cat['productos']) . ' producto(s)' . ($sinFoto ? " ({$sinFoto} sin foto)" : ''), 'sin_foto' => $sinFoto, 'version' => $cat['version'], 'total' => count($cat['productos'])]);
+            self::escribir($destino, $cat);
+
+            // Textos, contacto y portada/campaña activa → data/sitio.json (junto al catálogo)
+            $copiar = function (string $ruta) use ($dirImg, $urlImg, $erpUrl): string {
+                $name = basename($ruta);
+                if ($dirImg === '') return $erpUrl . $ruta;
+                if (!is_dir($dirImg)) @mkdir($dirImg, 0775, true);
+                $src = rtrim((string) config('erp.uploads_root'), '/') . '/web/' . $name;
+                if (is_file($src) && !is_file($dirImg . '/' . $name)) { @copy($src, $dirImg . '/' . $name); @chmod($dirImg . '/' . $name, 0644); }
+                return $urlImg . '/' . $name;
+            };
+            $sitio = WebSiteController::buildSitio($copiar);
+            self::escribir($dir . '/sitio.json', $sitio);
+            $portada = $sitio['portada']['campana'] ?? null;
+            return $this->json(['success' => true, 'message' => 'Web publicada: ' . count($cat['productos']) . ' producto(s)' . ($sinFoto ? " ({$sinFoto} sin foto)" : '') . ' · portada: ' . ($portada ? "campaña {$portada}" : 'general'), 'sin_foto' => $sinFoto, 'version' => $cat['version'], 'total' => count($cat['productos'])]);
         } catch (\Throwable $e) {
             return $this->sendError($e, 'Error al publicar el catálogo');
         }

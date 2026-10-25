@@ -54,15 +54,24 @@ Es el mismo ERP de siempre (mismas pantallas, misma base de datos), pero el "mot
 
 > Fotos y Excel grandes: el ERP acepta archivos de hasta 50 MB. Si una subida falla, ve a cPanel → *Editor INI MultiPHP* y sube `upload_max_filesize` y `post_max_size` a `60M`. El archivo `public/.user.ini` ya lo intenta automáticamente.
 
-## 3. Catálogo de la web (gcreativa.com)
+## 3. Gestión de la web (gcreativa.com)
 
-- **Catálogos de la web = Ocasiones del ERP.** Créalas en *Categorías & Ocasiones* con nombre y emoji. La web las muestra en el orden en que se crearon.
-- **Productos de cada catálogo:** se toma la *ocasión* de cada producto. Si quieres un producto en varios catálogos, agrégale además una *categoría* que se llame igual que la otra ocasión.
-- **Favoritos ★:** en `/catalogo-web` la estrella marca el producto como *Destacado*, que es lo mismo que la casilla de la ficha. Aparece primero en "Destacados", la vista inicial del catálogo de la web, y como portada de su catálogo.
-- **Pestañas:** en `/catalogo-web` puedes ver los productos por *Ocasiones* o por *Categorías*, y filtrarlos por estado (en la web, favoritos, sin publicar).
-- **Publicar:** en **`https://erp.gcreativa.com/catalogo-web`** activas los productos que salen en la web, escribes la descripción para clientes (la descripción interna **no** se publica) y pulsas **Publicar catálogo**.
-- El ERP escribe `catalogo.json` y copia las fotos a la web. Los cambios se ven al instante, sin recompilar nada.
-- Solo se muestran los catálogos con al menos un producto publicado.
+En el menú del ERP, **Página web → Gestionar la web** abre en otra ventana el panel `https://erp.gcreativa.com/catalogo-web`. Usa tu misma sesión. **Nada cambia en la web hasta pulsar «Publicar web».**
+
+| Pestaña | Para qué |
+|---|---|
+| **Productos** | Activar qué productos salen en la web, escribir su descripción para clientes y marcar favoritos ★. Puedes verlos por ocasión o categoría y filtrar por estado. |
+| **Portada y campañas** | La portada del Inicio (encabezado, texto, botón y 3 fotos). La **portada general** se usa todo el año. Puedes tener hasta **15 campañas** (Navidad, Día de la Madre…): las preparas con anticipación y las **activas** cuando empieza la temporada. Solo una activa a la vez; «Volver a la portada general» la desactiva. |
+| **Textos y contacto** | Títulos y textos de las secciones del Inicio, frase del pie, WhatsApp, correo, dirección, horario y redes sociales. Si dejas un campo vacío, se usa el texto original. |
+
+Cómo arma la web sus secciones:
+
+- **Catálogos de la web = Ocasiones del ERP.** Se crean en *Categorías & Ocasiones*, con nombre y emoji. Un producto pertenece al catálogo de su *ocasión*. Para ponerlo en varios, agrégale además una *categoría* que se llame igual que la otra ocasión.
+- **Durante una campaña:** el catálogo de esa ocasión aparece primero y el botón de la portada lleva directo a él.
+- **Inicio:**
+  - «Nuestros catálogos» muestra las etiquetas de los catálogos.
+  - «Los más pedidos» muestra los productos con ★, hasta 6 (2 filas de 3).
+- **Fotos de campaña:** se reducen solas a 1400 px. Se guardan en `public/uploads/web/` del ERP y, al publicar, se copian a la web (`img/catalogo/`).
 
 ## 4. Descripción para clientes (cotizaciones, documentos y web)
 

@@ -39,6 +39,24 @@ class WebSiteController extends Controller
         'empresas_texto' => ['Kits para colaboradores, clientes y eventos, con el logo de tu marca. Cotizamos por volumen y entregamos en tus oficinas.', 300],
         'empresas_boton' => ['Cotizar para empresas', 40],
         'pie_frase' => ['Armamos cada regalo a mano y lo entregamos con tu dedicatoria.', 200],
+        // Quiénes somos
+        'nosotros_titulo' => ['Un taller pequeño con mucho cariño en cada caja', 120],
+        'nosotros_texto' => ['Somos Genia Creativa. Diseñamos y armamos regalos personalizados para que cada fecha importante tenga un detalle a su altura.', 300],
+        'historia_titulo' => ['Cómo empezamos', 80],
+        'historia_p1' => ['Todo comenzó armando regalos para familia y amigos. La gente preguntaba quién los hacía, y así nació Genia Creativa.', 500],
+        'historia_p2' => ['Hoy preparamos cajas sorpresa, desayunos, kits corporativos y detalles para cada ocasión. Elegimos los productos, escribimos las dedicatorias y cuidamos que cada entrega llegue a tiempo.', 500],
+        'historia_p3' => ['Trabajamos con personas que quieren sorprender a alguien y con empresas que quieren agradecer a su equipo o a sus clientes.', 500],
+        'valores_titulo' => ['Lo que nos importa', 80],
+        'valor1_titulo' => ['Hecho a mano', 60], 'valor1_texto' => ['Cada regalo se arma en nuestro taller, pieza por pieza, revisado antes de salir.', 200],
+        'valor2_titulo' => ['A tu medida', 60], 'valor2_texto' => ['Nombres, fotos, logos y mensajes: adaptamos el detalle a la persona que lo recibe.', 200],
+        'valor3_titulo' => ['Puntuales', 60], 'valor3_texto' => ['Coordinamos fecha y hora de entrega y te avisamos cuando el regalo llega.', 200],
+        // Catálogo
+        'catalogo_titulo' => ['Nuestros catálogos', 80],
+        'catalogo_texto' => ['Elige una ocasión y pide el regalo que te guste por WhatsApp. Los precios son referenciales y varían según la personalización.', 300],
+        // Contacto
+        'contacto_titulo' => ['Hablemos de tu regalo', 80],
+        'contacto_texto' => ['Respondemos por WhatsApp en horario de atención. Para pedidos corporativos, cuéntanos cuántas unidades necesitas y para qué fecha.', 300],
+        'contacto_form_titulo' => ['Cuéntanos qué necesitas', 80],
         // Datos de contacto (pie de página, Contacto y botones de WhatsApp)
         'whatsapp' => ['51921663818', 15],
         'telefono_visible' => ['+51 921 663 818', 30],
@@ -49,6 +67,39 @@ class WebSiteController extends Controller
         'facebook' => ['https://www.facebook.com/', 200],
         'tiktok' => ['https://www.tiktok.com/', 200],
     ];
+
+    /** Fotos de secciones de la web (vacío = la original de la web) */
+    public const IMAGENES = [
+        'catalogos' => '/img/productos/catalogos.svg',   // Inicio · "Nuestros catálogos"
+        'nosotros' => '/img/productos/aniversario.svg',  // Quiénes somos
+    ];
+
+    public static function imagenes(): array
+    {
+        $row = Db::query("SELECT valor FROM web_ajustes WHERE clave = 'imagenes'")[0] ?? null;
+        $g = $row ? (json_decode((string) $row['valor'], true) ?: []) : [];
+        $out = [];
+        foreach (self::IMAGENES as $k => $def) $out[$k] = !empty($g[$k]) && is_string($g[$k]) ? $g[$k] : $def;
+        return $out;
+    }
+
+    public function saveImagenes()
+    {
+        try {
+            $in = is_array($this->body()['imagenes'] ?? null) ? $this->body()['imagenes'] : [];
+            $actual = self::imagenes();
+            $nuevo = [];
+            foreach (self::IMAGENES as $k => $def) {
+                if (!array_key_exists($k, $in)) { $nuevo[$k] = $actual[$k] === $def ? null : $actual[$k]; continue; }
+                $v = self::imagen($in[$k], null, 'seccion');
+                $nuevo[$k] = $v === $def ? null : $v;
+            }
+            Db::query("INSERT INTO web_ajustes (clave, valor) VALUES ('imagenes', ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)", [json_encode($nuevo, JSON_UNESCAPED_SLASHES)]);
+            return $this->json(['success' => true, 'message' => 'Fotos guardadas. Pulsa «Publicar web» para que se vean.', 'imagenes' => self::imagenes()]);
+        } catch (\Throwable $e) {
+            return $this->fail($e, 'Error al guardar las fotos');
+        }
+    }
 
     private function fail(\Throwable $e, string $fallback)
     {
@@ -84,6 +135,8 @@ class WebSiteController extends Controller
                 'success' => true,
                 'textos' => self::textos(),
                 'defaults' => array_map(fn ($t) => $t[0], self::TEXTOS),
+                'imagenes' => self::imagenes(),
+                'imagenes_default' => self::IMAGENES,
                 'campanas' => self::campanas(),
                 'ocasiones' => $ocasiones,
                 'max_campanas' => self::MAX_CAMPANAS,
@@ -129,7 +182,7 @@ class WebSiteController extends Controller
     }
 
     /** Foto de campaña: base64 (nueva), ruta ya guardada o vacío */
-    private static function imagen($v, $actual = null): ?string
+    private static function imagen($v, $actual = null, string $prefijo = 'campana'): ?string
     {
         if (!is_string($v) || trim($v) === '') return null;
         $v = trim($v);
@@ -140,7 +193,7 @@ class WebSiteController extends Controller
             $dir = rtrim((string) config('erp.uploads_root'), '/') . '/web';
             if (!is_dir($dir) && !@mkdir($dir, 0755, true)) throw new HttpError(500, 'No se pudo crear la carpeta de fotos de la web');
             $ext = $m[1] === 'jpeg' ? 'jpg' : $m[1];
-            $name = 'campana-' . date('Ymd') . '-' . bin2hex(random_bytes(5)) . '.' . $ext;
+            $name = $prefijo . '-' . date('Ymd') . '-' . bin2hex(random_bytes(5)) . '.' . $ext;
             if (@file_put_contents("{$dir}/{$name}", $bin) === false) throw new HttpError(500, 'No se pudo guardar la foto');
             @chmod("{$dir}/{$name}", 0644);
             return "/uploads/web/{$name}";
@@ -266,6 +319,8 @@ class WebSiteController extends Controller
                 'imagenes' => $imgs,
             ];
         }
-        return ['version' => gmdate('Y-m-d\TH:i:s\Z'), 'textos' => self::textos(), 'portada' => $portada];
+        $imagenes = [];
+        foreach (self::imagenes() as $k => $v) $imagenes[$k] = str_starts_with($v, '/uploads/web/') ? $copiar($v) : $v;
+        return ['version' => gmdate('Y-m-d\TH:i:s\Z'), 'textos' => self::textos(), 'imagenes' => $imagenes, 'portada' => $portada];
     }
 }

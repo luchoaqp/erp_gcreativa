@@ -62,14 +62,14 @@ En el menú del ERP, **Página web → Gestionar la web** abre en otra ventana e
 |---|---|
 | **Productos** | Activar qué productos salen en la web, escribir su descripción para clientes y marcar favoritos ★. Puedes verlos por ocasión o categoría y filtrar por estado. |
 | **Portada y campañas** | La portada del Inicio (encabezado, texto, botón y 3 fotos). La **portada general** se usa todo el año. Puedes tener hasta **15 campañas** (Navidad, Día de la Madre…): las preparas con anticipación y las **activas** cuando empieza la temporada. Solo una activa a la vez; «Volver a la portada general» la desactiva. |
-| **Textos y contacto** | Títulos y textos de las secciones del Inicio, frase del pie, WhatsApp, correo, dirección, horario y redes sociales. Si dejas un campo vacío, se usa el texto original. |
+| **Textos y contacto** | Una pestaña por página de la web: **Inicio · Quiénes somos · Catálogo · Contacto y pie de página**. Incluye títulos, textos, la foto de «Nuestros catálogos» y la de «Quiénes somos», WhatsApp, correo, dirección, horario y redes sociales. Si dejas un campo vacío, se usa el texto original; «Usar la original» devuelve la foto original. |
 
 Cómo arma la web sus secciones:
 
 - **Catálogos de la web = Ocasiones del ERP.** Se crean en *Categorías & Ocasiones*, con nombre y emoji. Un producto pertenece al catálogo de su *ocasión*. Para ponerlo en varios, agrégale además una *categoría* que se llame igual que la otra ocasión.
 - **Durante una campaña:** el catálogo de esa ocasión aparece primero y el botón de la portada lleva directo a él.
 - **Inicio:**
-  - «Nuestros catálogos» muestra las etiquetas de los catálogos.
+  - «Nuestros catálogos» tiene el texto y las etiquetas a la izquierda (hasta 9, en 3 x 3) y una foto a la derecha.
   - «Los más pedidos» muestra los productos con ★, hasta 6 (2 filas de 3).
 - **Fotos de campaña:** se reducen solas a 1400 px. Se guardan en `public/uploads/web/` del ERP y, al publicar, se copian a la web (`img/catalogo/`).
 

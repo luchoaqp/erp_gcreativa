@@ -122,6 +122,10 @@
   .pf--c { width: 46%; aspect-ratio: 1; right: 4%; bottom: 0; z-index: 3; border: 4px solid #fff; }
 
   /* Textos */
+  .foto-seccion__fila { display: flex; gap: 12px; align-items: flex-start; margin-top: 4px; }
+  .foto-seccion .foto__img { width: 120px; flex: none; }
+  .foto-seccion .mini { display: inline-block; margin: 0 6px 6px 0; }
+  .textos .tabs { margin-bottom: 12px; }
   .textos fieldset { border: 1px solid var(--linea); border-radius: 14px; background: #fff; padding: 12px 14px; margin: 0 0 12px; }
   .textos legend { font-weight: 700; padding: 0 6px; }
   .textos .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
@@ -537,29 +541,94 @@
   });
 
   /* ===================== Textos y contacto ===================== */
-  const GRUPOS = [
-    ['Portada', [['hero_dato', 'Frase bajo los botones'], ['hero_boton_whatsapp', 'Botón de WhatsApp']]],
-    ['Sección «Nuestros catálogos»', [['catalogos_titulo', 'Título'], ['catalogos_texto', 'Texto', true]]],
-    ['Sección «Los más pedidos»', [['destacados_titulo', 'Título'], ['destacados_texto', 'Texto', true]]],
-    ['Sección «Así de fácil es pedir»', [['pasos_titulo', 'Título'], ['paso1_titulo', 'Paso 1'], ['paso1_texto', 'Paso 1 · texto', true], ['paso2_titulo', 'Paso 2'], ['paso2_texto', 'Paso 2 · texto', true], ['paso3_titulo', 'Paso 3'], ['paso3_texto', 'Paso 3 · texto', true]]],
-    ['Sección «Empresas»', [['empresas_titulo', 'Título'], ['empresas_boton', 'Botón'], ['empresas_texto', 'Texto', true]]],
-    ['Datos de contacto (pie de página y Contacto)', [['whatsapp', 'WhatsApp (con código de país, ej. 51921663818)'], ['telefono_visible', 'Teléfono como se muestra'], ['email', 'Correo'], ['direccion', 'Dirección / zona'], ['horario', 'Horario de atención'], ['pie_frase', 'Frase del pie de página'], ['instagram', 'Instagram (enlace)'], ['facebook', 'Facebook (enlace)'], ['tiktok', 'TikTok (enlace)']]],
+  // Pestañas internas = páginas de la web (mismo orden que su menú)
+  const PAGINAS = [
+    ['inicio', 'Inicio', [
+      ['Portada', [['hero_dato', 'Frase bajo los botones'], ['hero_boton_whatsapp', 'Botón de WhatsApp']], 'El encabezado, el texto, el botón y las 3 fotos de la portada se editan en «Portada y campañas».'],
+      ['Nuestros catálogos', [['catalogos_titulo', 'Título'], ['catalogos_texto', 'Texto', true], ['@catalogos', 'Foto de la derecha']]],
+      ['Los más pedidos', [['destacados_titulo', 'Título'], ['destacados_texto', 'Texto', true]], 'Aquí salen los productos marcados con ★ (máximo 6).'],
+      ['Así de fácil es pedir', [['pasos_titulo', 'Título'], ['paso1_titulo', 'Paso 1'], ['paso1_texto', 'Paso 1 · texto', true], ['paso2_titulo', 'Paso 2'], ['paso2_texto', 'Paso 2 · texto', true], ['paso3_titulo', 'Paso 3'], ['paso3_texto', 'Paso 3 · texto', true]]],
+      ['Regalos para tu empresa', [['empresas_titulo', 'Título'], ['empresas_boton', 'Botón'], ['empresas_texto', 'Texto', true]]],
+    ]],
+    ['nosotros', 'Quiénes somos', [
+      ['Encabezado', [['nosotros_titulo', 'Título', true], ['nosotros_texto', 'Texto', true]]],
+      ['Nuestra historia', [['historia_titulo', 'Título'], ['@nosotros', 'Foto'], ['historia_p1', 'Párrafo 1', true], ['historia_p2', 'Párrafo 2', true], ['historia_p3', 'Párrafo 3', true]]],
+      ['Lo que nos importa', [['valores_titulo', 'Título'], ['valor1_titulo', 'Valor 1'], ['valor1_texto', 'Valor 1 · texto', true], ['valor2_titulo', 'Valor 2'], ['valor2_texto', 'Valor 2 · texto', true], ['valor3_titulo', 'Valor 3'], ['valor3_texto', 'Valor 3 · texto', true]]],
+    ]],
+    ['catalogo', 'Catálogo', [
+      ['Encabezado', [['catalogo_titulo', 'Título'], ['catalogo_texto', 'Texto', true]], 'Los productos y catálogos se gestionan en la pestaña «Productos» y con las ocasiones del ERP.'],
+    ]],
+    ['contacto', 'Contacto y pie de página', [
+      ['Encabezado', [['contacto_titulo', 'Título'], ['contacto_form_titulo', 'Título del formulario'], ['contacto_texto', 'Texto', true]]],
+      ['Datos de contacto (se usan en toda la web)', [['whatsapp', 'WhatsApp (con código de país, ej. 51921663818)'], ['telefono_visible', 'Teléfono como se muestra'], ['email', 'Correo'], ['direccion', 'Dirección / zona'], ['horario', 'Horario de atención']]],
+      ['Redes sociales', [['instagram', 'Instagram (enlace)'], ['facebook', 'Facebook (enlace)'], ['tiktok', 'TikTok (enlace)']]],
+      ['Pie de página', [['pie_frase', 'Frase bajo el logo', true]]],
+    ]],
   ];
+  let paginaTextos = (() => { try { return sessionStorage.getItem('web-pagina-textos') || 'inicio'; } catch (e) { return 'inicio'; } })();
+  let fotosPend = {}; // fotos de sección cambiadas y aún no guardadas: { catalogos: dataURL | '' }
+  const fotoSrc = (k) => (k in fotosPend ? (fotosPend[k] || web.imagenes_default[k]) : web.imagenes[k]);
+
   function pintarTextos() {
     const t = web.textos, d = web.defaults;
-    $('form-textos').innerHTML = GRUPOS.map(([titulo, campos]) => `
-      <fieldset><legend>${esc(titulo)}</legend><div class="grid2">
-        ${campos.map(([k, label, largo]) => `<label class="campo"${largo ? ' style="grid-column:1/-1"' : ''}>${esc(label)}
-          ${largo ? `<textarea name="${k}" rows="2" placeholder="${esc(d[k])}">${esc(t[k] === d[k] ? '' : t[k])}</textarea>` : `<input name="${k}" placeholder="${esc(d[k])}" value="${esc(t[k] === d[k] ? '' : t[k])}">`}
-        </label>`).join('')}
-      </div></fieldset>`).join('') + '<div class="acciones"><button type="submit" class="principal">Guardar textos</button></div>';
+    const campo = ([k, label, largo]) => {
+      if (k.startsWith('@')) {
+        const f = k.slice(1);
+        return `<div class="campo foto-seccion" style="grid-column:1/-1">${esc(label)}
+          <div class="foto-seccion__fila"><div class="foto__img" data-foto-sec="${f}" style="${fondo(fotoSrc(f))}"></div>
+          <div><label class="mini">Cambiar foto<input type="file" accept="image/*" data-subir-sec="${f}" hidden></label>
+          <button type="button" class="mini" data-original-sec="${f}">Usar la original</button>
+          <p class="ayuda">${fotoSrc(f) === web.imagenes_default[f] ? 'Ahora: foto original de la web.' : 'Ahora: foto personalizada.'}</p></div></div></div>`;
+      }
+      const v = t[k] === d[k] ? '' : t[k];
+      return `<label class="campo"${largo ? ' style="grid-column:1/-1"' : ''}>${esc(label)}
+        ${largo ? `<textarea name="${k}" rows="2" placeholder="${esc(d[k])}">${esc(v)}</textarea>` : `<input name="${k}" placeholder="${esc(d[k])}" value="${esc(v)}">`}</label>`;
+    };
+    $('form-textos').innerHTML = `<div class="tabs" role="tablist" aria-label="Páginas de la web">${PAGINAS.map(([id, nombre]) =>
+        `<button type="button" role="tab" data-pagina="${id}" aria-selected="${id === paginaTextos}">${esc(nombre)}</button>`).join('')}</div>` +
+      PAGINAS.map(([id, , grupos]) => `<div data-pagina-cont="${id}" ${id === paginaTextos ? '' : 'hidden'}>${grupos.map(([titulo, campos, nota]) => `
+        <fieldset><legend>${esc(titulo)}</legend>${nota ? `<p class="ayuda" style="margin:0 0 8px">${esc(nota)}</p>` : ''}<div class="grid2">${campos.map(campo).join('')}</div></fieldset>`).join('')}</div>`).join('') +
+      '<div class="acciones"><button type="submit" class="principal">Guardar textos y fotos</button></div>';
   }
+  $('form-textos').addEventListener('click', (ev) => {
+    const tab = ev.target.closest('[data-pagina]');
+    if (tab) {
+      paginaTextos = tab.dataset.pagina;
+      try { sessionStorage.setItem('web-pagina-textos', paginaTextos); } catch (e) { /* sin guardado */ }
+      for (const b of $('form-textos').querySelectorAll('[data-pagina]')) b.setAttribute('aria-selected', String(b.dataset.pagina === paginaTextos));
+      for (const c of $('form-textos').querySelectorAll('[data-pagina-cont]')) c.hidden = c.dataset.paginaCont !== paginaTextos;
+      return;
+    }
+    const orig = ev.target.closest('[data-original-sec]');
+    if (orig) { fotosPend[orig.dataset.originalSec] = ''; sucio = true; refrescarFoto(orig.dataset.originalSec); }
+  });
+  function refrescarFoto(f) {
+    const box = $('form-textos').querySelector(`[data-foto-sec="${f}"]`);
+    if (box) box.style.cssText = fondo(fotoSrc(f));
+    const p = box?.parentElement.querySelector('.ayuda');
+    if (p) p.textContent = (f in fotosPend) ? 'Foto cambiada (falta guardar).' : '';
+  }
+  $('form-textos').addEventListener('change', async (ev) => {
+    const inp = ev.target.closest('[data-subir-sec]'); if (!inp || !inp.files?.[0]) return;
+    try { fotosPend[inp.dataset.subirSec] = await reducir(inp.files[0]); sucio = true; refrescarFoto(inp.dataset.subirSec); }
+    catch (e) { aviso('error', e.message); }
+    inp.value = '';
+  });
   $('form-textos').addEventListener('input', () => { sucio = true; });
   $('form-textos').addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    const textos = Object.fromEntries([...new FormData(ev.target)].map(([k, v]) => [k, String(v)]));
-    try { const j = await api('/web-site/textos', { method: 'PUT', body: JSON.stringify({ textos }) }); web.textos = j.textos; sucio = false; pintarTextos(); aviso('info', j.message); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    catch (e) { aviso('error', e.message); }
+    const textos = Object.fromEntries([...new FormData(ev.target)].filter(([k]) => k in web.defaults).map(([k, v]) => [k, String(v)]));
+    const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = 'Guardando…';
+    try {
+      const j = await api('/web-site/textos', { method: 'PUT', body: JSON.stringify({ textos }) });
+      web.textos = j.textos;
+      if (Object.keys(fotosPend).length) {
+        const f = await api('/web-site/imagenes', { method: 'PUT', body: JSON.stringify({ imagenes: fotosPend }) });
+        web.imagenes = f.imagenes; fotosPend = {};
+      }
+      sucio = false; pintarTextos(); aviso('info', 'Textos y fotos guardados. Pulsa «Publicar web» para que se vean.'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) { aviso('error', e.message); }
+    finally { btn.disabled = false; btn.textContent = 'Guardar textos y fotos'; }
   });
   window.addEventListener('beforeunload', (e) => { if (sucio) { e.preventDefault(); e.returnValue = ''; } });
 

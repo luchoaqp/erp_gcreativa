@@ -31,13 +31,18 @@ import { iconoWhatsApp } from '../components/Iconos.js';
   </section>
 
   <section class="seccion seccion--petalo" aria-labelledby="catalogos-titulo">
-    <div class="contenedor">
-      <div class="seccion__intro">
-        <h2 id="catalogos-titulo" data-t="catalogos_titulo">Nuestros catálogos</h2>
-        <p data-t="catalogos_texto">Elige la ocasión y te mostramos los regalos pensados para ella.</p>
+    <div class="contenedor dos-columnas catalogos-inicio">
+      <div>
+        <div class="seccion__intro">
+          <h2 id="catalogos-titulo" data-t="catalogos_titulo">Nuestros catálogos</h2>
+          <p data-t="catalogos_texto">Elige la ocasión y te mostramos los regalos pensados para ella.</p>
+        </div>
+        <nav class="etiquetas etiquetas--3" id="inicio-catalogos" aria-label="Catálogos" aria-busy="true"></nav>
+        <p style="margin-top:28px"><a class="boton boton--borde" href="/catalogo/">Ver todo el catálogo</a></p>
       </div>
-      <nav class="etiquetas" id="inicio-catalogos" aria-label="Catálogos" aria-busy="true"></nav>
-      <p style="margin-top:28px"><a class="boton boton--borde" href="/catalogo/">Ver todo el catálogo</a></p>
+      <div class="catalogos-inicio__foto">
+        <img data-img="catalogos" src="/img/productos/catalogos.svg" alt="" width="800" height="800" loading="lazy" decoding="async" />
+      </div>
     </div>
   </section>
 
@@ -90,7 +95,7 @@ import { iconoWhatsApp } from '../components/Iconos.js';
   cargarCatalogo()
     .then((datos) => {
       zonaCatalogos.innerHTML = datos.catalogos.length
-        ? etiquetasCatalogos(datos.catalogos, 'enlace')
+        ? etiquetasCatalogos(datos.catalogos.slice(0, 9), 'enlace') // máximo 3 x 3; el resto, en "Ver todo el catálogo"
         : '<p class="aviso-vacio">Muy pronto publicaremos nuestros catálogos.</p>';
       const destacados = datos.productos.filter((p) => p.destacado).slice(0, 6);
       if (destacados.length) zonaDestacados.innerHTML = grillaProductos(destacados, datos);

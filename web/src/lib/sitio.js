@@ -39,6 +39,12 @@ export function aplicarSitio(d) {
     else if (c === 'horario') el.textContent = sitio.horario;
     else if (sitio.redes[c]) el.href = sitio.redes[c];
   }
+  // Fotos de secciones (ej. "Nuestros catálogos", "Quiénes somos")
+  const imgs = d.imagenes || {};
+  for (const el of document.querySelectorAll('[data-img]')) {
+    const src = imgs[el.dataset.img];
+    if (src) el.src = src;
+  }
   const p = d.portada;
   const hero = document.getElementById('hero');
   if (hero && p) {

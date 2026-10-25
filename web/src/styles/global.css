@@ -407,3 +407,19 @@ p { margin: 0 0 1em; }
 
 /* "Los más pedidos": 3 columnas (máx. 2 filas) */
 @media (min-width: 861px) { .grilla--3 { grid-template-columns: repeat(3, 1fr); } }
+
+/* Inicio · "Nuestros catálogos": texto y etiquetas (3 x 3) a la izquierda, foto a la derecha */
+.etiquetas--3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 14px; }
+.catalogos-inicio { grid-template-columns: 1.2fr 0.8fr; }
+.etiquetas--3 .etiqueta { width: 100%; min-width: 0; min-height: 56px; padding: 6px 12px 6px 36px; font-size: var(--t-sm); line-height: 1.2; }
+.etiquetas--3 .etiqueta::before { left: 14px; }
+.etiquetas--3 .etiqueta span:last-child { overflow-wrap: anywhere; }
+.catalogos-inicio__foto { border-radius: var(--radio); overflow: hidden; background: var(--petalo); aspect-ratio: 1; box-shadow: 0 18px 40px -24px rgba(58, 28, 58, 0.45); }
+.catalogos-inicio__foto img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 860px) {
+  .catalogos-inicio { grid-template-columns: 1fr; }
+  .catalogos-inicio__foto { max-width: 520px; width: 100%; margin-inline: auto; order: -1; aspect-ratio: 4 / 3; }
+}
+@media (max-width: 560px) {
+  .etiquetas--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

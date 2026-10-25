@@ -221,6 +221,7 @@ Route::middleware('jwt')->prefix('web-site')->group(function () {
     Route::get('/', [C\WebSiteController::class, 'show']);
     Route::middleware('roles:admin,vendedor')->group(function () {
         Route::put('textos', [C\WebSiteController::class, 'saveTextos']);
+        Route::put('imagenes', [C\WebSiteController::class, 'saveImagenes']);
         Route::post('campanas', [C\WebSiteController::class, 'createCampana']);
         Route::post('campanas/desactivar', [C\WebSiteController::class, 'desactivar']);
         Route::put('campanas/{id}', [C\WebSiteController::class, 'updateCampana']);

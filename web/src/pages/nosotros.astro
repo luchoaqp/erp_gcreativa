@@ -4,21 +4,21 @@ import Base from '../layouts/Base.astro';
 <Base titulo="Quiénes somos" descripcion="Conoce a Genia Creativa: un taller de regalos personalizados que arma cada detalle a mano.">
   <section class="encabezado">
     <div class="contenedor">
-      <h1>Un taller pequeño con mucho cariño en cada caja</h1>
-      <p>Somos Genia Creativa. Diseñamos y armamos regalos personalizados para que cada fecha importante tenga un detalle a su altura.</p>
+      <h1 data-t="nosotros_titulo">Un taller pequeño con mucho cariño en cada caja</h1>
+      <p data-t="nosotros_texto">Somos Genia Creativa. Diseñamos y armamos regalos personalizados para que cada fecha importante tenga un detalle a su altura.</p>
     </div>
   </section>
 
   <section class="seccion">
     <div class="contenedor dos-columnas dos-columnas--texto">
       <div class="nosotros__foto">
-        <img src="/img/productos/aniversario.svg" alt="Caja de aniversario armada en nuestro taller" width="800" height="800" loading="lazy" />
+        <img data-img="nosotros" src="/img/productos/aniversario.svg" alt="Caja de aniversario armada en nuestro taller" width="800" height="800" loading="lazy" />
       </div>
       <div>
-        <h2>Cómo empezamos</h2>
-        <p>Todo comenzó armando regalos para familia y amigos. La gente preguntaba quién los hacía, y así nació Genia Creativa.</p>
-        <p>Hoy preparamos cajas sorpresa, desayunos, kits corporativos y detalles para cada ocasión. Elegimos los productos, escribimos las dedicatorias y cuidamos que cada entrega llegue a tiempo.</p>
-        <p>Trabajamos con personas que quieren sorprender a alguien y con empresas que quieren agradecer a su equipo o a sus clientes.</p>
+        <h2 data-t="historia_titulo">Cómo empezamos</h2>
+        <p data-t="historia_p1">Todo comenzó armando regalos para familia y amigos. La gente preguntaba quién los hacía, y así nació Genia Creativa.</p>
+        <p data-t="historia_p2">Hoy preparamos cajas sorpresa, desayunos, kits corporativos y detalles para cada ocasión. Elegimos los productos, escribimos las dedicatorias y cuidamos que cada entrega llegue a tiempo.</p>
+        <p data-t="historia_p3">Trabajamos con personas que quieren sorprender a alguien y con empresas que quieren agradecer a su equipo o a sus clientes.</p>
       </div>
     </div>
   </section>
@@ -26,12 +26,12 @@ import Base from '../layouts/Base.astro';
   <section class="seccion seccion--petalo" aria-labelledby="valores-titulo">
     <div class="contenedor">
       <div class="seccion__intro">
-        <h2 id="valores-titulo">Lo que nos importa</h2>
+        <h2 id="valores-titulo" data-t="valores_titulo">Lo que nos importa</h2>
       </div>
       <ul class="valores">
-        <li><h3>Hecho a mano</h3><p>Cada regalo se arma en nuestro taller, pieza por pieza, revisado antes de salir.</p></li>
-        <li><h3>A tu medida</h3><p>Nombres, fotos, logos y mensajes: adaptamos el detalle a la persona que lo recibe.</p></li>
-        <li><h3>Puntuales</h3><p>Coordinamos fecha y hora de entrega y te avisamos cuando el regalo llega.</p></li>
+        <li><h3 data-t="valor1_titulo">Hecho a mano</h3><p data-t="valor1_texto">Cada regalo se arma en nuestro taller, pieza por pieza, revisado antes de salir.</p></li>
+        <li><h3 data-t="valor2_titulo">A tu medida</h3><p data-t="valor2_texto">Nombres, fotos, logos y mensajes: adaptamos el detalle a la persona que lo recibe.</p></li>
+        <li><h3 data-t="valor3_titulo">Puntuales</h3><p data-t="valor3_texto">Coordinamos fecha y hora de entrega y te avisamos cuando el regalo llega.</p></li>
       </ul>
     </div>
   </section>

@@ -6,8 +6,8 @@ import { iconoWhatsApp, iconoCorreo, iconoUbicacion, iconoReloj } from '../compo
 <Base titulo="Contacto" descripcion="Escríbenos por WhatsApp o correo para pedir tu regalo personalizado o cotizar regalos corporativos.">
   <section class="encabezado">
     <div class="contenedor">
-      <h1>Hablemos de tu regalo</h1>
-      <p>Respondemos por WhatsApp en horario de atención. Para pedidos corporativos, cuéntanos cuántas unidades necesitas y para qué fecha.</p>
+      <h1 data-t="contacto_titulo">Hablemos de tu regalo</h1>
+      <p data-t="contacto_texto">Respondemos por WhatsApp en horario de atención. Para pedidos corporativos, cuéntanos cuántas unidades necesitas y para qué fecha.</p>
     </div>
   </section>
 
@@ -32,17 +32,10 @@ import { iconoWhatsApp, iconoCorreo, iconoUbicacion, iconoReloj } from '../compo
             <div><strong>Horario</strong><span data-contacto="horario">{sitio.horario}</span></div>
           </li>
         </ul>
-
-        <div id="reclamos">
-          <h2 style="font-size:var(--t-lg)">Libro de Reclamaciones</h2>
-          <p>Conforme al Código de Protección y Defensa del Consumidor, ponemos a tu disposición nuestro Libro de Reclamaciones virtual.</p>
-          <!-- TODO: enlazar al formulario del Libro de Reclamaciones (Google Forms o, más adelante, módulo del ERP) -->
-          <a class="boton boton--borde boton--chico" href="#">Registrar reclamo</a>
-        </div>
       </div>
 
       <form class="formulario" id="form-contacto">
-        <h2>Cuéntanos qué necesitas</h2>
+        <h2 data-t="contacto_form_titulo">Cuéntanos qué necesitas</h2>
         <div class="campo">
           <label for="f-nombre">Tu nombre</label>
           <input id="f-nombre" name="nombre" type="text" autocomplete="name" required />

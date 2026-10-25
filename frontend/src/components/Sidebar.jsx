@@ -35,10 +35,10 @@ const NAV = [
   { type: 'item', id: 'dashboard' },
   { type: 'group', id: 'comercial', label: 'Comercial', icon: Briefcase, items: ['pos', 'quotes', 'reports', 'orders', 'shipments', 'purchases'] },
   { type: 'group', id: 'productos', label: 'Productos', icon: PackageOpen, items: ['inventory', 'categories', 'catalogs'] },
-  { type: 'group', id: 'pagina_web', label: 'Página web', icon: Globe, items: ['web'] },
   { type: 'group', id: 'gestion', label: 'Gestión', icon: Boxes, items: ['expenses', 'kardex', 'kardex_valorizado', 'reportes', 'workshop'] },
   { type: 'group', id: 'clientes', label: 'Clientes y Proveedores', icon: Users, items: ['customers', 'suppliers'] },
-  { type: 'group', id: 'operaciones', label: 'Operaciones', icon: Wrench, items: ['users', 'settings', 'backup'] }
+  { type: 'group', id: 'operaciones', label: 'Operaciones', icon: Wrench, items: ['users', 'settings', 'backup'] },
+  { type: 'group', id: 'pagina_web', label: 'Página web', icon: Globe, items: ['web'] }
 ];
 
 const STORAGE_KEY = 'sidebar_grupos_cerrados';

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Libros con manzana para el Día del Maestro">
+<rect width="800" height="800" fill="#FFF4D6"/>
+<ellipse cx="400" cy="640" rx="250" ry="34" fill="#3A1C3A" opacity=".08"/>
+<rect x="220" y="430" width="360" height="60" rx="8" fill="#2E4A7D"/><rect x="240" y="490" width="330" height="60" rx="8" fill="#B8327A"/><rect x="230" y="550" width="350" height="60" rx="8" fill="#2F6F5E"/>
+<circle cx="400" cy="345" r="80" fill="#D93A2B"/><path d="M400 270 C400 240 420 225 440 220" stroke="#6B4423" stroke-width="10" fill="none"/><path d="M410 255 C450 230 490 250 480 270 C450 280 420 270 410 255Z" fill="#7FB069"/>
+<rect x="560" y="250" width="22" height="200" rx="4" fill="#FDC408" transform="rotate(20 570 350)"/>
+</svg>

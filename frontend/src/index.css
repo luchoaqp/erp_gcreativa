@@ -1,0 +1,114 @@
+:root {
+  --primary-rgb: 255, 94, 54;
+  --sb-bg: var(--primary);
+  --sb-text-rgb: 255, 255, 255;
+  --sb-active-bg: #FFFFFF;
+  --sb-active-text: var(--primary);
+  --primary: #FF5E36;
+  --primary-hover: #E84E25;
+  --primary-light: #FFF0EB;
+  --primary-glow: rgba(255, 94, 54, 0.25);
+  
+  --sidebar-bg: #FF5E36;
+  --sidebar-text: rgba(255, 255, 255, 0.75);
+  --sidebar-text-active: #FF5E36;
+  
+  --bg-app: #DCE8E5;
+  --canvas-bg: #F8FAF9;
+  --card-bg: #FFFFFF;
+  --card-border: #EDF3F1;
+  
+  --text-main: #1C2A38;
+  --text-muted: #788A9B;
+  --text-light: #9EAFBF;
+  
+  --status-success: #10B981;
+  --status-warning: #F59E0B;
+  --status-info: #3B82F6;
+  --status-purple: #8B5CF6;
+  --status-danger: #EF4444;
+
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(28, 42, 56, 0.06);
+  --shadow-lg: 0 16px 40px rgba(28, 42, 56, 0.09);
+  --shadow-glow: 0 8px 25px rgba(var(--primary-rgb), 0.35);
+
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: all 0.2s ease;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0); }
+}
+
+@keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+/* Solo opacidad y sin fill-mode 'forwards': una animación de transform deja un bloque contenedor
+   que hace que los modales (position: fixed) se midan contra la página y no contra la ventana. */
+.animate-fade-in {
+  animation: pageIn 0.25s ease backwards;
+}

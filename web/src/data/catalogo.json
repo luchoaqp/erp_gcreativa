@@ -1,0 +1,155 @@
+{
+  "version": "2026-10-25-borrador-2",
+  "actualizado": "2026-10-25T00:00:00-05:00",
+  "categorias": [],
+  "productos": [
+    {
+      "id": 1,
+      "sku": "GC-001",
+      "nombre": "Caja Sorpresa Rosé",
+      "descripcion": "Caja rígida con chocolates, taza con su nombre y tarjeta escrita a mano.",
+      "precio": 89,
+      "categorias": [
+        "para-ellas"
+      ],
+      "imagen": "/img/productos/caja-rose.svg",
+      "destacado": true
+    },
+    {
+      "id": 2,
+      "sku": "GC-002",
+      "nombre": "Box Caballero",
+      "descripcion": "Caja con cerveza artesanal, snacks gourmet, llavero grabado y tarjeta personalizada.",
+      "precio": 115,
+      "categorias": [
+        "para-ellos"
+      ],
+      "imagen": "/img/productos/caballero.svg",
+      "destacado": true
+    },
+    {
+      "id": 3,
+      "sku": "GC-003",
+      "nombre": "Desayuno Buenos Días",
+      "descripcion": "Bandeja de madera con jugo natural, sándwich, frutas, keke casero y globo con dedicatoria.",
+      "precio": 120,
+      "categorias": [
+        "para-ellas",
+        "para-ellos"
+      ],
+      "imagen": "/img/productos/desayuno.svg",
+      "destacado": false
+    },
+    {
+      "id": 4,
+      "sku": "GC-004",
+      "nombre": "¿Quieres ser mi padrino?",
+      "descripcion": "Caja blanca con la pregunta impresa, chocolates y espacio para la foto del bebé o los novios.",
+      "precio": 95,
+      "categorias": [
+        "padrinos"
+      ],
+      "imagen": "/img/productos/padrinos.svg",
+      "destacado": true
+    },
+    {
+      "id": 5,
+      "sku": "GC-005",
+      "nombre": "Caja Madrina",
+      "descripcion": "Caja con vela aromática, taza «Madrina» con su nombre y bombones.",
+      "precio": 99,
+      "categorias": [
+        "padrinos",
+        "para-ellas"
+      ],
+      "imagen": "/img/productos/madrina.svg",
+      "destacado": false
+    },
+    {
+      "id": 6,
+      "sku": "GC-006",
+      "nombre": "Box Graduación",
+      "descripcion": "Caja con birrete decorativo, espumante mini, chocolates y foto impresa del graduado.",
+      "precio": 110,
+      "categorias": [
+        "graduaciones"
+      ],
+      "imagen": "/img/productos/graduacion.svg",
+      "destacado": true
+    },
+    {
+      "id": 7,
+      "sku": "GC-007",
+      "nombre": "Taza Graduado",
+      "descripcion": "Taza con nombre, carrera y año de promoción, en caja con lazo y bombones.",
+      "precio": 45,
+      "categorias": [
+        "graduaciones",
+        "profesiones"
+      ],
+      "imagen": "/img/productos/taza-graduado.svg",
+      "destacado": false
+    },
+    {
+      "id": 8,
+      "sku": "GC-008",
+      "nombre": "Kit Profesional",
+      "descripcion": "Libreta y lapicero grabados con nombre y profesión, más tomatodo térmico.",
+      "precio": 75,
+      "categorias": [
+        "profesiones",
+        "para-ellos"
+      ],
+      "imagen": "/img/productos/kit-profesional.svg",
+      "destacado": false
+    },
+    {
+      "id": 9,
+      "sku": "GC-009",
+      "nombre": "Detalle Salud",
+      "descripcion": "Para médicos, enfermeras y obstetras: taza temática, chocolates y tarjeta de agradecimiento.",
+      "precio": 55,
+      "categorias": [
+        "profesiones"
+      ],
+      "imagen": "/img/productos/salud.svg",
+      "destacado": false
+    },
+    {
+      "id": 10,
+      "sku": "GC-010",
+      "nombre": "Canasta Navideña",
+      "descripcion": "Canasta con panetón, chocolate para taza, galletas y mermelada artesanal.",
+      "precio": 129,
+      "categorias": [
+        "navidad"
+      ],
+      "imagen": "/img/productos/canasta-navidad.svg",
+      "destacado": true
+    },
+    {
+      "id": 11,
+      "sku": "GC-011",
+      "nombre": "Navidad Corporativa",
+      "descripcion": "Bolsa navideña con el logo de tu empresa, panetón mini y tarjeta. Precio por volumen.",
+      "precio": 49,
+      "categorias": [
+        "navidad"
+      ],
+      "imagen": "/img/productos/navidad-corporativo.svg",
+      "destacado": false
+    },
+    {
+      "id": 12,
+      "sku": "GC-012",
+      "nombre": "Gracias, Maestro",
+      "descripcion": "Libreta, lapicero con su nombre, manzana de chocolate y tarjeta firmada por los alumnos.",
+      "precio": 39,
+      "categorias": [
+        "dia-del-maestro"
+      ],
+      "imagen": "/img/productos/maestro.svg",
+      "destacado": false
+    }
+  ]
+}

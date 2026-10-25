@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import catalogo from '../data/catalogo.json';
+import { grillaProductos, etiquetasCategorias, registrarCategorias } from '../lib/render.js';
+
+registrarCategorias(catalogo.categorias);
+const total = catalogo.productos.length;
+---
+<Base titulo="Catálogo" descripcion="Catálogo de regalos personalizados: para ellas, para ellos, padrinos, graduaciones, profesiones, Navidad y Día del Maestro.">
+  <section class="encabezado">
+    <div class="contenedor">
+      <h1>Catálogo de regalos</h1>
+      <p>Filtra por categoría y pide el que te guste por WhatsApp. Los precios son referenciales y varían según la personalización.</p>
+    </div>
+  </section>
+
+  <section class="seccion" style="padding-top:24px">
+    <div class="contenedor">
+      <div class="etiquetas" role="group" aria-label="Filtrar por categoría">
+        <Fragment set:html={etiquetasCategorias('filtro')} />
+      </div>
+
+      <div class="catalogo__barra">
+        <span id="catalogo-conteo" aria-live="polite">Mostrando {total} regalos</span>
+        <button class="catalogo__limpiar" type="button" id="catalogo-limpiar" hidden>Ver todas las categorías</button>
+      </div>
+
+      <!-- data-version: el navegador compara con /data/catalogo.json y actualiza si el ERP publicó cambios -->
+      <div class="grilla" id="catalogo-grilla" data-version={catalogo.version}>
+        <Fragment set:html={grillaProductos(catalogo.productos)} />
+      </div>
+
+      <div class="catalogo__vacio" id="catalogo-vacio" hidden>
+        <p><strong>Aún no tenemos regalos publicados en esta categoría.</strong></p>
+        <p>Escríbenos por WhatsApp y armamos uno a tu medida.</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { grillaProductos, registrarCategorias } from '../lib/render.js';
+  import { sitio } from '../data/sitio.js';
+  import '../scripts/catalogo-filtro.js';
+
+  // Si el ERP publicó una versión nueva del catálogo, la mostramos sin recompilar el sitio.
+  const grilla = document.getElementById('catalogo-grilla');
+  fetch(sitio.urlCatalogo, { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((datos) => {
+      if (!datos || datos.version === grilla.dataset.version) return;
+      registrarCategorias(datos.categorias);
+      grilla.innerHTML = grillaProductos(datos.productos);
+      grilla.dataset.version = datos.version;
+      document.dispatchEvent(new CustomEvent('catalogo:actualizado'));
+    })
+    .catch(() => { /* sin conexión: se queda el catálogo compilado */ });
+</script>

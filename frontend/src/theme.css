@@ -1,0 +1,30 @@
+/* Modo oscuro: se invierte el lienzo de la aplicación y se restauran imágenes y documentos.
+   Se aplica sobre .app-viewport (ocupa toda la ventana), por eso los modales siguen centrados. */
+.app-viewport.theme-dark {
+  filter: invert(1) hue-rotate(180deg) contrast(0.88) brightness(0.96);
+  background: #FFFFFF;
+}
+.app-viewport.theme-dark img,
+.app-viewport.theme-dark video,
+.app-viewport.theme-dark canvas,
+.app-viewport.theme-dark iframe,
+.app-viewport.theme-dark .no-invert {
+  filter: invert(1) hue-rotate(180deg);
+}
+.app-viewport.theme-dark .modal-overlay,
+.app-viewport.theme-dark .pm-modal-bg {
+  backdrop-filter: none;
+}
+.theme-toggle { width: 44px; height: 44px; border-radius: 50%; background: #F5F7F8; display: flex; align-items: center; justify-content: center; color: var(--text-muted, #788A9B); border: 1.5px solid transparent; cursor: pointer; transition: all .2s; }
+.theme-toggle:hover { background: #EBEFED; }
+.theme-toggle.on { border-color: #6366F1; color: #6366F1; }
+
+/* El menú lateral conserva su color naranja y las letras blancas */
+.app-viewport.theme-dark .sidebar {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Tarjetas principales del dashboard: conservan sus colores y el texto blanco en modo oscuro */
+.app-viewport.theme-dark .stat-panel-card {
+  filter: invert(1) hue-rotate(180deg);
+}

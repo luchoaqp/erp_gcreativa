@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Caja negra con rosas y lazo amarillo">
+<rect width="800" height="800" fill="#F3E3EA"/>
+<ellipse cx="400" cy="640" rx="250" ry="34" fill="#3A1C3A" opacity=".08"/>
+<rect x="240" y="350" width="320" height="270" rx="10" fill="#3A1C3A"/>
+<rect x="226" y="290" width="348" height="70" rx="10" fill="#2A1229"/>
+<rect x="382.0" y="290" width="36" height="330" fill="#FDC408"/>
+<path d="M400.0 290 C310.0 180 250.0 270 400.0 290Z" fill="#FDC408"/>
+<path d="M400.0 290 C490.0 180 550.0 270 400.0 290Z" fill="#FDC408"/>
+<circle cx="400.0" cy="290" r="16" fill="#FDC408"/><circle cx="330" cy="470" r="36" fill="#B8327A"/><circle cx="400" cy="450" r="40" fill="#DE569A"/><circle cx="470" cy="475" r="34" fill="#B8327A"/>
+</svg>

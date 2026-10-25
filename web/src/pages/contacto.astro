@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import { sitio, categorias } from '../data/sitio.js';
+import { iconoWhatsApp, iconoCorreo, iconoUbicacion, iconoReloj } from '../components/Iconos.js';
+---
+<Base titulo="Contacto" descripcion="Escríbenos por WhatsApp o correo para pedir tu regalo personalizado o cotizar regalos corporativos.">
+  <section class="encabezado">
+    <div class="contenedor">
+      <h1>Hablemos de tu regalo</h1>
+      <p>Respondemos por WhatsApp en horario de atención. Para pedidos corporativos, cuéntanos cuántas unidades necesitas y para qué fecha.</p>
+    </div>
+  </section>
+
+  <section class="seccion" style="padding-top:32px">
+    <div class="contenedor contacto__grid">
+      <div>
+        <ul class="datos">
+          <li>
+            <span class="datos__icono"><Fragment set:html={iconoWhatsApp} /></span>
+            <div><strong>WhatsApp</strong><a href={`https://wa.me/${sitio.whatsapp}`} target="_blank" rel="noopener">{sitio.telefonoVisible}</a></div>
+          </li>
+          <li>
+            <span class="datos__icono"><Fragment set:html={iconoCorreo} /></span>
+            <div><strong>Correo</strong><a href={`mailto:${sitio.email}`}>{sitio.email}</a></div>
+          </li>
+          <li>
+            <span class="datos__icono"><Fragment set:html={iconoUbicacion} /></span>
+            <div><strong>Ubicación</strong><span>{sitio.direccion}</span></div>
+          </li>
+          <li>
+            <span class="datos__icono"><Fragment set:html={iconoReloj} /></span>
+            <div><strong>Horario</strong><span>{sitio.horario}</span></div>
+          </li>
+        </ul>
+
+        <div id="reclamos">
+          <h2 style="font-size:var(--t-lg)">Libro de Reclamaciones</h2>
+          <p>Conforme al Código de Protección y Defensa del Consumidor, ponemos a tu disposición nuestro Libro de Reclamaciones virtual.</p>
+          <!-- TODO: enlazar al formulario del Libro de Reclamaciones (Google Forms o, más adelante, módulo del ERP) -->
+          <a class="boton boton--borde boton--chico" href="#">Registrar reclamo</a>
+        </div>
+      </div>
+
+      <form class="formulario" id="form-contacto">
+        <h2>Cuéntanos qué necesitas</h2>
+        <div class="campo">
+          <label for="f-nombre">Tu nombre</label>
+          <input id="f-nombre" name="nombre" type="text" autocomplete="name" required />
+        </div>
+        <div class="campo">
+          <label for="f-ocasion">Categoría</label>
+          <select id="f-ocasion" name="ocasion">
+            <option value="">Aún no lo sé</option>
+            {categorias.map((o) => <option value={o.nombre}>{o.nombre}</option>)}
+          </select>
+        </div>
+        <div class="campo">
+          <label for="f-fecha">Fecha de entrega</label>
+          <input id="f-fecha" name="fecha" type="date" />
+        </div>
+        <div class="campo">
+          <label for="f-mensaje">Mensaje</label>
+          <textarea id="f-mensaje" name="mensaje" placeholder="Ej.: Un desayuno para mi mamá con globo y la frase «Feliz día»." required></textarea>
+        </div>
+        <button class="boton boton--whatsapp" type="submit"><Fragment set:html={iconoWhatsApp} /> Enviar por WhatsApp</button>
+        <p class="formulario__nota">Se abrirá WhatsApp con tu mensaje listo para enviar.</p>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Hoy: arma el mensaje y abre WhatsApp. Más adelante podrá enviarse a la API de erp.gcreativa.com.
+  import { enlaceWhatsApp } from '../lib/render.js';
+
+  document.getElementById('form-contacto').addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const d = new FormData(ev.currentTarget);
+    const partes = [
+      `Hola Genia Creativa, soy ${d.get('nombre')}.`,
+      d.get('ocasion') && `Categoría: ${d.get('ocasion')}.`,
+      d.get('fecha') && `Fecha de entrega: ${d.get('fecha')}.`,
+      `${d.get('mensaje')}`,
+    ].filter(Boolean);
+    window.open(enlaceWhatsApp(partes.join('\n')), '_blank', 'noopener');
+  });
+</script>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Canasta navideña con panetón">
+<rect width="800" height="800" fill="#F8E6E3"/>
+<ellipse cx="400" cy="640" rx="250" ry="34" fill="#3A1C3A" opacity=".08"/>
+<path d="M190 400 H610 L570 610 H230Z" fill="#C49A6C"/><path d="M230 440 H570 M215 500 H585 M225 560 H575" stroke="#A47A4E" stroke-width="10"/>
+<path d="M240 400 C240 220 560 220 560 400" fill="none" stroke="#A47A4E" stroke-width="18"/>
+<path d="M300 400 C300 300 420 290 430 400Z" fill="#E3A857"/><path d="M300 360 H430" stroke="#9C5B2E" stroke-width="8"/>
+<rect x="450" y="300" width="60" height="100" rx="10" fill="#B3261E"/><circle cx="560" cy="360" r="34" fill="#2F6F5E"/>
+<path d="M400 405 C310 295 250 385 400 405Z" fill="#B3261E"/>
+<path d="M400 405 C490 295 550 385 400 405Z" fill="#B3261E"/>
+<circle cx="400" cy="405" r="16" fill="#B3261E"/>
+</svg>

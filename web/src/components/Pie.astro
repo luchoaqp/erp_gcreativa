@@ -1,0 +1,48 @@
+---
+import { sitio, categorias } from '../data/sitio.js';
+
+const anio = new Date().getFullYear();
+---
+<footer class="pie">
+  <div class="contenedor">
+    <div class="pie__grid">
+      <div>
+        <a class="marca" href="/">
+          <img class="marca__logo" src={sitio.logo} alt={sitio.nombre} width="300" height="116" />
+        </a>
+        <p>Armamos cada regalo a mano y lo entregamos con tu dedicatoria.</p>
+        <a class="reclamos" href="/contacto/#reclamos">Libro de Reclamaciones</a>
+      </div>
+      <div>
+        <h2>Categorías</h2>
+        <ul>
+          {categorias.slice(0, 7).map((o) => (
+            <li><a href={`/catalogo/?categoria=${o.slug}`}>{o.nombre}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2>La tienda</h2>
+        <ul>
+          <li><a href="/nosotros/">Quiénes somos</a></li>
+          <li><a href="/catalogo/">Catálogo</a></li>
+          <li><a href="/contacto/">Contacto</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Escríbenos</h2>
+        <ul>
+          <li><a href={`https://wa.me/${sitio.whatsapp}`} target="_blank" rel="noopener">WhatsApp {sitio.telefonoVisible}</a></li>
+          <li><a href={`mailto:${sitio.email}`}>{sitio.email}</a></li>
+          <li><a href={sitio.redes.instagram} target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href={sitio.redes.facebook} target="_blank" rel="noopener">Facebook</a></li>
+          <li><a href={sitio.redes.tiktok} target="_blank" rel="noopener">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="pie__legal">
+      <span>© {anio} {sitio.nombre}. Todos los derechos reservados.</span>
+      <span>{sitio.direccion}</span>
+    </div>
+  </div>
+</footer>

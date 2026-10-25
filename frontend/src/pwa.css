@@ -1,0 +1,15 @@
+/* Ajustes para usar el sistema como App en el celular */
+html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body { overscroll-behavior-y: none; }
+@media (max-width: 768px) {
+  /* evita el zoom automático de iPhone al tocar un campo */
+  input, select, textarea { font-size: 16px !important; }
+  .topbar { padding-top: env(safe-area-inset-top); height: calc(68px + env(safe-area-inset-top)); }
+  .content-body { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .pm-modal-bg, .cx-modal-bg { padding: 8px; }
+  .pm-modal, .cx-modal { max-height: 96vh; }
+}
+@media (display-mode: standalone) {
+  body { user-select: none; -webkit-user-select: none; }
+  input, textarea, select, [contenteditable] { user-select: text; -webkit-user-select: text; }
+}

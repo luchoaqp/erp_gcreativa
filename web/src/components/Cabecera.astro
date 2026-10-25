@@ -1,0 +1,43 @@
+---
+import { sitio } from '../data/sitio.js';
+
+const ruta = Astro.url.pathname;
+const enlaces = [
+  { href: '/', texto: 'Inicio' },
+  { href: '/nosotros/', texto: 'Quiénes somos' },
+  { href: '/catalogo/', texto: 'Catálogo' },
+  { href: '/contacto/', texto: 'Contacto' },
+];
+const activo = (href) => (href === '/' ? ruta === '/' : ruta.startsWith(href));
+---
+<header class="cabecera">
+  <div class="contenedor cabecera__fila">
+    <a class="marca" href="/" aria-label={`${sitio.nombre}, ir al inicio`}>
+      <img class="marca__logo" src={sitio.logo} alt={sitio.nombre} width="300" height="116" />
+    </a>
+
+    <nav class="menu" aria-label="Principal" data-abierto="false">
+      <button class="menu__boton" type="button" aria-expanded="false" aria-controls="menu-panel">Menú</button>
+      <div class="menu__panel" id="menu-panel">
+        <ul class="menu__lista">
+          {enlaces.map((e) => (
+            <li><a href={e.href} aria-current={activo(e.href) ? 'page' : undefined}>{e.texto}</a></li>
+          ))}
+        </ul>
+        <a class="boton boton--chico menu__cta" href="/catalogo/">Ver catálogo</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Menú móvil: abre y cierra el panel
+  const menu = document.querySelector('.menu');
+  const boton = menu?.querySelector('.menu__boton');
+  boton?.addEventListener('click', () => {
+    const abierto = menu.dataset.abierto === 'true';
+    menu.dataset.abierto = String(!abierto);
+    boton.setAttribute('aria-expanded', String(!abierto));
+    boton.textContent = abierto ? 'Menú' : 'Cerrar';
+  });
+</script>

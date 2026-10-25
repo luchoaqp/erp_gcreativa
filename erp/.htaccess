@@ -1,0 +1,12 @@
+# Si el subdominio erp.gcreativa.com NO apunta a la carpeta public/,
+# este archivo redirige todo hacia public/ y protege los archivos internos (.env, vendor, storage...).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.env|\.env\..*|composer\.(json|lock)|artisan)$ - [F,L]
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests|vendor)(/|$) - [F,L]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

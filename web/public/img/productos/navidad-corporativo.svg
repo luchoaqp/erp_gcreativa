@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Bolsa navideña corporativa">
+<rect width="800" height="800" fill="#FBEFE1"/>
+<ellipse cx="400" cy="640" rx="250" ry="34" fill="#3A1C3A" opacity=".08"/>
+<path d="M250 330 H550 L580 620 H220Z" fill="#B3261E"/><path d="M320 330 C320 230 480 230 480 330" fill="none" stroke="#3A1C3A" stroke-width="16"/>
+<rect x="300" y="420" width="200" height="110" rx="10" fill="#FFF"/><path d="M400 440 L425 505 H375Z" fill="#2F6F5E"/><circle cx="400" cy="438" r="6" fill="#FDC408"/>
+</svg>

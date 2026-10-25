@@ -1,0 +1,17 @@
+# Secretos y datos del negocio: NUNCA al repositorio
+.env
+erp/.env
+erp/public/uploads/productos/*
+!erp/public/uploads/productos/.gitkeep
+erp/storage/app/backups/*
+!erp/storage/app/backups/.gitkeep
+erp/storage/opcache/
+
+# Dependencias y compilados
+node_modules/
+erp/vendor/
+frontend/dist/
+web/dist/
+web/.astro/
+*.log
+.DS_Store

@@ -1,0 +1,105 @@
+---
+import Base from '../layouts/Base.astro';
+import catalogo from '../data/catalogo.json';
+import { grillaProductos, etiquetasCategorias, enlaceWhatsApp, registrarCategorias } from '../lib/render.js';
+import { iconoWhatsApp } from '../components/Iconos.js';
+
+registrarCategorias(catalogo.categorias);
+const destacados = catalogo.productos.filter((p) => p.destacado).slice(0, 4);
+---
+<Base>
+  <section class="hero">
+    <div class="contenedor hero__grid">
+      <div class="hero__texto">
+        <h1>Detalles que se quedan en la memoria</h1>
+        <p>Regalos personalizados para ellas, para ellos, padrinos, graduados y empresas. Armamos cada caja a mano, con tu dedicatoria, y la llevamos hasta la puerta.</p>
+        <div class="hero__acciones">
+          <a class="boton" href="/catalogo/">Ver catálogo</a>
+          <a class="boton boton--borde" href={enlaceWhatsApp('Hola Genia Creativa, quiero armar un regalo personalizado.')} target="_blank" rel="noopener">
+            <Fragment set:html={iconoWhatsApp} /> Pedir por WhatsApp
+          </a>
+        </div>
+        <p class="hero__dato">Delivery en Lima con fecha y hora de entrega</p>
+      </div>
+
+      <div class="hero__fotos">
+        <svg class="hero__cinta" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 80 C 180 10, 320 120, 500 60 S 820 10, 1000 70" />
+        </svg>
+        <figure class="hero__foto hero__foto--a"><img src="/img/productos/caja-rose.svg" alt="Caja sorpresa con lazo dorado" width="800" height="800" fetchpriority="high" /></figure>
+        <figure class="hero__foto hero__foto--b"><img src="/img/productos/desayuno.svg" alt="Desayuno sorpresa con globo" width="800" height="800" /></figure>
+        <figure class="hero__foto hero__foto--c"><img src="/img/productos/canasta-navidad.svg" alt="Canasta navideña con panetón" width="800" height="800" /></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion seccion--petalo" aria-labelledby="categorias-titulo">
+    <div class="contenedor">
+      <div class="seccion__intro">
+        <h2 id="categorias-titulo">¿Para quién es el regalo?</h2>
+        <p>Elige una categoría y te mostramos los regalos pensados para ella.</p>
+      </div>
+      <nav class="etiquetas" aria-label="Categorías del catálogo">
+        <Fragment set:html={etiquetasCategorias('enlace')} />
+      </nav>
+    </div>
+  </section>
+
+  <section class="seccion" aria-labelledby="destacados-titulo">
+    <div class="contenedor">
+      <div class="seccion__intro">
+        <h2 id="destacados-titulo">Los más pedidos</h2>
+        <p>Los favoritos de nuestros clientes. Todos se pueden personalizar con nombre, foto o mensaje.</p>
+      </div>
+      <div class="grilla" id="destacados-grilla" data-version={catalogo.version}>
+        <Fragment set:html={grillaProductos(destacados)} />
+      </div>
+      <p style="margin-top:32px"><a class="boton boton--borde" href="/catalogo/">Ver todo el catálogo</a></p>
+    </div>
+  </section>
+
+  <section class="seccion seccion--petalo" aria-labelledby="pasos-titulo">
+    <div class="contenedor">
+      <div class="seccion__intro">
+        <h2 id="pasos-titulo">Así de fácil es pedir</h2>
+      </div>
+      <ol class="pasos">
+        <li><h3>Elige tu regalo</h3><p>Mira el catálogo y toca «Pedir» en el que te guste.</p></li>
+        <li><h3>Personalízalo</h3><p>Por WhatsApp nos cuentas el nombre, la dedicatoria y los detalles.</p></li>
+        <li><h3>Lo entregamos</h3><p>Coordinamos fecha, hora y dirección. Te avisamos cuando llegue.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="seccion">
+    <div class="contenedor">
+      <div class="banda">
+        <div>
+          <h2>Regalos para tu empresa</h2>
+          <p>Kits para colaboradores, clientes y eventos, con el logo de tu marca. Cotizamos por volumen y entregamos en tus oficinas.</p>
+        </div>
+        <a class="boton" href={enlaceWhatsApp('Hola Genia Creativa, quiero cotizar regalos corporativos para mi empresa.')} target="_blank" rel="noopener">Cotizar para empresas</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { grillaProductos, registrarCategorias } from '../lib/render.js';
+  import { sitio } from '../data/sitio.js';
+
+  // Destacados al día con lo último publicado desde el ERP (sin recompilar la web)
+  const grilla = document.getElementById('destacados-grilla');
+  fetch(sitio.urlCatalogo, { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((datos) => {
+      if (!datos || datos.version === grilla.dataset.version) return;
+      const lista = datos.productos.filter((p) => p.destacado);
+      const mostrar = (lista.length ? lista : datos.productos).slice(0, 4);
+      if (!mostrar.length) return;
+      registrarCategorias(datos.categorias);
+      grilla.innerHTML = grillaProductos(mostrar);
+      grilla.dataset.version = datos.version;
+    })
+    .catch(() => {});
+</script>

@@ -1,0 +1,64 @@
+/* Menú lateral compacto, con scroll y grupos plegables (sobrescribe App.css) */
+.sidebar {
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  overflow: hidden;
+  padding: 16px 0 10px 16px;
+}
+.sidebar .sidebar-logo { padding-bottom: 12px; }
+
+.sidebar .sidebar-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 2px;
+  padding: 22px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--sb-text-rgb), 0.35) transparent;
+}
+.sidebar .sidebar-nav::-webkit-scrollbar { width: 5px; }
+.sidebar .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(var(--sb-text-rgb), 0.35); border-radius: 999px; }
+
+.sidebar .nav-link {
+  padding: 9px 14px;
+  gap: 11px;
+  font-size: 13.5px;
+  border-top-left-radius: 22px;
+  border-bottom-left-radius: 22px;
+}
+.sidebar .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.sidebar .nav-badge { font-size: 10px; padding: 1px 6px; }
+
+/* Opción activa: bloque blanco con las 4 esquinas redondeadas (sin formas triangulares a la derecha) */
+.sidebar .nav-link { border-radius: 14px; width: calc(100% - 16px); }
+.sidebar .nav-link.active { border-radius: 14px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); }
+.sidebar .nav-link.active::before,
+.sidebar .nav-link.active::after { content: none; display: none; }
+
+/* Encabezados de grupo */
+.sidebar .nav-group { margin-bottom: 6px; }
+.sidebar .nav-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 14px 7px 6px;
+  color: rgba(var(--sb-text-rgb), 0.92);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.sidebar .nav-group-header:hover { color: rgb(var(--sb-text-rgb)); }
+.sidebar .nav-group-header .group-icon { width: 15px; height: 15px; opacity: 0.9; flex-shrink: 0; }
+.sidebar .nav-group-header .group-chevron { margin-left: auto; width: 15px; height: 15px; transition: transform 0.2s ease; }
+.sidebar .nav-group.collapsed .group-chevron { transform: rotate(-90deg); }
+.sidebar .nav-group-items { display: flex; flex-direction: column; gap: 2px; padding: 4px 0 4px 8px; }
+
+.sidebar .sidebar-footer { padding-top: 8px; }
+.sidebar .logout-btn { padding: 9px 14px; font-size: 13.5px; }

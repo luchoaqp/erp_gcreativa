@@ -15,7 +15,11 @@ class BackupController extends Controller
         'clientes', 'proveedores', 'compras', 'compra_detalles', 'gastos', 'gasto_detalles', 'gasto_pagos', 'catalogos', 'taller_maquinas',
         'taller_registros', 'pedidos', 'pedido_guias', 'pedido_diseno', 'couriers', 'agencias_envio', 'pedido_detalles', 'cotizacion_config',
         'cotizaciones', 'cotizacion_detalles', 'pagos', 'comprobantes', 'migraciones_aplicadas',
+        'web_ajustes', 'web_campanas',
     ];
+
+    /** Tablas nuevas de la versión Laravel: si la copia no las trae (copia antigua o de Node), se dejan como están */
+    private const OPCIONALES = ['web_ajustes', 'web_campanas'];
 
     private const RESTORE_ORDER = [
         'comprobantes', 'pagos', 'cotizacion_detalles', 'cotizaciones', 'cotizacion_config', 'agencias_envio', 'couriers', 'pedido_diseno',
@@ -23,6 +27,7 @@ class BackupController extends Controller
         'producto_categorias', 'producto_componentes', 'producto_presentaciones', 'productos', 'marcas', 'taller_registros', 'taller_maquinas',
         'catalogos', 'gasto_pagos', 'gasto_detalles', 'gastos', 'compra_detalles', 'compras', 'proveedores', 'clientes', 'tipos_cliente',
         'ocasiones', 'categorias', 'usuarios', 'configuracion', 'migraciones_aplicadas',
+        'web_ajustes', 'web_campanas',
     ];
 
     public static function dir(): string
@@ -116,6 +121,7 @@ class BackupController extends Controller
             Db::query('SET FOREIGN_KEY_CHECKS = 0');
             $counts = [];
             foreach (self::RESTORE_ORDER as $table) {
+                if (in_array($table, self::OPCIONALES, true) && !array_key_exists($table, $data['tables'])) continue;
                 Db::query("DELETE FROM `{$table}`");
                 $rows = $data['tables'][$table] ?? [];
                 if (is_array($rows) && count($rows) > 0) {
@@ -138,7 +144,7 @@ class BackupController extends Controller
             Db::commit();
             return $this->json([
                 'success' => true,
-                'message' => '¡Copia de seguridad restaurada exitosamente! Reinicia el servidor (cierra y vuelve a abrir el backend) para que se apliquen las actualizaciones de estructura si la copia es antigua.',
+                'message' => '¡Copia de seguridad restaurada exitosamente! Recarga el ERP (Ctrl + F5) para ver los datos restaurados.',
                 'restoredCounts' => $counts, 'timestamp' => Js::iso(),
             ]);
         } catch (\Throwable $e) {

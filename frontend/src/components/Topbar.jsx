@@ -1,11 +1,12 @@
 import Avatar from './Avatar';
 import React, { useState, useEffect } from 'react';
 import { salesAPI } from '../api';
-import { Search, Bell, PlusCircle, Truck, UserCheck, AlertTriangle, Menu, Sun, Moon } from 'lucide-react';
+import { Search, Bell, PlusCircle, Truck, UserCheck, AlertTriangle, Menu, Sun, Moon, FileText, X } from 'lucide-react';
 
 export default function Topbar({ 
   user, 
   onNewSale, 
+  onNewQuote,
   onViewOrders,
   onSearchSales,
   urgentDeliveries = [], 
@@ -18,6 +19,8 @@ export default function Topbar({
   const [q, setQ] = useState('');
   const [hits, setHits] = useState([]);
   const [openHits, setOpenHits] = useState(false);
+  // En pantallas medianas y en el celular el buscador es un ícono: al tocarlo se abre en una fila debajo
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const t = q.trim();
@@ -27,24 +30,9 @@ export default function Topbar({
     }, 250);
     return () => clearTimeout(timer);
   }, [q]);
-  const go = (text) => { const t = (text || '').trim(); if (!t) return; setOpenHits(false); onSearchSales && onSearchSales(t); };
+  const go = (text) => { const t = (text || '').trim(); if (!t) return; setOpenHits(false); setSearchOpen(false); onSearchSales && onSearchSales(t); };
 
-  const totalNotifs = (urgentDeliveries?.length || 0) + (lowStockCount > 0 ? 1 : 0);
-
-  return (
-    <header className="topbar">
-      <div className="topbar-left">
-        {/* Botón de Menú Hamburguesa en Pantallas Pequeñas/Tablets */}
-        <button 
-          className="hamburger-btn" 
-          onClick={onToggleMobileMenu}
-          type="button"
-          title="Abrir menú"
-        >
-          <Menu size={22} />
-        </button>
-
-        {/* Search bar matching pill shape in reference */}
+  const buscador = (enFila) => (
         <div className="search-container" style={{ position: 'relative' }}>
           <Search size={18} color="#9EAFBF" />
           <input
@@ -55,7 +43,8 @@ export default function Topbar({
             onChange={(e) => { setQ(e.target.value); setOpenHits(true); }}
             onFocus={() => setOpenHits(true)}
             onBlur={() => setTimeout(() => setOpenHits(false), 180)}
-            onKeyDown={(e) => { if (e.key === 'Enter') go(q); if (e.key === 'Escape') setOpenHits(false); }}
+            autoFocus={enFila}
+            onKeyDown={(e) => { if (e.key === 'Enter') go(q); if (e.key === 'Escape') { setOpenHits(false); setSearchOpen(false); } }}
           />
           {openHits && q.trim().length >= 2 && (
             <div style={{ position: 'absolute', top: '46px', left: 0, right: 0, background: '#fff', border: '1px solid #EBF1EE', borderRadius: 14, boxShadow: '0 10px 30px rgba(0,0,0,.12)', zIndex: 60, overflow: 'hidden' }}>
@@ -71,27 +60,62 @@ export default function Topbar({
             </div>
           )}
         </div>
+  );
+
+  const totalNotifs = (urgentDeliveries?.length || 0) + (lowStockCount > 0 ? 1 : 0);
+
+  return (
+    <header className="topbar">
+      {searchOpen && <div className="search-row">{buscador(true)}</div>}
+      <div className="topbar-left">
+        {/* Botón de Menú Hamburguesa en Pantallas Pequeñas/Tablets */}
+        <button 
+          className="hamburger-btn" 
+          onClick={onToggleMobileMenu}
+          type="button"
+          title="Abrir menú"
+        >
+          <Menu size={22} />
+        </button>
+
+        <div className="search-inline">{buscador(false)}</div>
       </div>
 
       {/* Topbar Actions */}
       <div className="topbar-actions">
+        <button type="button" className="icon-btn search-toggle" onClick={() => setSearchOpen((v) => !v)} title="Buscar pedidos" aria-label="Buscar pedidos" aria-expanded={searchOpen}>
+          {searchOpen ? <X size={20} /> : <Search size={20} />}
+        </button>
         {/* Quick New Sale button */}
         <button 
           onClick={onNewSale}
-          className="btn-primary" 
-          style={{ width: 'auto', padding: '10px 18px', fontSize: '13px', borderRadius: '999px' }}
+          title="Nueva venta"
+          className="btn-primary topbar-quick"
+          style={{ fontSize: '13px', borderRadius: '999px' }}
         >
           <PlusCircle size={16} />
           <span>Nueva Venta</span>
         </button>
 
         <button
-          onClick={onViewOrders}
+          onClick={onNewQuote}
           type="button"
-          className="btn-primary"
-          style={{ width: 'auto', padding: '10px 18px', fontSize: '13px', borderRadius: '999px', background: '#fff', color: 'var(--primary)', border: '1.5px solid var(--primary)', boxShadow: 'none' }}
+          className="btn-primary topbar-quick"
+          title="Nueva cotización"
+          style={{ fontSize: '13px', borderRadius: '999px', background: '#fff', color: 'var(--primary)', border: '1.5px solid var(--primary)', boxShadow: 'none' }}
         >
-          <Truck size={16} />
+          <FileText size={16} />
+          <span>Nueva Cotización</span>
+        </button>
+
+        <button
+          onClick={onViewOrders}
+          title="Ver pedidos"
+          type="button"
+          className="btn-primary topbar-quick"
+          style={{ fontSize: '13px', borderRadius: '999px', background: '#fff', color: 'var(--primary)', border: '1.5px solid var(--primary)', boxShadow: 'none' }}
+        >
+          <Truck size={16} aria-hidden="true" />
           <span>Ver Pedidos</span>
         </button>
 

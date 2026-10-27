@@ -69,10 +69,10 @@ export function buildSaleDocHTML({ kind = 'pedido', sale, comprobante, cfg = {},
   const cargosTot = r2(cargos.reduce((a, c) => a + Number(c.monto || 0), 0));
   const facturable = cargosTot > 0 ? r2(total - cargosTot) : total;
   const cargosA4 = cargosTot > 0 ? `
-      <div class="chead">Cargos adicionales <span>(no gravados · no incluidos en el total facturable)</span></div>
+      <div class="chead">Cargos adicionales <span>(no facturables)</span></div>
       ${cargos.map((c) => `<div class="row"><span>${esc(c.nombre)}</span><span>${num(c.monto)}</span></div>`).join('')}
       <div class="row pay"><span>TOTAL A PAGAR ${sym}</span><span>${num(total)}</span></div>` : '';
-  const cargosT = cargosTot > 0 ? `<hr><div class="small"><strong>CARGOS ADICIONALES (no gravados)</strong></div>
+  const cargosT = cargosTot > 0 ? `<hr><div class="small"><strong>CARGOS ADICIONALES (no facturables)</strong></div>
       ${cargos.map((c) => `<div class="row"><span>${esc(c.nombre)}</span><span>${num(c.monto)}</span></div>`).join('')}
       <div class="row tot"><span>TOTAL A PAGAR</span><span>${num(total)}</span></div>` : '';
 

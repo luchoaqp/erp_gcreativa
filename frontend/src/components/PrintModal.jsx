@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Printer, MessageCircle, ExternalLink } from 'lucide-react';
+import { X, Printer, MessageCircle, ExternalLink, Download } from 'lucide-react';
 import { openHtmlWindow } from '../utils/docPrint';
+import { descargarPDF } from '../utils/pdf';
 
 const ALL_FORMATS = [
   { id: 'a4', label: 'A4' },
@@ -14,6 +15,7 @@ export default function PrintModal({ title, subtitle = 'Ver, imprimir o enviar',
   const FORMATS = formats || ALL_FORMATS;
   const [docKey, setDocKey] = useState(docs[0].key);
   const [format, setFormat] = useState((formats || ALL_FORMATS)[0].id);
+  const [bajando, setBajando] = useState(false);
   const [wa, setWa] = useState(String(phone || '').replace(/\D/g, '').replace(/^51(?=\d{9}$)/, ''));
   const frame = useRef(null);
   const doc = docs.find((d) => d.key === docKey) || docs[0];
@@ -33,6 +35,11 @@ export default function PrintModal({ title, subtitle = 'Ver, imprimir o enviar',
     w.addEventListener('afterprint', restore, { once: true });
     w.focus(); w.print();
     setTimeout(restore, 60000);
+  };
+  // Descarga directa del PDF (sin la ventana de impresión)
+  const descargar = async () => {
+    setBajando(true);
+    try { await descargarPDF(html, format); } catch (e) { alert('No se pudo generar el PDF: ' + e.message); } finally { setBajando(false); }
   };
   const sendWhatsApp = () => {
     let p = wa.replace(/\D/g, '');
@@ -74,12 +81,12 @@ export default function PrintModal({ title, subtitle = 'Ver, imprimir o enviar',
             style={{ flex: '1 1 520px', height: '60vh', minHeight: '360px', border: '1px solid #E2E8F0', borderRadius: '10px', background: '#fff' }} />
           <div style={{ flex: '0 1 260px', display: 'grid', gap: '10px', width: '100%' }}>
             {actions}
-            <button onClick={printNow} className="btn-primary" style={{ padding: '11px', borderRadius: '12px', fontSize: '14px' }}>
-              <Printer size={17} /> Imprimir {FORMATS.find((f) => f.id === format).label}
+            <button onClick={descargar} disabled={bajando} className="btn-primary" style={{ padding: '11px', borderRadius: '12px', fontSize: '14px', cursor: bajando ? 'wait' : 'pointer' }}>
+              <Download size={17} /> {bajando ? 'Generando PDF…' : `Descargar PDF ${FORMATS.find((f) => f.id === format).label}`}
             </button>
-            <div style={{ fontSize: '11.5px', color: '#788A9B', marginTop: '-4px' }}>
-              Para guardar en PDF elige “Guardar como PDF” como impresora.
-            </div>
+            <button onClick={printNow} style={{ padding: '10px', borderRadius: '12px', fontSize: '14px', fontWeight: 700, background: '#fff', color: 'var(--primary)', border: '1.5px solid var(--primary)', display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}>
+              <Printer size={16} /> Imprimir
+            </button>
             <button onClick={() => openHtmlWindow(doc.build(format))}
               style={{ padding: '9px', borderRadius: '10px', background: '#F1F5F9', fontWeight: 700, fontSize: '13px', display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
               <ExternalLink size={15} /> Abrir en otra pestaña

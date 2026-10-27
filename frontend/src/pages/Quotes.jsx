@@ -3,8 +3,9 @@ import { DocInfoFields, pickDocInfo } from '../components/DocInfoFields';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   FileText, Plus, Search, Eye, Printer, Receipt, MessageCircle, Pencil,
-  ShoppingCart, Ban, X, Settings, Upload, Trash2, Package, Check, Copy
+  ShoppingCart, Ban, X, Settings, Upload, Trash2, Package, Check, Copy, Download
 } from 'lucide-react';
+import { descargarPDF } from '../utils/pdf';
 import { precioPorCantidad } from '../utils/precios';
 import { quotesAPI, productsAPI, customersAPI, settingsAPI } from '../api';
 import { buildQuoteHTML, getDisplay, fmtDate, money, r2, adelantoMinimo } from '../utils/quotePrint';
@@ -58,10 +59,11 @@ const QUOTE_COLS = [
   { id: 'vendedor', label: 'Vendedor' },
   { id: 'vigencia', label: 'Vigencia' },
   { id: 'estado', label: 'Estado' },
-  { id: 'total', label: 'Total' }
+  { id: 'total', label: 'Total' },
+  { id: 'pdf', label: 'PDF', always: true }
 ];
 
-export default function Quotes({ user, onConverted }) {
+export default function Quotes({ user, onConverted, nuevaCotizacion = 0 }) {
   const [quotes, setQuotes] = useState([]);
   const colApi = useCols('cotizaciones_cols_v1', QUOTE_COLS);
   const [colMenu, setColMenu] = useState(false);
@@ -98,6 +100,8 @@ export default function Quotes({ user, onConverted }) {
   };
 
   useEffect(() => { loadConfig(); }, []);
+  // "Nueva Cotización" desde el encabezado (en cualquier pantalla): abre el formulario
+  useEffect(() => { if (nuevaCotizacion) setFormFor((cur) => cur || 'new'); }, [nuevaCotizacion]);
   useEffect(() => { const t = setTimeout(loadList, 250); return () => clearTimeout(t); }, [search, estado]);
 
   const openDetail = async (id) => {
@@ -105,6 +109,19 @@ export default function Quotes({ user, onConverted }) {
       const res = await quotesAPI.getById(id);
       if (res.success) setDetail(res.quote);
     } catch (e) { alert(e.message); }
+  };
+
+  // Columna PDF: descargar directo (A4) o abrir para imprimir
+  const [bajando, setBajando] = useState(null);
+  const descargar = async (q) => {
+    setBajando(q.id);
+    try {
+      const res = await quotesAPI.getById(q.id);
+      if (res.success) await descargarPDF(buildQuoteHTML(res.quote, cfg, store, 'a4', { toolbar: false }), 'a4');
+    } catch (e) { alert('No se pudo generar el PDF: ' + e.message); } finally { setBajando(null); }
+  };
+  const imprimir = async (q) => {
+    try { const res = await quotesAPI.getById(q.id); if (res.success) setPrintFor(res.quote); } catch (e) { alert(e.message); }
   };
 
   const startEdit = async (id) => {
@@ -142,6 +159,15 @@ export default function Quotes({ user, onConverted }) {
       case 'vigencia': return fmtDate(q.fecha_vencimiento);
       case 'estado': return <Badge estado={q.estado_efectivo} />;
       case 'total': return money(q.total, sym);
+      case 'pdf': return (
+        <span style={{ display: 'inline-flex', gap: '6px' }}>
+          <button type="button" onClick={() => descargar(q)} disabled={bajando === q.id} title={`Descargar ${q.numero}.pdf`}
+            style={btn('var(--primary-light)', 'var(--primary)', { padding: '6px 10px', fontSize: '12px', fontWeight: 800, cursor: bajando === q.id ? 'wait' : 'pointer' })}>
+            <Download size={14} /> {bajando === q.id ? '…' : 'PDF'}
+          </button>
+          <button type="button" onClick={() => imprimir(q)} title="Imprimir (A4, A5 o ticket)" aria-label={`Imprimir ${q.numero}`} style={btn('#F1F5F9', '#475569', { padding: '6px' })}><Printer size={14} /></button>
+        </span>
+      );
       default: return '';
     }
   };

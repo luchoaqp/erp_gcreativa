@@ -149,10 +149,10 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
     totalsRows.push([`IGV (${d.pct}%)`, num(d.igv)]);
   }
   const cargosHtmlA4 = cargosTot > 0 ? `
-      <div class="chead">Cargos adicionales <span>(no gravados · no incluidos en el total facturable)</span></div>
+      <div class="chead">Cargos adicionales <span>(no facturables)</span></div>
       ${chargeList.map((c) => `<div class="row"><span>${esc(c.nombre)}</span><span>${num(c.monto)}</span></div>`).join('')}
       <div class="row pay"><span>TOTAL A PAGAR ${sym}</span><span>${num(d.total)}</span></div>` : '';
-  const cargosHtmlT = cargosTot > 0 ? `<hr><div class="small"><strong>CARGOS ADICIONALES (no gravados)</strong></div>
+  const cargosHtmlT = cargosTot > 0 ? `<hr><div class="small"><strong>CARGOS ADICIONALES (no facturables)</strong></div>
       ${chargeList.map((c) => `<div class="row"><span>${esc(c.nombre)}</span><span>${num(c.monto)}</span></div>`).join('')}
       <div class="row tot"><span>TOTAL A PAGAR</span><span>${num(d.total)}</span></div>` : '';
   const totalLabel = `TOTAL ${sym}`;
@@ -215,8 +215,8 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
     .advt{font-size:12px;color:#444}
     .advm{font-size:${isA5 ? 24 : 30}px;font-weight:800;color:#111;margin:2px 0 2px}
     .advs{display:flex;justify-content:space-between;font-size:${isA5 ? 12 : 13.5}px;border-top:1px dashed #bbb;padding-top:6px}
-    .terminos{margin-top:16px;width:100%;padding:12px 16px;background:#fff;color:rgba(0,0,0,.8);border:1px solid #ddd;border-radius:8px;line-height:1.5;font-size:${isA5 ? 10.5 : 12}px;-webkit-print-color-adjust:exact;print-color-adjust:exact} .terminos strong{display:block;margin-bottom:4px;font-size:${isA5 ? 12 : 13.5}px}
-    .foot{margin-top:22px;border-top:1px dashed #ccc;padding-top:10px;color:#666;font-size:12px}
+    .terminos{margin-top:16px;width:100%;padding:10px 14px;background:#fff;color:#444;border:1px solid #ddd;border-radius:8px;line-height:1.35;font-size:${isA5 ? 10.5 : 12}px;-webkit-print-color-adjust:exact;print-color-adjust:exact} .terminos strong{display:block;margin-bottom:3px;font-size:${isA5 ? 10.5 : 12}px;color:#222}
+    .foot{margin-top:22px;border-top:1px dashed #ccc;padding-top:10px;color:#666;font-size:${isA5 ? 10.5 : 12}px;line-height:1.35}
     @media print{.no-print{display:none} body{padding:0}}
   </style></head><body>${toolbar}${q.borrador ? `<div style="text-align:center;font-weight:700;border:1.5px dashed #B45309;color:#B45309;border-radius:8px;padding:4px;margin:0 0 10px">VISTA PREVIA · AÚN NO GUARDADA</div>` : ''}
     <div class="top">

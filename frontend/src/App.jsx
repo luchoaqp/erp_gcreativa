@@ -33,6 +33,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [kardexFocus, setKardexFocus] = useState(null);
   const [salesSearch, setSalesSearch] = useState(null);
+  const [nuevaCotizacion, setNuevaCotizacion] = useState(0); // botón "Nueva Cotización" del encabezado
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [storeSettings, setStoreSettings] = useState(null);
@@ -155,6 +156,7 @@ export default function App() {
             }}
             urgentDeliveries={dashboardData?.entregas_hoy || []}
             lowStockCount={dashboardData?.stats?.stock_bajo_alertas || 0}
+            onNewQuote={() => { setNuevaCotizacion(Date.now()); setActiveTab('quotes'); setMobileMenuOpen(false); }}
             onViewOrders={() => { setActiveTab('orders'); setMobileMenuOpen(false); }}
             onSearchSales={(q) => { setSalesSearch({ q, n: Date.now() }); setActiveTab('reports'); setMobileMenuOpen(false); }}
             onToggleMobileMenu={() => setMobileMenuOpen(prev => !prev)}
@@ -188,6 +190,7 @@ export default function App() {
           {activeTab === 'quotes' && (
             <Quotes
               user={user}
+              nuevaCotizacion={nuevaCotizacion}
               onConverted={() => {
                 loadGlobalCounts();
                 setActiveTab('reports'); // Ventas

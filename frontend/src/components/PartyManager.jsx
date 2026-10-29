@@ -261,7 +261,7 @@ export default function PartyManager({ cfg, isAdmin, types = [], onTypesChanged 
         </div>
 
         {showAdv && (
-          <div className="pm-adv">
+          <div className="pm-avanzado">
             <div><label>Tipo de documento</label>
               <select className="pm-select" value={adv.tipo_documento} onChange={(e) => setAdv({ ...adv, tipo_documento: e.target.value })}>
                 <option value="">Todos</option>{DOC_TIPOS.map((d) => <option key={d.v} value={d.v}>{d.l}</option>)}

@@ -120,7 +120,7 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
   const nota = verTerminos ? String(q.nota || cfg.nota_defecto || '').trim() : '';
   const adv = adelantoMinimo(d.total, q.adelanto_tipo, q.adelanto_valor);
   const advBlock = adv.adelanto > 0
-    ? `<div class="adv"><div class="advt">Pago mínimo para agendar tu pedido</div><div class="advm">${money(adv.adelanto, sym)}</div></div>`
+    ? `<div class="pmin"><div class="pmin-tit">Pago mínimo para agendar tu pedido</div><div class="pmin-monto">${money(adv.adelanto, sym)}</div></div>`
     : '';
   const showQR = !!Number(cfg.mostrar_qr) && !!cfg.qr_imagen;
   const info = docInfo(store, cfg);
@@ -169,7 +169,7 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
       *{box-sizing:border-box} body{font-family:'Courier New',monospace;font-size:11.5px;color:#000;width:72mm;margin:0 auto;padding:4px}
       .c{text-align:center} .row{display:flex;justify-content:space-between;gap:6px}
       hr{border:0;border-top:1px dashed #000;margin:6px 0} .it{margin-bottom:5px}
-      .tot{font-size:14px;font-weight:700} .qr{text-align:center;margin-top:8px} .qr img{width:42mm;height:42mm;object-fit:contain;filter:grayscale(1) contrast(1000%)} .adv{text-align:center;margin:8px 0;padding:6px;border:1px solid #000;border-radius:6px} .advt{font-size:11px;font-weight:700} .advm{font-size:20px;font-weight:800;margin-top:2px} .advs{display:flex;justify-content:space-between;font-size:11px;margin-top:4px;border-top:1px dashed #000;padding-top:3px} .tnota{text-align:left;margin-top:6px}
+      .tot{font-size:14px;font-weight:700} .qr{text-align:center;margin-top:8px} .qr img{width:42mm;height:42mm;object-fit:contain;filter:grayscale(1) contrast(1000%)} .pmin{text-align:center;margin:8px 0;padding:6px;border:1px solid #000;border-radius:6px} .pmin-tit{font-size:11px;font-weight:700} .pmin-monto{font-size:20px;font-weight:800;margin-top:2px} .pmin-saldo{display:flex;justify-content:space-between;font-size:11px;margin-top:4px;border-top:1px dashed #000;padding-top:3px} .tnota{text-align:left;margin-top:6px}
       .small{font-size:10.5px} .bar{text-align:center;margin-bottom:8px}
       ${CONTACT_CSS} ${DET_CSS_TICKET}
       @media print{.no-print{display:none}}
@@ -210,11 +210,11 @@ export function buildQuoteHTML(q, cfg = {}, store = {}, format = 'a4', opts = {}
     .qr img{width:${isA5 ? 90 : 120}px;height:${isA5 ? 90 : 120}px;object-fit:contain}
     .bottom{display:flex;justify-content:flex-start;margin-top:18px}
     .bottom .qr{margin-top:0;flex:none}
-    .payrow{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px dashed #bbb;border-radius:12px;padding:12px;margin-top:18px;flex-wrap:wrap} .payrow.solo{border:0;padding:0;justify-content:flex-end} .payrow .qr.in{border:0;padding:0;margin:0;width:auto} .payrow .adv{margin:0;width:${isA5 ? 200 : 260}px;flex:none}
-    .adv{width:${isA5 ? 230 : 300}px;margin:12px 0 0 auto;text-align:center;border:2px solid ${accent};border-radius:10px;padding:10px 14px}
-    .advt{font-size:12px;color:#222;font-weight:700}
-    .advm{font-size:${isA5 ? 24 : 30}px;font-weight:800;color:#111;margin:2px 0 2px}
-    .advs{display:flex;justify-content:space-between;font-size:${isA5 ? 12 : 13.5}px;border-top:1px dashed #bbb;padding-top:6px}
+    .payrow{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px dashed #bbb;border-radius:12px;padding:12px;margin-top:18px;flex-wrap:wrap} .payrow.solo{border:0;padding:0;justify-content:flex-end} .payrow .qr.in{border:0;padding:0;margin:0;width:auto} .payrow .pmin{margin:0;width:${isA5 ? 200 : 260}px;flex:none}
+    .pmin{width:${isA5 ? 230 : 300}px;margin:12px 0 0 auto;text-align:center;border:2px solid ${accent};border-radius:10px;padding:10px 14px}
+    .pmin-tit{font-size:12px;color:#222;font-weight:700}
+    .pmin-monto{font-size:${isA5 ? 24 : 30}px;font-weight:800;color:#111;margin:2px 0 2px}
+    .pmin-saldo{display:flex;justify-content:space-between;font-size:${isA5 ? 12 : 13.5}px;border-top:1px dashed #bbb;padding-top:6px}
     .terminos{margin-top:16px;width:100%;padding:10px 14px;background:#fff;color:#444;border:1px solid #ddd;border-radius:8px;line-height:1.35;font-size:${isA5 ? 10.5 : 12}px;-webkit-print-color-adjust:exact;print-color-adjust:exact} .terminos strong{display:block;margin-bottom:3px;font-size:${isA5 ? 10.5 : 12}px;color:#222}
     .foot{margin-top:22px;border-top:1px dashed #ccc;padding-top:10px;color:#666;font-size:${isA5 ? 10.5 : 12}px;line-height:1.35}
     @media print{.no-print{display:none} body{padding:0}}

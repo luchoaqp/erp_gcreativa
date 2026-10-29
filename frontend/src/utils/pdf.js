@@ -128,12 +128,26 @@ function recolectar(doc) {
     const base = lineaBase(cs);
     const fs = parseFloat(cs.fontSize) || 12;
     const ls = parseFloat(cs.letterSpacing) || 0;
+    // Alineación del renglón: el texto del PDF se ancla por ese lado (centro, derecha o izquierda), así un
+    // pequeño cambio de ancho entre la fuente de la pantalla y la del PDF nunca separa ni aprieta las letras
+    const alin = (() => {
+      const ta = cs.textAlign;
+      if (ta === 'center') return 'c';
+      if (ta === 'right' || ta === 'end') return 'r';
+      if (ta === 'justify') return 'j';
+      const el = nodo.parentElement; const padre = el && el.parentElement;
+      if (padre && padre.children.length > 1 && el === padre.lastElementChild) {
+        const pcs = win.getComputedStyle(padre);
+        if (/flex/.test(pcs.display) && !/column/.test(pcs.flexDirection) && /space-between|flex-end|end/.test(pcs.justifyContent)) return 'r'; // montos a la derecha de una fila
+      }
+      return 'l';
+    })();
     let linea = null;
     const cerrar = () => {
       if (!linea) return;
       let t = linea.palabras.join(' ');
       if (upper) t = t.toUpperCase(); else if (lower) t = t.toLowerCase();
-      prims.push({ tipo: 'texto', t: limpiar(t), x: linea.x, top: linea.top, bottom: linea.bottom, ancho: linea.right - linea.x, base: linea.top + base, fs, fam: familia(cs.fontFamily), est: estiloFuente(cs), col: color(cs.color) || [0, 0, 0], ls });
+      prims.push({ tipo: 'texto', t: limpiar(t), x: linea.x, top: linea.top, bottom: linea.bottom, ancho: linea.right - linea.x, base: linea.top + base, fs, fam: familia(cs.fontFamily), est: estiloFuente(cs), col: color(cs.color) || [0, 0, 0], ls, alin });
       atomos.push({ top: linea.top, bottom: linea.bottom });
       linea = null;
     };
@@ -333,14 +347,19 @@ export async function descargarPDF(html, formato = 'a4', nombre) {
           pdf.setFont(p.fam, p.est);
           pdf.setFontSize(p.fs * PT);
           pdf.setTextColor(...p.col);
-          // Ajuste fino del espaciado para que el renglón mida exactamente lo mismo que en pantalla
-          const medido = pdf.getTextWidth(p.t);
-          const objetivo = p.ancho * PT;
           const letras = Math.max(1, p.t.length - 1);
-          let cs = (p.ls * PT);
-          if (Math.abs(objetivo - medido) > 0.6 && p.t.length > 1) cs = (objetivo - medido) / letras;
-          if (Math.abs(cs) > p.fs * PT * 0.12) cs = p.ls * PT; // diferencia rara: mejor no deformar
-          pdf.text(p.t, X(p.x), Y(p.base), { baseline: 'alphabetic', charSpace: cs || 0 });
+          let cs = p.ls * PT; // espaciado entre letras propio del documento (letter-spacing)
+          const objetivo = p.ancho * PT;
+          let medido = pdf.getTextWidth(p.t) + cs * letras;
+          // Solo el texto justificado se ajusta, y muy poco, para mantener el borde derecho parejo
+          if (p.alin === 'j' && p.t.length > 1) {
+            const extra = (objetivo - medido) / letras;
+            if (Math.abs(extra) < p.fs * PT * 0.03) { cs += extra; medido = objetivo; }
+          }
+          let x = X(p.x);
+          if (p.alin === 'c') x += (objetivo - medido) / 2;
+          else if (p.alin === 'r') x += objetivo - medido;
+          pdf.text(p.t, x, Y(p.base), { baseline: 'alphabetic', charSpace: cs || 0 });
         } else if (p.tipo === 'vineta') {
           pdf.setFillColor(...p.col);
           pdf.circle(X(p.x + p.rad), Y(p.cy), p.rad * PT, 'F');

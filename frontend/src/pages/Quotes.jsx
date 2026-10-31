@@ -699,6 +699,11 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
 
 /* ------------------------- Convertir en venta ------------------------- */
 function ConvertModal({ q, onClose, onDone }) {
+  // Cliente: si la cotización se hizo como «Cliente Varios», aquí se escriben los datos reales (como en el Punto de venta)
+  const esVarios = !q.cliente_nombre || q.cliente_nombre === 'Cliente Varios';
+  const [clienteVarios, setClienteVarios] = useState(esVarios);
+  const [clienteNombre, setClienteNombre] = useState(esVarios ? '' : q.cliente_nombre);
+  const [clienteTel, setClienteTel] = useState(q.cliente_telefono || '');
   const [delivery, setDelivery] = useState(emptyDelivery());
   const [metodo, setMetodo] = useState('yape');
   const [notas, setNotas] = useState('');
@@ -712,9 +717,16 @@ function ConvertModal({ q, onClose, onDone }) {
   const cargosQ = parseCargosJson(q.cargos_json);
 
   const go = async () => {
+    if (!clienteVarios && (!clienteNombre.trim() || !clienteTel.trim())) {
+      alert('Escribe el nombre y el teléfono del cliente, o marca «Cliente Varios».');
+      return;
+    }
     try {
       setBusy(true);
       const res = await quotesAPI.convert(q.id, {
+        cliente_varios: clienteVarios,
+        cliente_nombre: clienteVarios ? '' : clienteNombre.trim(),
+        cliente_telefono: clienteVarios ? '' : clienteTel.trim(),
         tipo_entrega: delivery.tipo_entrega,
         ciudad_envio: delivery.ciudad_envio,
         fecha_entrega: delivery.fecha_entrega,
@@ -737,6 +749,28 @@ function ConvertModal({ q, onClose, onDone }) {
     <Modal title={`Convertir ${q.numero} en venta`} icon={<ShoppingCart size={20} color="var(--primary)" />} onClose={onClose} width={720}>
       <div style={{ fontSize: '13px', color: '#64748B', marginBottom: '12px' }}>
         Se creará un pedido con los productos, precios y cargos de la cotización. El stock se descuenta recién cuando se genera el comprobante.
+      </div>
+      <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800 }}>Cliente</div>
+          <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={clienteVarios} onChange={(e) => setClienteVarios(e.target.checked)} />
+            Cliente Varios (venta sin datos del cliente)
+          </label>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px', ...(clienteVarios ? { opacity: 0.5 } : {}) }}>
+          <div><label style={labelStyle}>Nombre del cliente (comprador)</label>
+            <input style={inputStyle} value={clienteNombre} placeholder={clienteVarios ? 'Escribe para quitar «Cliente Varios»' : 'Nombre y apellido'}
+              onChange={(e) => { setClienteNombre(e.target.value); if (e.target.value) setClienteVarios(false); }} /></div>
+          <div><label style={labelStyle}>Teléfono del comprador</label>
+            <input style={inputStyle} value={clienteTel} inputMode="tel" placeholder="987654321"
+              onChange={(e) => { setClienteTel(e.target.value); if (e.target.value) setClienteVarios(false); }} /></div>
+        </div>
+        {esVarios && (
+          <div style={{ fontSize: '11.5px', color: '#788A9B', marginTop: '6px' }}>
+            La cotización se hizo como «Cliente Varios». Si escribes los datos, el pedido y la cotización quedan a nombre del cliente y se guarda en Clientes (si el teléfono ya existe, se usa esa ficha).
+          </div>
+        )}
       </div>
       <DeliveryFields value={delivery} onChange={setDelivery} chargesMode="none" showDesign={false} />
       {cargosQ.length > 0 && (

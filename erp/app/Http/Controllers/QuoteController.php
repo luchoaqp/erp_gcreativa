@@ -321,6 +321,22 @@ class QuoteController extends Controller
             }
             $b = $this->body();
             $g = fn ($k) => Js::get($b, $k);
+            // Datos del cliente escritos al convertir (p. ej. la cotización se hizo como «Cliente Varios»
+            // y el cliente ya pagó el adelanto): reemplazan a los de la cotización
+            $telefonoCliente = $q['cliente_telefono'];
+            $nombreCliente = $q['cliente_nombre'] === 'Cliente Varios' ? null : $q['cliente_nombre'];
+            if (is_array($b) && array_key_exists('cliente_varios', $b)) {
+                $nuevoNombre = Js::slice(Js::trim(Js::str(Js::or($g('cliente_nombre'), ''))), 0, 120);
+                $nuevoTel = Js::slice(Js::trim(Js::str(Js::or($g('cliente_telefono'), ''))), 0, 30);
+                if ($g('cliente_varios') === true || $nuevoNombre === '' || strcasecmp($nuevoNombre, 'Cliente Varios') === 0) {
+                    $varios = true; $cliente = null; $nombreCliente = null; $telefonoCliente = $nuevoTel !== '' ? $nuevoTel : null;
+                } else {
+                    $varios = false;
+                    $mismo = $cliente && isset($cliente['id']) && $nuevoNombre === Js::trim(Js::str($q['cliente_nombre'])) && $nuevoTel === Js::trim(Js::str(Js::or($q['cliente_telefono'], '')));
+                    if (!$mismo) $cliente = ['nombre' => $nuevoNombre, 'telefono' => $nuevoTel, 'numero_documento' => Js::or($q['cliente_documento'], '')];
+                    $nombreCliente = $nuevoNombre; $telefonoCliente = $nuevoTel;
+                }
+            }
             $body = Js::compact([
                 'cliente' => $varios ? Js::undef() : $cliente,
                 'cliente_varios' => $varios,
@@ -332,7 +348,7 @@ class QuoteController extends Controller
                 'fecha_por_confirmar' => $g('fecha_por_confirmar'),
                 'hora_por_confirmar' => $g('hora_por_confirmar'),
                 'direccion_entrega' => $g('direccion_entrega'),
-                'telefono_destinatario' => $q['cliente_telefono'],
+                'telefono_destinatario' => $telefonoCliente,
                 'cargos' => Js::t($q['cargos_json']) ? Orders::parseCargos($q['cargos_json']) : Js::undef(),
                 'costo_envio' => $q['costo_envio'],
                 'metodo_pago' => $g('metodo_pago'),
@@ -342,7 +358,7 @@ class QuoteController extends Controller
                 'adelanto_tipo' => $g('adelanto_tipo'),
                 'adelanto_valor' => $g('adelanto_valor'),
                 'cliente_documento' => $q['cliente_documento'],
-                'cliente_nombre' => $q['cliente_nombre'] === 'Cliente Varios' ? null : $q['cliente_nombre'],
+                'cliente_nombre' => $nombreCliente,
                 'diseno_link' => $g('diseno_link'),
                 'diseno_foto' => $g('diseno_foto'),
                 'diseno_links' => $g('diseno_links'),
@@ -350,6 +366,10 @@ class QuoteController extends Controller
             ]);
             $result = Orders::createOrderCore($body, $this->userId());
             Db::query("UPDATE cotizaciones SET estado = 'aceptada', pedido_id = ? WHERE id = ?", [$result['pedidoId'], $q['id']]);
+            if (!$varios && $nombreCliente) {
+                // la cotización queda a nombre del cliente real, enlazada a su ficha
+                Db::query('UPDATE cotizaciones c JOIN pedidos p ON p.id = ? SET c.cliente_id = p.cliente_id, c.cliente_nombre = ?, c.cliente_telefono = ? WHERE c.id = ?', [$result['pedidoId'], $nombreCliente, $telefonoCliente, $q['id']]);
+            }
             Db::commit();
             return $this->json(array_merge(['success' => true, 'message' => "Cotización convertida en el pedido {$result['numero_pedido']}"], $result), 201);
         } catch (\Throwable $e) {

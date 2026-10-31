@@ -657,7 +657,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
           </select>
           <input type="number" min="0" step="0.01" style={{ ...inputStyle, width: '110px' }} value={form.adelanto_valor}
             onChange={(e) => setForm({ ...form, adelanto_valor: e.target.value })} />
-          {form.adelanto_tipo === 'porcentaje' && [30, 50, 70, 100].map((pc) => (
+          {form.adelanto_tipo === 'porcentaje' && [30, 50, 75, 100].map((pc) => (
             <button key={pc} type="button" onClick={() => setForm({ ...form, adelanto_valor: String(pc) })}
               style={{ padding: '6px 10px', borderRadius: '999px', fontSize: '12px', fontWeight: 700, border: '1px solid #FFD7CB', background: Number(form.adelanto_valor) === pc ? 'var(--primary)' : '#fff', color: Number(form.adelanto_valor) === pc ? '#fff' : 'var(--primary)', cursor: 'pointer' }}>{pc}%</button>
           ))}

@@ -120,8 +120,16 @@ const dragProps = (api, id, label) => ({
   children: label
 });
 
+// Filtros recordados durante la sesión (sobreviven al guardar un producto y al cambiar de pestaña o sección)
+function useFiltro(clave, inicial) {
+  const k = `filtros_productos_${clave}`;
+  const [v, setV] = useState(() => { try { const x = sessionStorage.getItem(k); return x === null ? inicial : JSON.parse(x); } catch (e) { return inicial; } });
+  useEffect(() => { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sin guardado */ } }, [k, v]);
+  return [v, setV];
+}
+
 export default function Inventory() {
-  const [view, setView] = useState('productos');
+  const [view, setView] = useFiltro('pestana', 'productos');
   const [categories, setCategories] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [form, setForm] = useState(null);     // { id? }
@@ -157,8 +165,8 @@ export default function Inventory() {
       </div>
 
       {view === 'lotes' ? <LotesView /> : view === 'productos'
-        ? <ProductList key={reload} categories={categories} onNew={() => setForm({})} onEdit={(id) => setForm({ id })} onDuplicate={(id) => setForm({ duplicateFrom: id })} />
-        : <PackList key={reload} onNew={() => setPackForm({})} onEdit={(id) => setPackForm({ id })} onContenido={setContenido} onRevisar={setRevisarCount} />}
+        ? <ProductList reload={reload} categories={categories} onNew={() => setForm({})} onEdit={(id) => setForm({ id })} onDuplicate={(id) => setForm({ duplicateFrom: id })} />
+        : <PackList reload={reload} onNew={() => setPackForm({})} onEdit={(id) => setPackForm({ id })} onContenido={setContenido} onRevisar={setRevisarCount} />}
 
       {form && (
         <ProductForm key={form.duplicateFrom || form.id || 'new'} productId={form.id} duplicateFrom={form.duplicateFrom} categories={categories} catalog={catalog}
@@ -175,14 +183,14 @@ export default function Inventory() {
 }
 
 /* ====================== LISTA DE PRODUCTOS ====================== */
-function ProductList({ categories, onNew, onEdit, onDuplicate }) {
+function ProductList({ categories, onNew, onEdit, onDuplicate, reload = 0 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [estado, setEstado] = useState('habilitados');
-  const [stock, setStock] = useState('');
-  const [categoria, setCategoria] = useState('');
-  const [tipo, setTipo] = useState('producto');
+  const [search, setSearch] = useFiltro('busqueda', '');
+  const [estado, setEstado] = useFiltro('estado', 'habilitados');
+  const [stock, setStock] = useFiltro('stock', '');
+  const [categoria, setCategoria] = useFiltro('categoria', '');
+  const [tipo, setTipo] = useFiltro('tipo', 'producto');
   const [selected, setSelected] = useState([]);
   const [menu, setMenu] = useState(false);
   const [colMenu, setColMenu] = useState(false);
@@ -205,7 +213,7 @@ function ProductList({ categories, onNew, onEdit, onDuplicate }) {
       const r = await productsAPI.getAll(`?${q.toString()}`);
       setRows(r.products || []); setSelected([]);
     } catch (e) { setErr(e.message); } finally { setLoading(false); }
-  }, [search, estado, stock, categoria, tipo]);
+  }, [search, estado, stock, categoria, tipo, reload]); // al guardar un producto se recarga la lista con los mismos filtros
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
 
   const setActivo = async (ids, activo) => {
@@ -378,11 +386,11 @@ function ProductList({ categories, onNew, onEdit, onDuplicate }) {
 }
 
 /* ====================== LISTA DE BOXES Y PACKS ====================== */
-function PackList({ onNew, onEdit, onContenido, onRevisar }) {
+function PackList({ onNew, onEdit, onContenido, onRevisar, reload = 0 }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [estado, setEstado] = useState('habilitados');
+  const [search, setSearch] = useFiltro('packs_busqueda', '');
+  const [estado, setEstado] = useFiltro('packs_estado', 'habilitados');
   const [soloRevisar, setSoloRevisar] = useState(false);
   const [menu, setMenu] = useState(false);
   const [colMenu, setColMenu] = useState(false);
@@ -403,7 +411,7 @@ function PackList({ onNew, onEdit, onContenido, onRevisar }) {
       setRows(list); setSelected([]);
       onRevisar(list.filter((p) => p.revisar).length);
     } catch (e) { setErr(e.message); } finally { setLoading(false); }
-  }, [search, estado]);
+  }, [search, estado, reload]);
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
 
   const setActivo = async (ids, activo) => {

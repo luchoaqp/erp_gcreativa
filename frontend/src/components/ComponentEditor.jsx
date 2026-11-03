@@ -1,14 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
-import { precioPorCantidad } from '../utils/precios';
 
 const money = (n) => Number(n || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 // Lista editable de componentes (insumos de un producto o contenido de un pack/box).
 // items: [{ componente_id, nombre, cantidad, precio_unit, costo_actual, precio_insumo_actual, cambio, stock }]
 // catalog: productos disponibles (se excluyen packs y el propio producto)
-// autoPrice: el precio de cada fila se ajusta solo según la cantidad (misma lista de precios por cantidad que usa el POS)
-// y se puede fijar a mano; "Restaurar automático" vuelve al precio de la lista.
+// autoPrice: el precio de cada fila se calcula solo y se puede fijar a mano ("Restaurar automático" lo devuelve):
+//   1) si el producto tiene "precio como insumo", ese precio fijo;
+//   2) si no, su lista de precios por cantidad (el precio cambia al cambiar la cantidad);
+//   3) si no tiene lista, su precio de venta.
 export default function ComponentEditor({ items, onChange, catalog = [], excludeId = null, unitLabel = 'Precio como insumo', autoPrice = false }) {
   const [q, setQ] = useState('');
   const [qty, setQty] = useState(1);
@@ -22,11 +23,28 @@ export default function ComponentEditor({ items, onChange, catalog = [], exclude
       .slice(0, 30);
   }, [q, catalog, excludeId, items]);
 
-  const insumoDe = (p) => (p.precio_insumo !== null && p.precio_insumo !== undefined ? Number(p.precio_insumo) : Number(p.precio_venta));
+  const tieneInsumo = (p) => !!p && p.precio_insumo !== null && p.precio_insumo !== undefined && p.precio_insumo !== '';
+  const insumoDe = (p) => (tieneInsumo(p) ? Number(p.precio_insumo) : Number(p.precio_venta));
   const prodOf = (id) => catalog.find((x) => x.id === id);
-  // Precio de lista para una cantidad: escalas del producto si las usa; si no, su precio como insumo
-  const listPrice = (p, cantidad) => (p && p.precio_por_cantidad && Array.isArray(p.escalas) && p.escalas.length ? precioPorCantidad(p, cantidad) : (p ? insumoDe(p) : 0));
-  const tieneEscalas = (p) => !!(p && p.precio_por_cantidad && Array.isArray(p.escalas) && p.escalas.length);
+  const tieneEscalas = (p) => !!(p && Array.isArray(p.escalas) && p.escalas.length);
+  // Escala de la lista de precios que corresponde a una cantidad (la de mayor "desde" que no la supere)
+  const escalaDe = (p, cantidad) => {
+    if (!tieneEscalas(p)) return null;
+    const qty = Number(cantidad) || 0;
+    return p.escalas.reduce((el, e) => (Number(e.factor) <= qty && (!el || Number(e.factor) > Number(el.factor)) ? e : el), null);
+  };
+  const listPrice = (p, cantidad) => {
+    if (!p) return 0;
+    if (tieneInsumo(p)) return Number(p.precio_insumo);
+    const e = escalaDe(p, cantidad);
+    return e ? Number(e.precio) : Number(p.precio_venta) || 0;
+  };
+  const origen = (p, cantidad) => {
+    if (tieneInsumo(p)) return 'Precio como insumo';
+    const e = escalaDe(p, cantidad);
+    if (e) return `Lista por cantidad · desde ${Number(e.factor)}${e.etiqueta ? ` (${e.etiqueta})` : ''}`;
+    return tieneEscalas(p) ? 'Precio de venta (cantidad bajo la lista)' : 'Precio de venta';
+  };
   const isManual = (i) => { const p = prodOf(i.componente_id); if (!p) return false; return typeof i.manual === 'boolean' ? i.manual : Math.abs(Number(i.precio_unit) - listPrice(p, i.cantidad)) > 0.009; };
   const add = (p) => {
     const cant = Number(qty) > 0 ? Number(qty) : 1;
@@ -90,7 +108,7 @@ export default function ComponentEditor({ items, onChange, catalog = [], exclude
                       {autoPrice && prodOf(i.componente_id) && (
                         isManual(i)
                           ? <button type="button" onClick={() => restoreAuto(i)} style={{ display: 'block', fontSize: 11, color: '#B45309', background: 'none', border: 0, cursor: 'pointer', padding: 0, marginTop: 2 }}>Manual · restaurar automático</button>
-                          : <span style={{ display: 'block', fontSize: 11, color: '#788A9B', marginTop: 2 }}>{tieneEscalas(prodOf(i.componente_id)) ? 'Automático por cantidad' : 'Precio de lista'}</span>
+                          : <span style={{ display: 'block', fontSize: 11, color: '#788A9B', marginTop: 2 }}>{origen(prodOf(i.componente_id), i.cantidad)}</span>
                       )}
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 700 }}>S/ {money((Number(i.cantidad) || 0) * (Number(i.precio_unit) || 0))}</td>

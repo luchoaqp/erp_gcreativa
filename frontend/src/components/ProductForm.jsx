@@ -350,7 +350,7 @@ export default function ProductForm({ productId, duplicateFrom, categories, cata
                   </label>
                   {f.requiere_insumos && (
                     <>
-                      <ComponentEditor items={componentes} onChange={setComponentes} catalog={catalog} excludeId={productId} />
+                      <ComponentEditor items={componentes} onChange={setComponentes} catalog={catalog} excludeId={productId} autoPrice />
                       <div className="pc-totals" style={{ marginTop: 14, maxWidth: 420, marginLeft: 'auto' }}>
                         <div className="r"><span>Costo de insumos (compra)</span><span>S/ {money(tot.costo)}</span></div>
                         <div className="r"><span>Valor de insumos (precio insumo)</span><span>S/ {money(tot.valor)}</span></div>

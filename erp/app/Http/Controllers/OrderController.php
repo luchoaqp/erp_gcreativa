@@ -39,6 +39,7 @@ class OrderController extends Controller
             if (count($orders) === 0) return $this->json(['success' => false, 'message' => 'Pedido no encontrado'], 404);
             $order = $orders[0];
             $order['items'] = Db::query("\n      SELECT \n        pd.*,\n        pr.nombre as producto_nombre,\n        pr.codigo as producto_codigo,\n        pr.imagen_url as producto_imagen,\n        cat.nombre as categoria_nombre\n      FROM pedido_detalles pd\n      JOIN productos pr ON pd.producto_id = pr.id\n      LEFT JOIN categorias cat ON pr.categoria_id = cat.id\n      WHERE pd.pedido_id = ?\n    ", [$order['id']]);
+            $order['items'] = \App\Services\Orders::conContenido($order['items']);
             return $this->json(['success' => true, 'order' => $order]);
         } catch (\Throwable $e) {
             report($e);

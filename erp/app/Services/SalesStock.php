@@ -15,12 +15,18 @@ final class SalesStock
 
     public static function stockMovements($pedidoId): array
     {
-        $items = Db::query('SELECT pd.id AS detalle_id, pd.proveedor_id, pd.lote_id, pd.producto_id, pd.cantidad, COALESCE(p.es_pack, 0) AS es_pack FROM pedido_detalles pd LEFT JOIN productos p ON p.id = pd.producto_id WHERE pd.pedido_id = ?', [$pedidoId]);
+        $items = Db::query('SELECT pd.id AS detalle_id, pd.proveedor_id, pd.lote_id, pd.producto_id, pd.cantidad, pd.contenido_json, COALESCE(p.es_pack, 0) AS es_pack FROM pedido_detalles pd LEFT JOIN productos p ON p.id = pd.producto_id WHERE pd.pedido_id = ?', [$pedidoId]);
         $moves = [];
         foreach ($items as $it) {
             if (!Js::t($it['producto_id'])) continue;
             if (Js::t($it['es_pack'])) {
-                foreach (Db::query('SELECT componente_id, cantidad FROM producto_componentes WHERE producto_id = ?', [$it['producto_id']]) as $c) {
+                // Box personalizado (se quitó o agregó algo): se descuenta lo que realmente lleva
+                $propio = Js::t($it['contenido_json'] ?? null) ? json_decode($it['contenido_json'], true) : null;
+                $lista = is_array($propio)
+                    ? array_map(fn ($c) => ['componente_id' => $c['producto_id'] ?? null, 'cantidad' => $c['cantidad'] ?? 0], $propio)
+                    : Db::query('SELECT componente_id, cantidad FROM producto_componentes WHERE producto_id = ?', [$it['producto_id']]);
+                foreach ($lista as $c) {
+                    if (!Js::t($c['componente_id'])) continue;
                     $moves[] = ['producto_id' => $c['componente_id'], 'cantidad' => Js::num($c['cantidad']) * Js::num($it['cantidad']), 'detalle_id' => $it['detalle_id']];
                 }
             } else {

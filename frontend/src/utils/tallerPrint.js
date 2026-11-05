@@ -17,7 +17,8 @@ export function buildTallerHTML({ order, link = '', links = [], store = {}, cfg 
   const entrega = entregaTexto(order);
   const filas = items.map((i) => `
     <div class="it"><strong>${esc(i.cantidad)} x</strong> ${esc(i.producto_nombre || i.descripcion || '')}
-    ${i.detalles_personalizacion ? `<div class="det">» ${nl2br(i.detalles_personalizacion)}</div>` : ''}</div>`).join('');
+    ${i.detalles_personalizacion ? `<div class="det">» ${nl2br(i.detalles_personalizacion)}</div>` : ''}
+    ${Array.isArray(i.contenido) && i.contenido.length ? `<div class="cont">${i.contenido_editado ? '<b>BOX PERSONALIZADO</b> - lleva:' : 'Lleva:'}<br>${i.contenido.map((c) => `- ${esc(Number(c.cantidad) || 0)} x ${esc(c.nombre)}`).join('<br>')}</div>` : ''}</div>`).join('');
   const bar = toolbar ? '<div class="no-print bar"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>' : '';
   const num = pdNumber(order.id);
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>TALLER-${esc(num)}</title><style>
@@ -25,7 +26,7 @@ export function buildTallerHTML({ order, link = '', links = [], store = {}, cfg 
     *{box-sizing:border-box} body{font-family:'Courier New',monospace;font-size:12px;color:#000;width:72mm;margin:0 auto;padding:4px}
     .c{text-align:center} hr{border:0;border-top:1px dashed #000;margin:7px 0} .small{font-size:10.5px}
     .t{font-size:15px;font-weight:700} .it{margin:5px 0} .det{font-size:11px;margin-left:10px}
-    .lab{font-weight:700} .qr{text-align:center;margin-top:6px} .bar{text-align:center;margin-bottom:8px}
+    .lab{font-weight:700} .cont{font-size:11px;margin:2px 0 0 10px} .qr{text-align:center;margin-top:6px} .bar{text-align:center;margin-bottom:8px}
     @media print{.no-print{display:none}}
   </style></head><body>${bar}
     <div class="c"><strong>${esc(info.nombre)}</strong></div>

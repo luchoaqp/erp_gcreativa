@@ -114,7 +114,7 @@ class SalesController extends Controller
             $total = Js::num($rows[0]['total']);
             $sale = $rows[0];
             $sale['total'] = $total;
-            $sale['items'] = $items;
+            $sale['items'] = Orders::conContenido($items);
             $sale['pagos'] = $pagos;
             $sale['comprobantes'] = $comprobantes;
             $sale['pagado'] = $pagado;
@@ -333,6 +333,7 @@ class SalesController extends Controller
                     'detalles' => Js::slice(Js::str(Js::or($i['detalles_personalizacion'] ?? null, '')), 0, 255),
                     'proveedor_id' => Js::num($i['proveedor_id'] ?? null) > 0 ? Js::num($i['proveedor_id']) : null,
                     'lote_id' => Js::num($i['lote_id'] ?? null) > 0 ? Js::num($i['lote_id']) : null,
+                    'contenido' => $i['contenido'] ?? null, // contenido personalizado del box (se conserva al editar)
                 ];
             }
             $d = Orders::normalizeDelivery($b);
@@ -365,8 +366,9 @@ class SalesController extends Controller
             ]);
             Db::query('DELETE FROM pedido_detalles WHERE pedido_id = ?', [$id]);
             foreach ($calc['lines'] as $it) {
-                Db::query("INSERT INTO pedido_detalles (pedido_id, producto_id, cantidad, precio_unitario, subtotal, descuento, detalles_personalizacion, proveedor_id, lote_id)\n         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+                Db::query("INSERT INTO pedido_detalles (pedido_id, producto_id, cantidad, precio_unitario, subtotal, descuento, detalles_personalizacion, proveedor_id, lote_id, contenido_json)\n         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
                     $id, $it['producto_id'], $it['cantidad'], $it['precio_unitario'], $it['neto'], $it['descuento'], $it['detalles'], $it['proveedor_id'], $it['lote_id'],
+                    Orders::contenidoJson($it['producto_id'], $it['contenido'] ?? null),
                 ]);
             }
             $resumen = SalesStock::syncEstadoPago($id);

@@ -58,7 +58,8 @@ export default function SaleEditModal({ saleId, sym = 'S/', onClose, onSaved }) 
             const manual = !tiene || Math.abs(Number(i.precio_unitario) - precioPorCantidad(pr, i.cantidad)) > 0.009;
             return {
               producto_id: i.producto_id, descripcion: i.descripcion, codigo: i.codigo,
-              cantidad: i.cantidad, precio_unitario: String(i.precio_unitario), detalles_personalizacion: i.detalles_personalizacion || '', proveedor_id: i.proveedor_id || '', lote_id: i.lote_id || '', descuento: Number(i.descuento) > 0 ? String(i.descuento) : '', precio_manual: manual
+              cantidad: i.cantidad, precio_unitario: String(i.precio_unitario), detalles_personalizacion: i.detalles_personalizacion || '', proveedor_id: i.proveedor_id || '', lote_id: i.lote_id || '', descuento: Number(i.descuento) > 0 ? String(i.descuento) : '', precio_manual: manual,
+              contenido_json: i.contenido_json || null // box personalizado: se conserva al editar la venta
             };
           }));
           setAplicarIgv(!!Number(s.aplica_igv));
@@ -137,7 +138,7 @@ export default function SaleEditModal({ saleId, sym = 'S/', onClose, onSaved }) 
         aplicar_igv: aplicarIgv,
         descuento_global: descGlobal,
         notas_taller: notas,
-        items: lines.map((l) => ({ producto_id: l.producto_id, cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario), descuento: dtoL(l), detalles_personalizacion: l.detalles_personalizacion, proveedor_id: l.lote_id ? null : (l.proveedor_id ? Number(l.proveedor_id) : null), lote_id: l.lote_id ? Number(l.lote_id) : null }))
+        items: lines.map((l) => ({ producto_id: l.producto_id, cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario), descuento: dtoL(l), detalles_personalizacion: l.detalles_personalizacion, proveedor_id: l.lote_id ? null : (l.proveedor_id ? Number(l.proveedor_id) : null), lote_id: l.lote_id ? Number(l.lote_id) : null, contenido: l.contenido_json || undefined }))
       });
       onSaved();
     } catch (e) { alert(e.message); } finally { setSaving(false); }

@@ -32,3 +32,17 @@ export function descripcionTicket(texto, esc) {
 
 export const DET_CSS_A4 = '.det{font-size:.86em;color:#555;margin-top:3px;line-height:1.35} .det ul{margin:2px 0 0;padding-left:16px} .det li{margin:0}';
 export const DET_CSS_TICKET = '.det{font-size:10.5px;margin:1px 0 2px 6px}';
+
+// Contenido de un box (lo que lleva dentro), SIN precios: letra pequeña y gris claro debajo del producto.
+// contenido: [{ nombre, cantidad }]
+const cantTxt = (n) => { const v = Number(n) || 0; return Number.isInteger(v) ? String(v) : v.toFixed(2).replace(/0+$/, '').replace(/\.$/, ''); };
+export function contenidoHTML(contenido, esc) {
+  if (!Array.isArray(contenido) || !contenido.length) return '';
+  return `<div class="cont"><div class="cont-t">Contiene:</div>${contenido.map((c) => `<div>• ${cantTxt(c.cantidad)} × ${esc(c.nombre)}</div>`).join('')}</div>`;
+}
+export function contenidoTicket(contenido, esc) {
+  if (!Array.isArray(contenido) || !contenido.length) return '';
+  return `<div class="cont">Contiene:<br>${contenido.map((c) => `- ${cantTxt(c.cantidad)} x ${esc(c.nombre)}`).join('<br>')}</div>`;
+}
+export const CONT_CSS_A4 = '.cont{font-size:.78em;color:#8A94A3;margin-top:3px;line-height:1.35} .cont-t{font-weight:700}';
+export const CONT_CSS_TICKET = '.cont{font-size:10px;color:#555;margin:1px 0 2px 6px}';

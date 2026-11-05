@@ -414,7 +414,8 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
   const [lines, setLines] = useState(
     initial ? initial.items.map((i) => ({
       producto_id: i.producto_id, codigo: i.codigo, descripcion: i.descripcion, detalle: i.detalle || '',
-      cantidad: i.cantidad, precio_unitario: String(i.precio_unitario)
+      cantidad: i.cantidad, precio_unitario: String(i.precio_unitario),
+      contenido: Array.isArray(i.contenido) ? i.contenido : null, contenidoEditado: !!i.contenido_editado
     })) : []
   );
 
@@ -447,9 +448,37 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
       if (i >= 0) return prev.map((l, k) => (k === i ? withTier({ ...l, cantidad: Number(l.cantidad) + 1 }) : l));
       // La descripción para clientes del producto (ej. qué incluye el box) se copia y se puede editar en esta cotización
       const detalle = Number(p.desc_cotizacion ?? 1) !== 0 && p.web_descripcion ? p.web_descripcion : '';
-      return [...prev, { producto_id: p.id, codigo: p.codigo, descripcion: p.nombre, detalle, cantidad: 1, precio_unitario: String(precioPorCantidad(p, 1)), precio_manual: false }];
+      return [...prev, { producto_id: p.id, codigo: p.codigo, descripcion: p.nombre, detalle, cantidad: 1, precio_unitario: String(precioPorCantidad(p, 1)), precio_manual: false, contenido: null, contenidoEditado: false }];
     });
     setProdQuery('');
+    if (p.es_pack) cargarContenido(p.id);
+  };
+  // Box: lo que lleva dentro (de su ficha). Se puede quitar o agregar productos solo para esta cotización.
+  const contenidoDeFicha = async (packId) => {
+    const r = await productsAPI.getById(packId);
+    return (r.product?.componentes || []).map((c) => ({ producto_id: c.componente_id, nombre: c.nombre, cantidad: Number(c.cantidad), precio: Number(c.precio_unit) }));
+  };
+  const cargarContenido = async (packId) => {
+    try {
+      const cont = await contenidoDeFicha(packId);
+      setLines((prev) => prev.map((l) => (l.producto_id === packId && !l.contenidoEditado ? { ...l, contenido: cont } : l)));
+    } catch (e) { /* sin contenido: el box se cotiza igual */ }
+  };
+  const precioInsumo = (p) => (p.precio_insumo !== null && p.precio_insumo !== undefined && p.precio_insumo !== '' ? Number(p.precio_insumo) : Number(p.precio_venta) || 0);
+  // Cambia el contenido de un box y ajusta su precio con la diferencia (el precio se puede seguir editando a mano)
+  const cambiarContenido = (i, nuevo) => setLines((prev) => prev.map((l, k) => {
+    if (k !== i) return l;
+    const valor = (arr) => (arr || []).reduce((a, c) => a + (Number(c.cantidad) || 0) * (Number(c.precio) || 0), 0);
+    const dif = r2(valor(nuevo) - valor(l.contenido));
+    return { ...l, contenido: nuevo, contenidoEditado: true, precio_unitario: String(Math.max(0, r2((Number(l.precio_unitario) || 0) + dif))), precio_manual: true };
+  }));
+  const restaurarContenido = async (i) => {
+    const l = lines[i];
+    try {
+      const cont = await contenidoDeFicha(l.producto_id);
+      const p = products.find((x) => x.id === l.producto_id);
+      setLines((prev) => prev.map((x, k) => (k === i ? { ...x, contenido: cont, contenidoEditado: false, precio_manual: false, precio_unitario: p ? String(precioPorCantidad(p, x.cantidad)) : x.precio_unitario } : x)));
+    } catch (e) { alert(e.message); }
   };
   // Precio por cantidad: se recalcula al cambiar la cantidad, salvo que el precio se haya editado a mano
   const tierProd = (l) => { const p = products.find((x) => x.id === l.producto_id); return p && p.precio_por_cantidad && p.escalas?.length ? p : null; };
@@ -457,6 +486,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
   // Al cargar el catálogo: en cotizaciones guardadas, el precio es "manual" solo si difiere del que corresponde a la cantidad
   useEffect(() => {
     if (!products.length) return;
+    lines.forEach((l) => { const p = products.find((x) => x.id === l.producto_id); if (p?.es_pack && !l.contenido) cargarContenido(l.producto_id); });
     setLines((prev) => prev.map((l) => {
       if (l.precio_manual !== undefined) return l;
       const p = products.find((x) => x.id === l.producto_id);
@@ -493,7 +523,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
       aplicar_igv: form.aplicar_igv ? 1 : 0, mostrar_igv: form.aplicar_igv && form.mostrar_igv ? 1 : 0, igv_porcentaje: pct,
       costo_envio: envio, cargos_json: cargos, subtotal, igv_monto: igv, total,
       nota: form.nota, mostrar_terminos: form.mostrar_terminos ? 1 : 0, adelanto_tipo: form.adelanto_tipo, adelanto_valor: Number(form.adelanto_valor) || 0,
-      items: lines.map((l) => ({ codigo: l.codigo, descripcion: l.descripcion, detalle: l.detalle, cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario) }))
+      items: lines.map((l) => ({ codigo: l.codigo, descripcion: l.descripcion, detalle: l.detalle, cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario), contenido: l.contenido }))
     };
   };
 
@@ -514,7 +544,9 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
       adelanto_valor: Number(form.adelanto_valor) || 0,
       items: lines.map((l) => ({
         producto_id: l.producto_id, descripcion: l.descripcion, detalle: (l.detalle || '').trim(),
-        cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario)
+        cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario),
+        // solo si se cambió lo que lleva el box; si no, queda el de su ficha
+        contenido: l.contenidoEditado && Array.isArray(l.contenido) ? l.contenido.map((c) => ({ producto_id: c.producto_id, nombre: c.nombre, cantidad: Number(c.cantidad), precio: Number(c.precio) })) : undefined
       }))
     };
     try {
@@ -593,6 +625,10 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
                       style={{ ...inputStyle, marginTop: '4px', fontSize: '12.5px', color: '#475569', resize: 'vertical', lineHeight: 1.4 }} />
                   ) : (
                     <button type="button" onClick={() => setLine(i, { verDetalle: true })} style={{ fontSize: '11.5px', color: 'var(--primary)', background: 'none', border: 0, cursor: 'pointer', padding: '3px 0', fontWeight: 700 }}>+ Agregar descripción</button>
+                  )}
+                  {Array.isArray(l.contenido) && (
+                    <BoxContenido contenido={l.contenido} editado={l.contenidoEditado} products={products} precioInsumo={precioInsumo}
+                      onChange={(nuevo) => cambiarContenido(i, nuevo)} onRestaurar={() => restaurarContenido(i)} />
                   )}
                 </td>
                 <td style={{ padding: '6px' }}><input type="number" min="1" style={inputStyle} value={l.cantidad} onChange={(e) => setLine(i, { cantidad: e.target.value })} /></td>
@@ -697,6 +733,51 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
   );
 }
 
+/* ------------------------- Contenido de un box en la cotización ------------------------- */
+function BoxContenido({ contenido, editado, products, precioInsumo, onChange, onRestaurar }) {
+  const [q, setQ] = useState('');
+  const t = q.trim().toLowerCase();
+  const usados = new Set(contenido.map((c) => c.producto_id));
+  const resultados = t ? products.filter((p) => !p.es_pack && p.activo !== 0 && !usados.has(p.id) && (String(p.nombre).toLowerCase().includes(t) || String(p.codigo || '').toLowerCase().includes(t))).slice(0, 6) : [];
+  const valor = contenido.reduce((a, c) => a + (Number(c.cantidad) || 0) * (Number(c.precio) || 0), 0);
+  const mini = { padding: '3px 6px', fontSize: '12px', border: '1px solid #E2E8F0', borderRadius: '6px', background: '#fff' };
+  return (
+    <div style={{ marginTop: '6px', background: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: '10px', padding: '8px 10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+        <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '.03em' }}>Contenido del box {editado && <span style={{ color: '#B45309', textTransform: 'none', letterSpacing: 0 }}>· personalizado</span>}</span>
+        {editado && <button type="button" onClick={onRestaurar} style={{ fontSize: '11px', color: 'var(--primary)', background: 'none', border: 0, cursor: 'pointer', fontWeight: 700, padding: 0 }}>Restaurar original</button>}
+      </div>
+      {contenido.length === 0 && <div style={{ fontSize: '12px', color: '#94A3B8', padding: '4px 0' }}>El box quedó vacío. Agrega productos abajo.</div>}
+      {contenido.map((c, k) => (
+        <div key={c.producto_id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#334155', padding: '2px 0' }}>
+          <input type="number" min="0.01" step="any" value={c.cantidad} aria-label={`Cantidad de ${c.nombre}`} style={{ ...mini, width: '52px' }}
+            onChange={(e) => onChange(contenido.map((x, j) => (j === k ? { ...x, cantidad: e.target.value } : x)))} />
+          <span style={{ flex: 1, minWidth: 0 }}>{c.nombre}</span>
+          <span style={{ color: '#64748B', whiteSpace: 'nowrap' }}>S/ {r2((Number(c.cantidad) || 0) * (Number(c.precio) || 0)).toFixed(2)}</span>
+          <button type="button" title="Quitar del box" aria-label={`Quitar ${c.nombre}`} onClick={() => onChange(contenido.filter((_, j) => j !== k))}
+            style={{ background: 'none', border: 0, cursor: 'pointer', color: '#B91C1C', padding: '2px', display: 'flex' }}><X size={14} /></button>
+        </div>
+      ))}
+      <div style={{ position: 'relative', marginTop: '4px' }}>
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="+ Agregar producto al box…" style={{ ...mini, width: '100%', padding: '5px 8px' }} />
+        {resultados.length > 0 && (
+          <div style={{ position: 'absolute', zIndex: 6, left: 0, right: 0, background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', marginTop: '2px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
+            {resultados.map((p) => (
+              <div key={p.id} onClick={() => { onChange([...contenido, { producto_id: p.id, nombre: p.nombre, cantidad: 1, precio: precioInsumo(p) }]); setQ(''); }}
+                style={{ padding: '6px 10px', cursor: 'pointer', fontSize: '12.5px', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                <span>{p.nombre}</span><span style={{ color: '#64748B' }}>S/ {precioInsumo(p).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
+        Valor del contenido: S/ {r2(valor).toFixed(2)} · al quitar o agregar, el precio del box se ajusta con la diferencia (puedes cambiarlo a mano). En el documento se lista sin precios.
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------- Convertir en venta ------------------------- */
 function ConvertModal({ q, onClose, onDone }) {
   // Cliente: si la cotización se hizo como «Cliente Varios», aquí se escriben los datos reales (como en el Punto de venta)
@@ -717,8 +798,8 @@ function ConvertModal({ q, onClose, onDone }) {
   const cargosQ = parseCargosJson(q.cargos_json);
 
   const go = async () => {
-    if (!clienteVarios && (!clienteNombre.trim() || !clienteTel.trim())) {
-      alert('Escribe el nombre y el teléfono del cliente, o marca «Cliente Varios».');
+    if (!clienteVarios && !clienteNombre.trim() && !clienteTel.trim()) {
+      alert('Escribe el nombre o el teléfono del cliente (basta uno), o marca «Cliente Varios».');
       return;
     }
     try {
@@ -762,13 +843,13 @@ function ConvertModal({ q, onClose, onDone }) {
           <div><label style={labelStyle}>Nombre del cliente (comprador)</label>
             <input style={inputStyle} value={clienteNombre} placeholder={clienteVarios ? 'Escribe para quitar «Cliente Varios»' : 'Nombre y apellido'}
               onChange={(e) => { setClienteNombre(e.target.value); if (e.target.value) setClienteVarios(false); }} /></div>
-          <div><label style={labelStyle}>Teléfono del comprador</label>
+          <div><label style={labelStyle}>Teléfono del comprador <span style={{ fontWeight: 500, color: '#94A3B8' }}>(opcional si pones el nombre)</span></label>
             <input style={inputStyle} value={clienteTel} inputMode="tel" placeholder="987654321"
               onChange={(e) => { setClienteTel(e.target.value); if (e.target.value) setClienteVarios(false); }} /></div>
         </div>
         {esVarios && (
           <div style={{ fontSize: '11.5px', color: '#788A9B', marginTop: '6px' }}>
-            La cotización se hizo como «Cliente Varios». Si escribes los datos, el pedido y la cotización quedan a nombre del cliente y se guarda en Clientes (si el teléfono ya existe, se usa esa ficha).
+            La cotización se hizo como «Cliente Varios». Basta el nombre o el teléfono: el pedido y la cotización quedan a nombre del cliente y se guarda en Clientes (si el teléfono ya existe, se usa esa ficha).
           </div>
         )}
       </div>

@@ -72,6 +72,63 @@ final class Orders
         return ['tipo' => $tipo, 'ciudad' => $tipo === 'envio' ? $ciudad : null, 'fecha' => $fecha, 'franja' => $franja, 'direccion' => $direccion, 'cargos' => $cargos, 'costo_envio' => $costo];
     }
 
+    /**
+     * Contenido personalizado de un box (lo que lleva dentro, editado en la cotización o la venta).
+     * Devuelve el JSON listo para guardar, o null si el producto no es un box o no se envió contenido.
+     * Formato: [{producto_id, nombre, cantidad, precio}] por cada box (unidad).
+     */
+    public static function contenidoJson($productoId, $raw): ?string
+    {
+        if (is_string($raw)) { $d = json_decode($raw, true); $raw = is_array($d) ? $d : null; }
+        if (!is_array($raw)) return null;
+        $esPack = Db::query('SELECT es_pack FROM productos WHERE id = ?', [$productoId])[0]['es_pack'] ?? 0;
+        if (!Js::t($esPack)) return null;
+        $ids = [];
+        foreach ($raw as $c) { $n = (int) Js::num(is_array($c) ? ($c['producto_id'] ?? null) : null); if ($n > 0) $ids[] = $n; }
+        $prods = [];
+        if (count($ids)) foreach (Db::query('SELECT id, nombre, es_pack FROM productos WHERE id IN (?)', [array_values(array_unique($ids))]) as $p) $prods[(int) $p['id']] = $p;
+        $out = [];
+        foreach ($raw as $c) {
+            if (!is_array($c)) continue;
+            $id = (int) Js::num($c['producto_id'] ?? null);
+            $p = $prods[$id] ?? null;
+            if (!$p || Js::t($p['es_pack'])) continue; // un box no puede llevar otro box
+            $cant = Js::num($c['cantidad'] ?? null);
+            if (Js::isNaN($cant) || !($cant > 0)) continue;
+            $precio = Js::num($c['precio'] ?? null);
+            $out[] = ['producto_id' => $id, 'nombre' => Js::slice(Js::trim(Js::or($c['nombre'] ?? null, $p['nombre'])), 0, 160), 'cantidad' => self::r2($cant), 'precio' => Js::isNaN($precio) ? 0 : self::r2(max(0, $precio))];
+        }
+        return Js::stringify($out);
+    }
+
+    /**
+     * Agrega "contenido" (lo que lleva dentro) a las líneas que son boxes, para mostrarlo en pantalla y en los documentos:
+     * el contenido personalizado de la línea si lo tiene; si no, el de la ficha del box. Las demás líneas quedan igual.
+     */
+    public static function conContenido(array $lineas): array
+    {
+        $ids = [];
+        foreach ($lineas as $l) if (Js::t($l['producto_id'] ?? null)) $ids[] = (int) $l['producto_id'];
+        if (!count($ids)) return $lineas;
+        $packs = [];
+        foreach (Db::query('SELECT id FROM productos WHERE es_pack = 1 AND id IN (?)', [array_values(array_unique($ids))]) as $r) $packs[(int) $r['id']] = true;
+        $orig = [];
+        foreach ($lineas as &$l) {
+            $pid = (int) ($l['producto_id'] ?? 0);
+            if (!isset($packs[$pid])) continue;
+            $propio = Js::t($l['contenido_json'] ?? null) ? json_decode($l['contenido_json'], true) : null;
+            if (is_array($propio)) { $l['contenido'] = $propio; $l['contenido_editado'] = true; continue; }
+            if (!isset($orig[$pid])) {
+                $orig[$pid] = array_map(fn ($c) => ['producto_id' => (int) $c['componente_id'], 'nombre' => $c['nombre'], 'cantidad' => Js::num($c['cantidad']), 'precio' => Js::num($c['precio_unit'])],
+                    Db::query('SELECT pc.componente_id, pc.cantidad, pc.precio_unit, c.nombre FROM producto_componentes pc JOIN productos c ON c.id = pc.componente_id WHERE pc.producto_id = ? ORDER BY pc.id', [$pid]));
+            }
+            $l['contenido'] = $orig[$pid];
+            $l['contenido_editado'] = false;
+        }
+        unset($l);
+        return $lineas;
+    }
+
     /** Líneas con descuentos: subtotal = bruto - descuentos de línea - descuento global */
     public static function calcLines(array $items, $descuentoGlobal): array
     {
@@ -194,11 +251,12 @@ final class Orders
         // 5. Detalles (el stock NO se descuenta aquí)
         if ($calc['descGlobal'] > 0) Db::query('UPDATE pedidos SET descuento_global = ? WHERE id = ?', [$calc['descGlobal'], $pedidoId]);
         foreach ($calc['lines'] as $item) {
-            Db::query("\n      INSERT INTO pedido_detalles (pedido_id, producto_id, cantidad, precio_unitario, subtotal, descuento, detalles_personalizacion, proveedor_id, lote_id)\n      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n    ", [
+            Db::query("\n      INSERT INTO pedido_detalles (pedido_id, producto_id, cantidad, precio_unitario, subtotal, descuento, detalles_personalizacion, proveedor_id, lote_id, contenido_json)\n      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n    ", [
                 $pedidoId, $item['producto_id'] ?? null, $item['cantidad'] ?? null, $item['precio_unitario'] ?? null, $item['neto'], $item['descuento'],
                 Js::or($item['detalles_personalizacion'] ?? null, ''),
                 Js::num($item['proveedor_id'] ?? null) > 0 ? Js::num($item['proveedor_id']) : null,
                 Js::num($item['lote_id'] ?? null) > 0 ? Js::num($item['lote_id']) : null,
+                self::contenidoJson($item['producto_id'] ?? null, $item['contenido'] ?? null),
             ]);
         }
 

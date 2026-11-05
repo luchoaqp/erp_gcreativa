@@ -135,6 +135,7 @@ class QuoteController extends Controller
                 'detalle' => self::detalle($i['detalle'] ?? null),
                 'cantidad' => $cantidad,
                 'precio_unitario' => self::r2($precio),
+                'contenido_json' => Orders::contenidoJson($p['id'], $i['contenido'] ?? null), // box personalizado
             ];
         }
         return $out;
@@ -151,8 +152,9 @@ class QuoteController extends Controller
     private static function insertItems($cotizacionId, array $items): void
     {
         foreach ($items as $it) {
-            Db::query("INSERT INTO cotizacion_detalles (cotizacion_id, producto_id, codigo, descripcion, detalle, cantidad, precio_unitario, subtotal)\n       VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [
+            Db::query("INSERT INTO cotizacion_detalles (cotizacion_id, producto_id, codigo, descripcion, detalle, cantidad, precio_unitario, subtotal, contenido_json)\n       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [
                 $cotizacionId, $it['producto_id'], $it['codigo'], $it['descripcion'], $it['detalle'] ?? null, $it['cantidad'], $it['precio_unitario'], self::r2($it['precio_unitario'] * $it['cantidad']),
+                $it['contenido_json'] ?? null,
             ]);
         }
     }
@@ -180,7 +182,7 @@ class QuoteController extends Controller
         $rows = Db::query("\n    SELECT c.*, " . self::ESTADO_EFECTIVO . " AS estado_efectivo, u.nombre AS vendedor_nombre,\n           p.numero_pedido AS pedido_numero\n    FROM cotizaciones c\n    LEFT JOIN usuarios u ON u.id = c.usuario_id\n    LEFT JOIN pedidos p ON p.id = c.pedido_id\n    WHERE c.id = ?", [$id]);
         if (count($rows) === 0) return null;
         $q = $rows[0];
-        $q['items'] = Db::query('SELECT * FROM cotizacion_detalles WHERE cotizacion_id = ? ORDER BY id ASC', [$id]);
+        $q['items'] = Orders::conContenido(Db::query('SELECT * FROM cotizacion_detalles WHERE cotizacion_id = ? ORDER BY id ASC', [$id]));
         return $q;
     }
 
@@ -328,7 +330,13 @@ class QuoteController extends Controller
             if (is_array($b) && array_key_exists('cliente_varios', $b)) {
                 $nuevoNombre = Js::slice(Js::trim(Js::str(Js::or($g('cliente_nombre'), ''))), 0, 120);
                 $nuevoTel = Js::slice(Js::trim(Js::str(Js::or($g('cliente_telefono'), ''))), 0, 30);
-                if ($g('cliente_varios') === true || $nuevoNombre === '' || strcasecmp($nuevoNombre, 'Cliente Varios') === 0) {
+                if (strcasecmp($nuevoNombre, 'Cliente Varios') === 0) $nuevoNombre = '';
+                // Basta el nombre O el teléfono (a veces el cliente escribe por WhatsApp solo con su @ y no tenemos su número)
+                if ($nuevoNombre === '' && $nuevoTel !== '') {
+                    $ya = Db::query('SELECT nombre FROM clientes WHERE telefono = ? LIMIT 1', [$nuevoTel]);
+                    $nuevoNombre = count($ya) ? Js::str($ya[0]['nombre']) : 'Cliente ' . $nuevoTel;
+                }
+                if ($g('cliente_varios') === true || $nuevoNombre === '') {
                     $varios = true; $cliente = null; $nombreCliente = null; $telefonoCliente = $nuevoTel !== '' ? $nuevoTel : null;
                 } else {
                     $varios = false;
@@ -362,7 +370,7 @@ class QuoteController extends Controller
                 'diseno_link' => $g('diseno_link'),
                 'diseno_foto' => $g('diseno_foto'),
                 'diseno_links' => $g('diseno_links'),
-                'items' => array_map(fn ($i) => ['producto_id' => $i['producto_id'], 'cantidad' => $i['cantidad'], 'precio_unitario' => $i['precio_unitario'], 'detalles_personalizacion' => ''], $items),
+                'items' => array_map(fn ($i) => ['producto_id' => $i['producto_id'], 'cantidad' => $i['cantidad'], 'precio_unitario' => $i['precio_unitario'], 'detalles_personalizacion' => '', 'contenido' => $i['contenido_json'] ?? null], $items),
             ]);
             $result = Orders::createOrderCore($body, $this->userId());
             Db::query("UPDATE cotizaciones SET estado = 'aceptada', pedido_id = ? WHERE id = ?", [$result['pedidoId'], $q['id']]);

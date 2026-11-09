@@ -152,6 +152,14 @@ class ReportHubController extends Controller
         ];
     }
 
+    /** Ventas netas (sin IGV) y costo real de lo vendido en un rango: la misma cuenta del reporte de Utilidades */
+    public static function ventasYCosto(?string $desde, ?string $hasta): array
+    {
+        $params = [];
+        $r = Db::query('SELECT COALESCE(SUM(pd.subtotal), 0) AS ventas, COALESCE(SUM(' . self::COSTO_LINEA . '), 0) AS costo ' . self::detFrom() . self::range('cv.fecha_venta', ['desde' => $desde, 'hasta' => $hasta], $params), $params);
+        return ['ventas' => self::r2($r[0]['ventas'] ?? 0), 'costo' => self::r2($r[0]['costo'] ?? 0)];
+    }
+
     private function utilidades(array $q): array
     {
         $params = [];

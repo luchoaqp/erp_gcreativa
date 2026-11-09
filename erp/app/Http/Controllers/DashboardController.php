@@ -62,6 +62,12 @@ class DashboardController extends Controller
                 $gastosMes = Js::num(Js::or($g[0]['t'] ?? null, 0));
             } catch (\Throwable $e) {
             }
+            // Utilidad neta del mes = ventas netas (sin IGV) − costo real de lo vendido − gastos del mes
+            $utilidadMes = ['ventas' => 0, 'costo' => 0];
+            try {
+                $utilidadMes = ReportHubController::ventasYCosto(date('Y-m-01'), date('Y-m-d'));
+            } catch (\Throwable $e) {
+            }
             $taller = ['total' => 0, 'alertas' => []];
             try {
                 $ms = Db::query("\n        SELECT id, nombre, categoria, marca, modelo, estado, fecha_ultimo_mantenimiento, mantenimiento_cada_dias,\n               CASE WHEN mantenimiento_cada_dias IS NOT NULL\n                    THEN DATEDIFF(DATE_ADD(COALESCE(fecha_ultimo_mantenimiento, fecha_compra, CURDATE()), INTERVAL mantenimiento_cada_dias DAY), CURDATE())\n                    ELSE NULL END AS dias_para_mantenimiento\n        FROM taller_maquinas WHERE activo = 1");
@@ -86,6 +92,9 @@ class DashboardController extends Controller
                     'total_clientes' => $n($totalClientes[0]['count'] ?? null),
                     'pedidos_activos' => $n($activos[0]['n'] ?? null),
                     'gastos_mes' => $gastosMes,
+                    'ventas_netas_mes' => $utilidadMes['ventas'],
+                    'costo_ventas_mes' => $utilidadMes['costo'],
+                    'utilidad_neta_mes' => round($utilidadMes['ventas'] - $utilidadMes['costo'] - $gastosMes, 2),
                 ],
                 'entregas_hoy' => $entregasDetalle,
                 'ventas_por_categoria' => $ventasPorCategoria,

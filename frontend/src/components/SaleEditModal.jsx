@@ -5,6 +5,7 @@ import { salesAPI, productsAPI, customersAPI } from '../api';
 import DeliveryFields, { entregaPayload, useCharges, sumCargos, parseCargosJson } from './DeliveryFields';
 import { money, r2 } from '../utils/quotePrint';
 import { pdNumber } from '../utils/docPrint';
+import BoxContenido, { esBox, contenidoDeFicha, contenidoPayload, valorContenido } from './BoxContenido';
 
 const inp = { width: '100%', padding: '9px 11px', border: '1px solid #E2E8F0', borderRadius: '10px', fontSize: '13px', outline: 'none', background: '#fff', boxSizing: 'border-box' };
 const lab = { fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '4px', display: 'block' };
@@ -59,7 +60,7 @@ export default function SaleEditModal({ saleId, sym = 'S/', onClose, onSaved }) 
             return {
               producto_id: i.producto_id, descripcion: i.descripcion, codigo: i.codigo,
               cantidad: i.cantidad, precio_unitario: String(i.precio_unitario), detalles_personalizacion: i.detalles_personalizacion || '', proveedor_id: i.proveedor_id || '', lote_id: i.lote_id || '', descuento: Number(i.descuento) > 0 ? String(i.descuento) : '', precio_manual: manual,
-              contenido_json: i.contenido_json || null // box personalizado: se conserva al editar la venta
+              contenido: Array.isArray(i.contenido) ? i.contenido : null, contenido_editado: !!i.contenido_editado // box: lo que lleva (se conserva al editar)
             };
           }));
           setAplicarIgv(!!Number(s.aplica_igv));
@@ -103,9 +104,24 @@ export default function SaleEditModal({ saleId, sym = 'S/', onClose, onSaved }) 
     setLines((prev) => {
       const i = prev.findIndex((l) => l.producto_id === p.id);
       if (i >= 0) return prev.map((l, k) => (k === i ? { ...l, cantidad: Number(l.cantidad) + 1, ...(l.precio_manual ? {} : { precio_unitario: String(precioPorCantidad(p, Number(l.cantidad) + 1)) }) } : l));
-      return [...prev, { producto_id: p.id, descripcion: p.nombre, codigo: p.codigo, cantidad: 1, precio_unitario: String(precioPorCantidad(p, 1)), detalles_personalizacion: '', proveedor_id: '', precio_manual: false }];
+      return [...prev, { producto_id: p.id, descripcion: p.nombre, codigo: p.codigo, cantidad: 1, precio_unitario: String(precioPorCantidad(p, 1)), detalles_personalizacion: '', proveedor_id: '', precio_manual: false, contenido: null, contenido_editado: false }];
     });
     setProdQuery('');
+    if (esBox(p) && !lines.some((l) => l.producto_id === p.id)) {
+      contenidoDeFicha(p.id).then((cont) => { if (cont) setLines((prev) => prev.map((l) => (l.producto_id === p.id && !l.contenido ? { ...l, contenido: cont } : l))); }).catch(() => {});
+    }
+  };
+  // Box: cambiar lo que lleva ajusta su precio con la diferencia (se puede seguir editando a mano)
+  const cambiarBox = (i, nuevo) => setLines((prev) => prev.map((l, k) => (k !== i ? l : {
+    ...l, contenido: nuevo, contenido_editado: true, precio_manual: true,
+    precio_unitario: String(Math.max(0, r2((Number(l.precio_unitario) || 0) + valorContenido(nuevo) - valorContenido(l.contenido))))
+  })));
+  const restaurarBox = async (i) => {
+    try {
+      const cont = await contenidoDeFicha(lines[i].producto_id);
+      const p = prodOf(lines[i]);
+      setLines((prev) => prev.map((l, k) => (k === i ? { ...l, contenido: cont || [], contenido_editado: false, precio_manual: false, precio_unitario: p ? String(precioPorCantidad(p, l.cantidad)) : l.precio_unitario } : l)));
+    } catch (e) { alert(e.message); }
   };
 
   const brutoL = (l) => r2((Number(l.precio_unitario) || 0) * (Number(l.cantidad) || 0));
@@ -138,7 +154,7 @@ export default function SaleEditModal({ saleId, sym = 'S/', onClose, onSaved }) 
         aplicar_igv: aplicarIgv,
         descuento_global: descGlobal,
         notas_taller: notas,
-        items: lines.map((l) => ({ producto_id: l.producto_id, cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario), descuento: dtoL(l), detalles_personalizacion: l.detalles_personalizacion, proveedor_id: l.lote_id ? null : (l.proveedor_id ? Number(l.proveedor_id) : null), lote_id: l.lote_id ? Number(l.lote_id) : null, contenido: l.contenido_json || undefined }))
+        items: lines.map((l) => ({ producto_id: l.producto_id, cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario), descuento: dtoL(l), detalles_personalizacion: l.detalles_personalizacion, proveedor_id: l.lote_id ? null : (l.proveedor_id ? Number(l.proveedor_id) : null), lote_id: l.lote_id ? Number(l.lote_id) : null, contenido: contenidoPayload(l.contenido, l.contenido_editado) }))
       });
       onSaved();
     } catch (e) { alert(e.message); } finally { setSaving(false); }
@@ -209,6 +225,10 @@ export default function SaleEditModal({ saleId, sym = 'S/', onClose, onSaved }) 
                         <option value="">Lote: automático (más antiguo)</option>
                         {prodOf(l).lotes.map((lt) => <option key={lt.id} value={lt.id}>{`${lt.codigo || 'Lote'} · ${lt.proveedor} · ${lt.stock} u. · S/ ${Number(lt.costo_unit).toFixed(2)}`}</option>)}
                       </select>
+                    )}
+                    {Array.isArray(l.contenido) && (
+                      <BoxContenido compact contenido={l.contenido} editado={l.contenido_editado} products={products}
+                        onChange={(nuevo) => cambiarBox(i, nuevo)} onRestaurar={() => restaurarBox(i)} />
                     )}
                   </td>
                   <td style={{ padding: '6px' }}><input type="number" min="1" style={inp} value={l.cantidad} onChange={(e) => setLine(i, { cantidad: e.target.value })} /></td>

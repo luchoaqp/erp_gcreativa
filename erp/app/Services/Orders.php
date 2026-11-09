@@ -81,8 +81,9 @@ final class Orders
     {
         if (is_string($raw)) { $d = json_decode($raw, true); $raw = is_array($d) ? $d : null; }
         if (!is_array($raw)) return null;
-        $esPack = Db::query('SELECT es_pack FROM productos WHERE id = ?', [$productoId])[0]['es_pack'] ?? 0;
-        if (!Js::t($esPack)) return null;
+        // Box = pack (Boxes y Packs) o producto armado con insumos (pestaña Producción)
+        $pr = Db::query('SELECT es_pack, requiere_insumos FROM productos WHERE id = ?', [$productoId])[0] ?? null;
+        if (!$pr || !(Js::t($pr['es_pack']) || Js::t($pr['requiere_insumos']))) return null;
         $ids = [];
         foreach ($raw as $c) { $n = (int) Js::num(is_array($c) ? ($c['producto_id'] ?? null) : null); if ($n > 0) $ids[] = $n; }
         $prods = [];
@@ -111,7 +112,7 @@ final class Orders
         foreach ($lineas as $l) if (Js::t($l['producto_id'] ?? null)) $ids[] = (int) $l['producto_id'];
         if (!count($ids)) return $lineas;
         $packs = [];
-        foreach (Db::query('SELECT id FROM productos WHERE es_pack = 1 AND id IN (?)', [array_values(array_unique($ids))]) as $r) $packs[(int) $r['id']] = true;
+        foreach (Db::query('SELECT id FROM productos WHERE (es_pack = 1 OR requiere_insumos = 1) AND id IN (?)', [array_values(array_unique($ids))]) as $r) $packs[(int) $r['id']] = true;
         $orig = [];
         foreach ($lineas as &$l) {
             $pid = (int) ($l['producto_id'] ?? 0);
@@ -122,6 +123,7 @@ final class Orders
                 $orig[$pid] = array_map(fn ($c) => ['producto_id' => (int) $c['componente_id'], 'nombre' => $c['nombre'], 'cantidad' => Js::num($c['cantidad']), 'precio' => Js::num($c['precio_unit'])],
                     Db::query('SELECT pc.componente_id, pc.cantidad, pc.precio_unit, c.nombre FROM producto_componentes pc JOIN productos c ON c.id = pc.componente_id WHERE pc.producto_id = ? ORDER BY pc.id', [$pid]));
             }
+            if (!count($orig[$pid])) continue; // producto sin nada adentro: no se lista
             $l['contenido'] = $orig[$pid];
             $l['contenido_editado'] = false;
         }

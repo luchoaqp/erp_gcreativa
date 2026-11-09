@@ -361,7 +361,7 @@ export default function ProductForm({ productId, duplicateFrom, categories, cata
                           <button type="button" className="pm-btn-outline" style={{ fontSize: 12.5, padding: '5px 10px' }} onClick={() => set({ precio_venta: String(tot.valor), calcular_con_ganancia: false })}>Usar valor de insumos como precio de venta</button>
                         </div>
                       </div>
-                      <p style={{ fontSize: 12, color: '#788A9B', marginTop: 10 }}>Los insumos sirven para calcular el costo y el precio. Para un pack que descuenta el stock de lo que lleva, usa la pestaña "Boxes y Packs".</p>
+                      <p style={{ fontSize: 12, color: '#788A9B', marginTop: 10 }}>Los insumos calculan el costo y el precio, y al venderse el producto se descuentan del stock (como un box): su disponible es lo que alcanza con el insumo que se acabe primero. En cotizaciones y ventas puedes quitar o agregar insumos solo para ese pedido.</p>
                     </>
                   )}
                 </div>

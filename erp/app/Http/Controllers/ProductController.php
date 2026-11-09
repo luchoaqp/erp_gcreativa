@@ -16,7 +16,8 @@ class ProductController extends Controller
     private const UNIDADES = ['NIU', 'KGM', 'MTR', 'LTR', 'BX', 'DZN', 'PK', 'SET'];
 
     // Stock de un pack = lo que se puede armar con el stock de sus componentes
-    public const STOCK_SQL = "CASE WHEN p.es_pack = 1 THEN COALESCE((\n  SELECT MIN(FLOOR(c.stock / NULLIF(pc.cantidad, 0))) FROM producto_componentes pc JOIN productos c ON c.id = pc.componente_id\n  WHERE pc.producto_id = p.id), 0) ELSE p.stock END";
+    // Disponible de un box (pack, o producto de Producción con insumos) = lo que alcanza con el insumo que se acabe primero
+    public const STOCK_SQL = "CASE WHEN p.es_pack = 1 OR (p.requiere_insumos = 1 AND EXISTS (SELECT 1 FROM producto_componentes x WHERE x.producto_id = p.id)) THEN COALESCE((\n  SELECT MIN(FLOOR(c.stock / NULLIF(pc.cantidad, 0))) FROM producto_componentes pc JOIN productos c ON c.id = pc.componente_id\n  WHERE pc.producto_id = p.id), 0) ELSE p.stock END";
 
     public static function r2($n) { return Js::roundTo($n, 2); }
 

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { productsAPI, categoriesAPI, ordersAPI, salesAPI, settingsAPI } from '../api';
 import PrintModal from '../components/PrintModal';
+import BoxContenido, { esBox, contenidoDeFicha, contenidoPayload, valorContenido } from '../components/BoxContenido';
 import { buildSaleDocHTML } from '../utils/docPrint';
 import DeliveryFields, { entregaPayload, emptyDelivery, sumCargos, useCharges } from '../components/DeliveryFields';
 import { entregaLabel } from '../utils/entrega';
@@ -106,6 +107,7 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
   };
 
   const addToCart = (product) => {
+    const nuevo = !cart.some((item) => item.id === product.id);
     setCart(prev => {
       const exists = prev.find(item => item.id === product.id);
       if (exists) {
@@ -113,6 +115,23 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
       }
       return [...prev, { ...product, cantidad: 1, personalizacion: '' }];
     });
+    // Box: se trae lo que lleva dentro para poder quitar o agregar productos en esta venta
+    if (nuevo && esBox(product)) {
+      contenidoDeFicha(product.id).then((cont) => { if (cont) setCart((prev) => prev.map((i) => (i.id === product.id && !i.contenido ? { ...i, contenido: cont, contenido_editado: false } : i))); }).catch(() => {});
+    }
+  };
+  // Cambiar lo que lleva el box: el precio se ajusta con la diferencia (solo el administrador puede cambiar precios)
+  const cambiarBox = (item, nuevo) => setCart((prev) => prev.map((i) => {
+    if (i.id !== item.id) return i;
+    const next = { ...i, contenido: nuevo, contenido_editado: true };
+    if (isAdmin) next.precio_manual = String(Math.max(0, r2(unitPrice(i) + valorContenido(nuevo) - valorContenido(i.contenido))));
+    return next;
+  }));
+  const restaurarBox = async (item) => {
+    try {
+      const cont = await contenidoDeFicha(item.id);
+      setCart((prev) => prev.map((i) => (i.id === item.id ? { ...i, contenido: cont || [], contenido_editado: false, precio_manual: null } : i)));
+    } catch (e) { alert(e.message); }
   };
 
   const updateQuantity = (id, delta) => {
@@ -190,7 +209,8 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
       descripcion: item.nombre, codigo: item.codigo, cantidad: Number(item.cantidad) || 1,
       precio_unitario: unitPrice(item), descuento: lineDto(item), subtotal: r2(lineBruto(item) - lineDto(item)),
       detalles_personalizacion: item.personalizacion || '',
-      detalle: Number(item.desc_documentos ?? 1) !== 0 ? item.web_descripcion : ''
+      detalle: Number(item.desc_documentos ?? 1) !== 0 ? item.web_descripcion : '',
+      contenido: item.contenido || null, contenido_editado: !!item.contenido_editado
     })),
     subtotal, descuento_global: descGlobal, total: r2(total), aplica_igv: 0,
     cargos_json: delivery.tipo_entrega === 'envio' ? delivery.cargos : [], costo_envio: envioTotal,
@@ -231,7 +251,8 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
           descuento: lineDto(item),
           proveedor_id: item.lote_id ? null : (item.proveedor_id ? Number(item.proveedor_id) : null),
           lote_id: item.lote_id ? Number(item.lote_id) : null,
-          detalles_personalizacion: item.personalizacion || ''
+          detalles_personalizacion: item.personalizacion || '',
+          contenido: contenidoPayload(item.contenido, item.contenido_editado)
         })),
         notas_taller: formData.notasTaller
       };
@@ -488,7 +509,13 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
                       {isAdmin && <button type="button" onClick={() => setEditor(editor?.id === item.id && editor.kind === 'precio' ? null : { id: item.id, kind: 'precio' })} style={miniBtn}>✎ Precio</button>}
                       <button type="button" onClick={() => setEditor(editor?.id === item.id && editor.kind === 'dto' ? null : { id: item.id, kind: 'dto' })} style={miniBtn}>% Descuento{lineDto(item) > 0 ? ` (−${lineDto(item).toFixed(2)})` : ''}</button>
+                      {Array.isArray(item.contenido) && <button type="button" onClick={() => setEditor(editor?.id === item.id && editor.kind === 'cont' ? null : { id: item.id, kind: 'cont' })} style={{ ...miniBtn, ...(item.contenido_editado ? { color: '#B45309' } : {}) }}>📦 Contenido ({item.contenido.length}){item.contenido_editado ? ' · personalizado' : ''}</button>}
                     </div>
+                    {editor?.id === item.id && editor.kind === 'cont' && Array.isArray(item.contenido) && (
+                      <BoxContenido compact contenido={item.contenido} editado={!!item.contenido_editado} products={products}
+                        onChange={(nuevo) => cambiarBox(item, nuevo)} onRestaurar={() => restaurarBox(item)}
+                        nota={isAdmin ? 'el precio del box se ajusta con la diferencia. En el documento se lista sin precios.' : 'el precio del box no cambia (solo un administrador ajusta precios). En el documento se lista sin precios.'} />
+                    )}
                     {editor?.id === item.id && editor.kind === 'precio' && isAdmin && (
                       <div style={editBox}>
                         <span style={{ fontSize: 11 }}>Precio unitario S/.</span>

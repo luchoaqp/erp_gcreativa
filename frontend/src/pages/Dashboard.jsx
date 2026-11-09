@@ -99,7 +99,8 @@ export default function Dashboard({ user, onNavigatePOS, onNavigateOrders, onNav
       <div className="stat-panels-grid">
         {panel('stat-panel-orange', k.pedidos_activos ?? 0, 'Pedidos activos', 'En diseño, fabricación y despacho', onNavigateOrders, Armchair)}
         {panel('stat-panel-blue', fmt0(k.total_ingresos), 'Ingresos Totales', 'Ventas con comprobante emitido', onNavigateReports || onNavigatePOS, Wallet)}
-        {panel('stat-panel-green', k.total_clientes ?? 0, 'Clientes Registrados', 'Cartera de clientes', onNavigateCustomers, Users)}
+        {panel('stat-panel-green', fmt0(k.utilidad_neta_mes), 'Utilidad neta del mes',
+          `Ventas ${fmt0(k.ventas_netas_mes)} − costo ${fmt0(k.costo_ventas_mes)} − gastos ${fmt0(k.gastos_mes)}`, onNavigateReports || onNavigateCustomers, TrendingUp)}
         {panel('stat-panel-amber', fmt0(k.gastos_mes), 'Gastos del mes', 'Movilidad, servicios y otros gastos', onNavigateExpenses || onNavigateReports, AlertTriangle)}
       </div>
 

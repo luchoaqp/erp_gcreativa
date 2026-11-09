@@ -10,6 +10,7 @@ import { precioPorCantidad } from '../utils/precios';
 import { quotesAPI, productsAPI, customersAPI, settingsAPI } from '../api';
 import { buildQuoteHTML, getDisplay, fmtDate, money, r2, adelantoMinimo } from '../utils/quotePrint';
 import PrintModal from '../components/PrintModal';
+import BoxContenido, { esBox, contenidoDeFicha, contenidoPayload, valorContenido } from '../components/BoxContenido';
 import { useCols, ColList, dragProps } from '../utils/columns';
 import DeliveryFields, { entregaPayload, ChargesPicker, emptyDelivery, sumCargos, parseCargosJson, useCharges } from '../components/DeliveryFields';
 
@@ -52,10 +53,27 @@ const Badge = ({ estado }) => {
   return <span style={{ background: e.bg, color: e.color, fontWeight: 700, fontSize: '11.5px', padding: '4px 10px', borderRadius: '999px' }}>{e.label}</span>;
 };
 
+// Columnas guardadas por el usuario: al agregar «Alias» se pasa su configuración a la nueva versión y queda visible
+function colsKey() {
+  const k = 'cotizaciones_cols_v2';
+  try {
+    if (localStorage.getItem(k) === null) {
+      const v1 = JSON.parse(localStorage.getItem('cotizaciones_cols_v1'));
+      if (v1 && Array.isArray(v1.vis)) {
+        const order = Array.isArray(v1.order) && v1.order.length ? [...v1.order] : [];
+        if (order.length && !order.includes('alias')) order.splice(order.indexOf('cliente') + 1, 0, 'alias');
+        localStorage.setItem(k, JSON.stringify({ vis: [...v1.vis, 'alias'], order }));
+      }
+    }
+  } catch (e) { /* sin guardado */ }
+  return k;
+}
+
 const QUOTE_COLS = [
   { id: 'numero', label: 'N°', always: true },
   { id: 'fecha', label: 'Fecha' },
   { id: 'cliente', label: 'Cliente' },
+  { id: 'alias', label: 'Alias' },
   { id: 'vendedor', label: 'Vendedor' },
   { id: 'vigencia', label: 'Vigencia' },
   { id: 'estado', label: 'Estado' },
@@ -65,7 +83,7 @@ const QUOTE_COLS = [
 
 export default function Quotes({ user, onConverted, nuevaCotizacion = 0 }) {
   const [quotes, setQuotes] = useState([]);
-  const colApi = useCols('cotizaciones_cols_v1', QUOTE_COLS);
+  const colApi = useCols(colsKey(), QUOTE_COLS);
   const [colMenu, setColMenu] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -155,6 +173,7 @@ export default function Quotes({ user, onConverted, nuevaCotizacion = 0 }) {
       case 'numero': return q.numero;
       case 'fecha': return fmtDate(q.fecha);
       case 'cliente': return q.cliente_nombre;
+      case 'alias': return q.alias ? <span style={{ fontWeight: 700, color: '#7C3AED' }}>{q.alias}</span> : <span style={{ color: '#CBD5E1' }}>—</span>;
       case 'vendedor': return q.vendedor_nombre || '-';
       case 'vigencia': return fmtDate(q.fecha_vencimiento);
       case 'estado': return <Badge estado={q.estado_efectivo} />;
@@ -199,7 +218,7 @@ export default function Quotes({ user, onConverted, nuevaCotizacion = 0 }) {
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', background: '#F5F7F8', borderRadius: '10px', padding: '8px 14px', flex: '1 1 260px', maxWidth: '420px' }}>
           <Search size={16} color="#788A9B" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cliente o N° de cotización..."
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cliente, alias o N° de cotización..."
             style={{ border: 'none', background: 'transparent', outline: 'none', paddingLeft: '8px', fontSize: '13px', width: '100%' }} />
         </div>
         <select value={estado} onChange={(e) => setEstado(e.target.value)} style={{ ...inputStyle, width: 'auto' }}>
@@ -396,6 +415,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
     cliente_id: initial?.cliente_id || null,
     cliente_telefono: initial?.cliente_telefono || '',
     cliente_documento: initial?.cliente_documento || '',
+    alias: initial?.alias || '',
     vigencia_dias: initial && !duplicating ? daysLeft() : (cfg.vigencia_dias_defecto || 7),
     mostrar_terminos: initial ? !!Number(initial.mostrar_terminos ?? 1) : !!Number(cfg.mostrar_terminos ?? 1),
     aplicar_igv: initial ? !!Number(initial.aplicar_igv) : !!Number(cfg.aplicar_igv_defecto),
@@ -451,25 +471,19 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
       return [...prev, { producto_id: p.id, codigo: p.codigo, descripcion: p.nombre, detalle, cantidad: 1, precio_unitario: String(precioPorCantidad(p, 1)), precio_manual: false, contenido: null, contenidoEditado: false }];
     });
     setProdQuery('');
-    if (p.es_pack) cargarContenido(p.id);
+    if (esBox(p)) cargarContenido(p.id);
   };
   // Box: lo que lleva dentro (de su ficha). Se puede quitar o agregar productos solo para esta cotización.
-  const contenidoDeFicha = async (packId) => {
-    const r = await productsAPI.getById(packId);
-    return (r.product?.componentes || []).map((c) => ({ producto_id: c.componente_id, nombre: c.nombre, cantidad: Number(c.cantidad), precio: Number(c.precio_unit) }));
-  };
   const cargarContenido = async (packId) => {
     try {
       const cont = await contenidoDeFicha(packId);
       setLines((prev) => prev.map((l) => (l.producto_id === packId && !l.contenidoEditado ? { ...l, contenido: cont } : l)));
     } catch (e) { /* sin contenido: el box se cotiza igual */ }
   };
-  const precioInsumo = (p) => (p.precio_insumo !== null && p.precio_insumo !== undefined && p.precio_insumo !== '' ? Number(p.precio_insumo) : Number(p.precio_venta) || 0);
   // Cambia el contenido de un box y ajusta su precio con la diferencia (el precio se puede seguir editando a mano)
   const cambiarContenido = (i, nuevo) => setLines((prev) => prev.map((l, k) => {
     if (k !== i) return l;
-    const valor = (arr) => (arr || []).reduce((a, c) => a + (Number(c.cantidad) || 0) * (Number(c.precio) || 0), 0);
-    const dif = r2(valor(nuevo) - valor(l.contenido));
+    const dif = r2(valorContenido(nuevo) - valorContenido(l.contenido));
     return { ...l, contenido: nuevo, contenidoEditado: true, precio_unitario: String(Math.max(0, r2((Number(l.precio_unitario) || 0) + dif))), precio_manual: true };
   }));
   const restaurarContenido = async (i) => {
@@ -477,7 +491,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
     try {
       const cont = await contenidoDeFicha(l.producto_id);
       const p = products.find((x) => x.id === l.producto_id);
-      setLines((prev) => prev.map((x, k) => (k === i ? { ...x, contenido: cont, contenidoEditado: false, precio_manual: false, precio_unitario: p ? String(precioPorCantidad(p, x.cantidad)) : x.precio_unitario } : x)));
+      setLines((prev) => prev.map((x, k) => (k === i ? { ...x, contenido: cont || [], contenidoEditado: false, precio_manual: false, precio_unitario: p ? String(precioPorCantidad(p, x.cantidad)) : x.precio_unitario } : x)));
     } catch (e) { alert(e.message); }
   };
   // Precio por cantidad: se recalcula al cambiar la cantidad, salvo que el precio se haya editado a mano
@@ -486,7 +500,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
   // Al cargar el catálogo: en cotizaciones guardadas, el precio es "manual" solo si difiere del que corresponde a la cantidad
   useEffect(() => {
     if (!products.length) return;
-    lines.forEach((l) => { const p = products.find((x) => x.id === l.producto_id); if (p?.es_pack && !l.contenido) cargarContenido(l.producto_id); });
+    lines.forEach((l) => { const p = products.find((x) => x.id === l.producto_id); if (esBox(p) && !l.contenido) cargarContenido(l.producto_id); });
     setLines((prev) => prev.map((l) => {
       if (l.precio_manual !== undefined) return l;
       const p = products.find((x) => x.id === l.producto_id);
@@ -534,6 +548,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
       cliente_nombre: cliQuery.trim() || 'Cliente Varios',
       cliente_telefono: form.cliente_telefono,
       cliente_documento: form.cliente_documento,
+      alias: (form.alias || '').trim(),
       vigencia_dias: form.vigencia_dias,
       aplicar_igv: form.aplicar_igv,
       mostrar_igv: form.aplicar_igv ? form.mostrar_igv : false,
@@ -546,7 +561,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
         producto_id: l.producto_id, descripcion: l.descripcion, detalle: (l.detalle || '').trim(),
         cantidad: Number(l.cantidad), precio_unitario: Number(l.precio_unitario),
         // solo si se cambió lo que lleva el box; si no, queda el de su ficha
-        contenido: l.contenidoEditado && Array.isArray(l.contenido) ? l.contenido.map((c) => ({ producto_id: c.producto_id, nombre: c.nombre, cantidad: Number(c.cantidad), precio: Number(c.precio) })) : undefined
+        contenido: contenidoPayload(l.contenido, l.contenidoEditado)
       }))
     };
     try {
@@ -586,6 +601,11 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
           <label style={labelStyle}>{editing ? 'Vigencia (días desde hoy)' : 'Vigencia (días)'}</label>
           <input type="number" min="1" style={inputStyle} value={form.vigencia_dias}
             onChange={(e) => setForm({ ...form, vigencia_dias: e.target.value })} />
+        </div>
+        <div style={{ gridColumn: 'span 2' }}>
+          <label style={labelStyle}>Alias <span style={{ fontWeight: 500, color: '#94A3B8' }}>(solo para ti · no sale en ningún documento)</span></label>
+          <input style={inputStyle} value={form.alias} maxLength={80} placeholder="Ej. @bebitorojito (usuario de Instagram o WhatsApp)"
+            onChange={(e) => setForm({ ...form, alias: e.target.value })} />
         </div>
       </div>
 
@@ -627,7 +647,7 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
                     <button type="button" onClick={() => setLine(i, { verDetalle: true })} style={{ fontSize: '11.5px', color: 'var(--primary)', background: 'none', border: 0, cursor: 'pointer', padding: '3px 0', fontWeight: 700 }}>+ Agregar descripción</button>
                   )}
                   {Array.isArray(l.contenido) && (
-                    <BoxContenido contenido={l.contenido} editado={l.contenidoEditado} products={products} precioInsumo={precioInsumo}
+                    <BoxContenido contenido={l.contenido} editado={l.contenidoEditado} products={products}
                       onChange={(nuevo) => cambiarContenido(i, nuevo)} onRestaurar={() => restaurarContenido(i)} />
                   )}
                 </td>
@@ -733,51 +753,6 @@ function QuoteForm({ initial, cfg, store = {}, sym, onClose, onSaved }) {
   );
 }
 
-/* ------------------------- Contenido de un box en la cotización ------------------------- */
-function BoxContenido({ contenido, editado, products, precioInsumo, onChange, onRestaurar }) {
-  const [q, setQ] = useState('');
-  const t = q.trim().toLowerCase();
-  const usados = new Set(contenido.map((c) => c.producto_id));
-  const resultados = t ? products.filter((p) => !p.es_pack && p.activo !== 0 && !usados.has(p.id) && (String(p.nombre).toLowerCase().includes(t) || String(p.codigo || '').toLowerCase().includes(t))).slice(0, 6) : [];
-  const valor = contenido.reduce((a, c) => a + (Number(c.cantidad) || 0) * (Number(c.precio) || 0), 0);
-  const mini = { padding: '3px 6px', fontSize: '12px', border: '1px solid #E2E8F0', borderRadius: '6px', background: '#fff' };
-  return (
-    <div style={{ marginTop: '6px', background: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: '10px', padding: '8px 10px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-        <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '.03em' }}>Contenido del box {editado && <span style={{ color: '#B45309', textTransform: 'none', letterSpacing: 0 }}>· personalizado</span>}</span>
-        {editado && <button type="button" onClick={onRestaurar} style={{ fontSize: '11px', color: 'var(--primary)', background: 'none', border: 0, cursor: 'pointer', fontWeight: 700, padding: 0 }}>Restaurar original</button>}
-      </div>
-      {contenido.length === 0 && <div style={{ fontSize: '12px', color: '#94A3B8', padding: '4px 0' }}>El box quedó vacío. Agrega productos abajo.</div>}
-      {contenido.map((c, k) => (
-        <div key={c.producto_id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#334155', padding: '2px 0' }}>
-          <input type="number" min="0.01" step="any" value={c.cantidad} aria-label={`Cantidad de ${c.nombre}`} style={{ ...mini, width: '52px' }}
-            onChange={(e) => onChange(contenido.map((x, j) => (j === k ? { ...x, cantidad: e.target.value } : x)))} />
-          <span style={{ flex: 1, minWidth: 0 }}>{c.nombre}</span>
-          <span style={{ color: '#64748B', whiteSpace: 'nowrap' }}>S/ {r2((Number(c.cantidad) || 0) * (Number(c.precio) || 0)).toFixed(2)}</span>
-          <button type="button" title="Quitar del box" aria-label={`Quitar ${c.nombre}`} onClick={() => onChange(contenido.filter((_, j) => j !== k))}
-            style={{ background: 'none', border: 0, cursor: 'pointer', color: '#B91C1C', padding: '2px', display: 'flex' }}><X size={14} /></button>
-        </div>
-      ))}
-      <div style={{ position: 'relative', marginTop: '4px' }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="+ Agregar producto al box…" style={{ ...mini, width: '100%', padding: '5px 8px' }} />
-        {resultados.length > 0 && (
-          <div style={{ position: 'absolute', zIndex: 6, left: 0, right: 0, background: '#fff', border: '1px solid #E2E8F0', borderRadius: '8px', marginTop: '2px', boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
-            {resultados.map((p) => (
-              <div key={p.id} onClick={() => { onChange([...contenido, { producto_id: p.id, nombre: p.nombre, cantidad: 1, precio: precioInsumo(p) }]); setQ(''); }}
-                style={{ padding: '6px 10px', cursor: 'pointer', fontSize: '12.5px', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-                <span>{p.nombre}</span><span style={{ color: '#64748B' }}>S/ {precioInsumo(p).toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '4px' }}>
-        Valor del contenido: S/ {r2(valor).toFixed(2)} · al quitar o agregar, el precio del box se ajusta con la diferencia (puedes cambiarlo a mano). En el documento se lista sin precios.
-      </div>
-    </div>
-  );
-}
-
 /* ------------------------- Convertir en venta ------------------------- */
 function ConvertModal({ q, onClose, onDone }) {
   // Cliente: si la cotización se hizo como «Cliente Varios», aquí se escriben los datos reales (como en el Punto de venta)
@@ -792,9 +767,22 @@ function ConvertModal({ q, onClose, onDone }) {
   const [advType, setAdvType] = useState(advQ > 0 ? 'monto' : 'porcentaje');
   const [advValue, setAdvValue] = useState(advQ > 0 ? String(advQ) : '50');
   const [busy, setBusy] = useState(false);
+  // Boxes de la cotización: se puede cambiar lo que llevan antes de crear el pedido (el precio se ajusta con la diferencia)
+  const [items, setItems] = useState(() => (q.items || []).map((i) => ({ ...i, contenido: Array.isArray(i.contenido) ? i.contenido : null, editado: false, precio: Number(i.precio_unitario) })));
+  const [catalogo, setCatalogo] = useState([]);
+  useEffect(() => { productsAPI.getAll().then((r) => { if (r.success) setCatalogo(r.products || []); }).catch(() => {}); }, []);
+  const cambiarBox = (id, nuevo) => setItems((prev) => prev.map((i) => (i.id !== id ? i : { ...i, contenido: nuevo, editado: true, precio: Math.max(0, r2(i.precio + valorContenido(nuevo) - valorContenido(i.contenido))) })));
+  const restaurarBox = (id) => setItems((prev) => prev.map((i) => {
+    if (i.id !== id) return i;
+    const orig = (q.items || []).find((x) => x.id === id);
+    return { ...i, contenido: orig.contenido, editado: false, precio: Number(orig.precio_unitario) };
+  }));
+  // Diferencia de precio por los boxes cambiados (con IGV si la cotización lo suma)
+  const factorIgv = Number(q.aplicar_igv) ? 1 + Number(q.igv_porcentaje || 0) / 100 : 1;
+  const totalConv = r2(Number(q.total) + items.reduce((a, i) => a + (i.precio - Number(i.precio_unitario)) * Number(i.cantidad), 0) * factorIgv);
 
-  const advRaw = advType === 'porcentaje' ? Number(q.total) * (Number(advValue) || 0) / 100 : (Number(advValue) || 0);
-  const advance = r2(Math.min(Number(q.total), Math.max(0, advRaw)));
+  const advRaw = advType === 'porcentaje' ? totalConv * (Number(advValue) || 0) / 100 : (Number(advValue) || 0);
+  const advance = r2(Math.min(totalConv, Math.max(0, advRaw)));
   const cargosQ = parseCargosJson(q.cargos_json);
 
   const go = async () => {
@@ -806,6 +794,7 @@ function ConvertModal({ q, onClose, onDone }) {
       setBusy(true);
       const res = await quotesAPI.convert(q.id, {
         cliente_varios: clienteVarios,
+        ajustes: items.filter((i) => i.editado).map((i) => ({ id: i.id, contenido: contenidoPayload(i.contenido, true), precio_unitario: i.precio })),
         cliente_nombre: clienteVarios ? '' : clienteNombre.trim(),
         cliente_telefono: clienteVarios ? '' : clienteTel.trim(),
         tipo_entrega: delivery.tipo_entrega,
@@ -833,7 +822,7 @@ function ConvertModal({ q, onClose, onDone }) {
       </div>
       <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', marginBottom: '12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
-          <div style={{ fontSize: '13px', fontWeight: 800 }}>Cliente</div>
+          <div style={{ fontSize: '13px', fontWeight: 800 }}>Cliente{q.alias && <span style={{ marginLeft: 8, fontWeight: 700, color: '#7C3AED', background: '#F3E8FF', borderRadius: 999, padding: '2px 8px', fontSize: '12px' }}>Alias: {q.alias}</span>}</div>
           <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', cursor: 'pointer' }}>
             <input type="checkbox" checked={clienteVarios} onChange={(e) => setClienteVarios(e.target.checked)} />
             Cliente Varios (venta sin datos del cliente)
@@ -852,6 +841,25 @@ function ConvertModal({ q, onClose, onDone }) {
             La cotización se hizo como «Cliente Varios». Basta el nombre o el teléfono: el pedido y la cotización quedan a nombre del cliente y se guarda en Clientes (si el teléfono ya existe, se usa esa ficha).
           </div>
         )}
+      </div>
+      <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '12px 14px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 800 }}>Productos</div>
+          <div style={{ fontSize: '13px' }}>Total: <strong>{money(totalConv, 'S/')}</strong>{Math.abs(totalConv - Number(q.total)) > 0.009 && <span style={{ color: '#B45309', marginLeft: 6 }}>(cotización: {money(q.total, 'S/')})</span>}</div>
+        </div>
+        {items.map((i) => (
+          <div key={i.id} style={{ borderTop: '1px solid #EEF2F0', padding: '6px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', fontSize: '13px' }}>
+              <span><strong>{i.cantidad} ×</strong> {i.descripcion}</span>
+              <span style={{ whiteSpace: 'nowrap' }}>{money(i.precio, 'S/')} c/u{i.editado && <span style={{ color: '#B45309', fontSize: '11px', marginLeft: 4 }}>(ajustado)</span>}</span>
+            </div>
+            {Array.isArray(i.contenido) && (
+              <BoxContenido contenido={i.contenido} editado={i.editado || !!i.contenido_editado} products={catalogo}
+                onChange={(nuevo) => cambiarBox(i.id, nuevo)} onRestaurar={i.editado ? () => restaurarBox(i.id) : undefined}
+                nota="al quitar o agregar, el precio del box se ajusta con la diferencia. La cotización no cambia; el pedido sale con este contenido." />
+            )}
+          </div>
+        ))}
       </div>
       <DeliveryFields value={delivery} onChange={setDelivery} chargesMode="none" showDesign={false} />
       {cargosQ.length > 0 && (
@@ -880,7 +888,7 @@ function ConvertModal({ q, onClose, onDone }) {
             <button key={p} type="button" onClick={() => setAdvValue(String(p))} style={btn(Number(advValue) === p ? 'var(--primary-light)' : '#fff', 'var(--primary)', { border: '1px solid #FFD7CB', padding: '6px 10px' })}>{p}%</button>
           ))}
           <span style={{ fontSize: '13px', color: '#475569' }}>
-            Adelanto: <strong>{money(advance, 'S/')}</strong> · Saldo: <strong>{money(Math.max(0, Number(q.total) - advance), 'S/')}</strong>
+            Adelanto: <strong>{money(advance, 'S/')}</strong> · Saldo: <strong>{money(Math.max(0, totalConv - advance), 'S/')}</strong>
           </span>
         </div>
         <div style={{ fontSize: '11.5px', color: '#788A9B', marginTop: '6px' }}>

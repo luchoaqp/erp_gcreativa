@@ -7,7 +7,9 @@ use App\Support\Js;
 
 /**
  * El stock se descuenta al generar el comprobante y se devuelve al anularlo (pedidos.stock_descontado).
- * Un pack/box mueve el stock de los productos que lleva dentro.
+ * Un box mueve el stock de los productos que lleva dentro: los de "Boxes y Packs" y los productos con
+ * "Requiere insumos" (pestaña Producción) que tienen insumos cargados. Si el box se personalizó en la venta
+ * (se quitó o agregó algo), se descuenta lo que realmente lleva.
  */
 final class SalesStock
 {
@@ -15,16 +17,21 @@ final class SalesStock
 
     public static function stockMovements($pedidoId): array
     {
-        $items = Db::query('SELECT pd.id AS detalle_id, pd.proveedor_id, pd.lote_id, pd.producto_id, pd.cantidad, pd.contenido_json, COALESCE(p.es_pack, 0) AS es_pack FROM pedido_detalles pd LEFT JOIN productos p ON p.id = pd.producto_id WHERE pd.pedido_id = ?', [$pedidoId]);
+        $items = Db::query('SELECT pd.id AS detalle_id, pd.proveedor_id, pd.lote_id, pd.producto_id, pd.cantidad, pd.contenido_json, COALESCE(p.es_pack, 0) AS es_pack, COALESCE(p.requiere_insumos, 0) AS requiere_insumos FROM pedido_detalles pd LEFT JOIN productos p ON p.id = pd.producto_id WHERE pd.pedido_id = ?', [$pedidoId]);
         $moves = [];
         foreach ($items as $it) {
             if (!Js::t($it['producto_id'])) continue;
-            if (Js::t($it['es_pack'])) {
+            $lista = null;
+            if (Js::t($it['es_pack']) || Js::t($it['requiere_insumos'])) {
                 // Box personalizado (se quitó o agregó algo): se descuenta lo que realmente lleva
                 $propio = Js::t($it['contenido_json'] ?? null) ? json_decode($it['contenido_json'], true) : null;
                 $lista = is_array($propio)
                     ? array_map(fn ($c) => ['componente_id' => $c['producto_id'] ?? null, 'cantidad' => $c['cantidad'] ?? 0], $propio)
                     : Db::query('SELECT componente_id, cantidad FROM producto_componentes WHERE producto_id = ?', [$it['producto_id']]);
+                // Producto de Producción sin insumos cargados: se vende como un producto normal (descuenta su propio stock)
+                if (!Js::t($it['es_pack']) && !is_array($propio) && !count($lista)) $lista = null;
+            }
+            if ($lista !== null) {
                 foreach ($lista as $c) {
                     if (!Js::t($c['componente_id'])) continue;
                     $moves[] = ['producto_id' => $c['componente_id'], 'cantidad' => Js::num($c['cantidad']) * Js::num($it['cantidad']), 'detalle_id' => $it['detalle_id']];

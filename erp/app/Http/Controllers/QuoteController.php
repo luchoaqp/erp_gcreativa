@@ -169,7 +169,7 @@ class QuoteController extends Controller
             if ($estado === 'vencida') $sql .= " AND c.estado = 'vigente' AND c.fecha_vencimiento < CURDATE()";
             elseif ($estado === 'vigente') $sql .= " AND c.estado = 'vigente' AND c.fecha_vencimiento >= CURDATE()";
             elseif ($estado === 'aceptada' || $estado === 'anulada') { $sql .= ' AND c.estado = ?'; $params[] = $estado; }
-            if (Js::t($search)) { $sql .= ' AND (c.numero LIKE ? OR c.cliente_nombre LIKE ?)'; array_push($params, '%' . Js::str($search) . '%', '%' . Js::str($search) . '%'); }
+            if (Js::t($search)) { $sql .= ' AND (c.numero LIKE ? OR c.cliente_nombre LIKE ? OR c.alias LIKE ?)'; array_push($params, '%' . Js::str($search) . '%', '%' . Js::str($search) . '%', '%' . Js::str($search) . '%'); }
             $sql .= ' ORDER BY c.id DESC LIMIT 500';
             return $this->json(['success' => true, 'quotes' => Db::query($sql, $params)]);
         } catch (\Throwable $e) {
@@ -246,6 +246,7 @@ class QuoteController extends Controller
             $numero = 'COT-' . str_pad((string) $id, 5, '0', STR_PAD_LEFT);
             Db::query('UPDATE cotizaciones SET numero = ? WHERE id = ?', [$numero, $id]);
             self::insertItems($id, $items);
+            self::guardarAlias($id, $this->body());
             Db::commit();
             return $this->json(['success' => true, 'message' => "Cotización {$numero} creada", 'id' => $id, 'numero' => $numero], 201);
         } catch (\Throwable $e) {
@@ -278,12 +279,21 @@ class QuoteController extends Controller
             ]);
             Db::query('DELETE FROM cotizacion_detalles WHERE cotizacion_id = ?', [$id]);
             self::insertItems($id, $items);
+            self::guardarAlias($id, $this->body());
             Db::commit();
             return $this->json(['success' => true, 'message' => 'Cotización actualizada', 'id' => Js::num($id)]);
         } catch (\Throwable $e) {
             Db::rollback();
             return $this->sendError($e, 'Error al actualizar la cotización');
         }
+    }
+
+    /** Alias interno (solo para el equipo; no sale en documentos). Si no se envía, no se toca. */
+    private static function guardarAlias($id, $b): void
+    {
+        if (!is_array($b) || !array_key_exists('alias', $b)) return;
+        $a = Js::slice(Js::trim(Js::str(Js::or($b['alias'], ''))), 0, 80);
+        Db::query('UPDATE cotizaciones SET alias = ? WHERE id = ?', [$a !== '' ? $a : null, $id]);
     }
 
     public function annulQuote($id)
@@ -323,6 +333,8 @@ class QuoteController extends Controller
             }
             $b = $this->body();
             $g = fn ($k) => Js::get($b, $k);
+            $ajustes = [];
+            if (is_array($b) && is_array($b['ajustes'] ?? null)) foreach ($b['ajustes'] as $a) if (is_array($a) && isset($a['id'])) $ajustes[(int) $a['id']] = $a;
             // Datos del cliente escritos al convertir (p. ej. la cotización se hizo como «Cliente Varios»
             // y el cliente ya pagó el adelanto): reemplazan a los de la cotización
             $telefonoCliente = $q['cliente_telefono'];
@@ -370,7 +382,11 @@ class QuoteController extends Controller
                 'diseno_link' => $g('diseno_link'),
                 'diseno_foto' => $g('diseno_foto'),
                 'diseno_links' => $g('diseno_links'),
-                'items' => array_map(fn ($i) => ['producto_id' => $i['producto_id'], 'cantidad' => $i['cantidad'], 'precio_unitario' => $i['precio_unitario'], 'detalles_personalizacion' => '', 'contenido' => $i['contenido_json'] ?? null], $items),
+                'items' => array_map(function ($i) use ($ajustes) {
+                    $a = $ajustes[(int) $i['id']] ?? null; // box cambiado al convertir (contenido y precio)
+                    $precio = $a && isset($a['precio_unitario']) && Js::num($a['precio_unitario']) >= 0 ? self::r2(Js::num($a['precio_unitario'])) : $i['precio_unitario'];
+                    return ['producto_id' => $i['producto_id'], 'cantidad' => $i['cantidad'], 'precio_unitario' => $precio, 'detalles_personalizacion' => '', 'contenido' => $a ? ($a['contenido'] ?? null) : ($i['contenido_json'] ?? null)];
+                }, $items),
             ]);
             $result = Orders::createOrderCore($body, $this->userId());
             Db::query("UPDATE cotizaciones SET estado = 'aceptada', pedido_id = ? WHERE id = ?", [$result['pedidoId'], $q['id']]);

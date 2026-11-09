@@ -1,73 +1,65 @@
-// Rótulo de envío (A4 o A5 horizontal). El logo es el de la tienda (Configuración Empresa).
+// Rótulo de envío según la plantilla de Genia Creativa (shalom_horizontal): hoja horizontal con una tabla
+// ORIGEN / DESTINO / DESTINATARIO (nombre, DNI/RUC, teléfono) y el aviso de contenido frágil con dos íconos
+// y el logo de marca de agua. Medidas tomadas de la plantilla Word (A4 horizontal); en A5 se reduce todo a escala.
+// Fuente: Saira Condensed (libre, licencia OFL), muy parecida a la Agency FB de la plantilla; se incrusta en el PDF.
 import { esc } from './quotePrint';
 
-const LINE = 'rgba(0,0,0,0.45)'; // líneas negras con transparencia: menos tinta
 const SIZES = { a4: { w: 297, h: 210, k: 1 }, a5: { w: 210, h: 148, k: 0.707 } };
+// Columnas y filas de la plantilla (mm)
+const COLS = [55.4, 62.6, 46.7, 92.9];
+const ROWS = [13.3, 14.1, 13.3, 13.3, 14.1, 40.0];
+const ANCHO = COLS.reduce((a, b) => a + b, 0); // 257.6 mm
 
-// Solo dos pictogramas: frágil (copa) y no apilar (no poner bultos encima)
-const ICONS = [
-  '<svg viewBox="0 0 40 40" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h18l-2 12a7 7 0 0 1-14 0zM20 24v10M13 34h14"/><path d="M12 11h16"/></svg>',
-  '<svg viewBox="0 0 40 40" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="22" width="24" height="14"/><rect x="8" y="5" width="24" height="14"/><path d="M8 5l24 14M32 5L8 19"/></svg>'
-];
+const origen = () => (typeof window !== 'undefined' ? window.location.origin : '');
 
 export function buildRotuloHTML({ envio = {}, store = {}, format = 'a4', toolbar = true }) {
   const z = SIZES[format] || SIZES.a4;
   const k = z.k;
   const mm = (n) => `${(n * k).toFixed(2)}mm`;
+  const base = origen();
+  const up = (v) => esc(String(v || '').trim().toUpperCase());
   const doc = String(envio.doc || '').trim();
-  const docTipo = envio.docTipo === 'RUC' || (!envio.docTipo && doc.length === 11) ? 'RUC' : 'DNI';
-  const line = (label, value, extra = '') => `<div class="ln" style="${extra}"><span class="lb">${label}</span><span class="vl">${esc(value || '')}</span></div>`;
-  const logo = store.logo_url
-    ? `<img src="${esc(store.logo_url)}" alt="" style="max-height:${mm(15)};max-width:${mm(70)};object-fit:contain" onerror="this.outerHTML='<b class=&quot;lgt&quot;>${esc(store.nombre_tienda || 'GENIA CREATIVA').toUpperCase()}</b>'">`
-    : `<b class="lgt">${esc(store.nombre_tienda || 'GENIA CREATIVA').toUpperCase()}</b>`;
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Rótulo de envío</title><style>
+  // Logo de la tienda (Configuración › Empresa); si no hay, el de la plantilla
+  const logo = store.logo_url || `${base}/img/rotulo/logo-genia.png`;
+  const fuente = `@font-face{font-family:'Saira Condensed';font-weight:400;src:url('${base}/fonts/SairaCondensed-Regular.ttf') format('truetype')}
+    @font-face{font-family:'Saira Condensed';font-weight:700;src:url('${base}/fonts/SairaCondensed-Bold.ttf') format('truetype')}`;
+  // Textos largos (agencias, nombres completos): se reduce la letra para que quepan en su casilla sin deformar la tabla
+  const ajuste = (txt, base, caben) => { const n = String(txt || '').trim().length; return n > caben ? `font-size:${mm(Math.max(base * 0.5, base * caben / n))}` : ''; };
+  const fila = (h, html, extra = '') => `<tr style="height:${mm(h)}${extra}">${html}</tr>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Rótulo de envío${envio.nombre ? ` - ${esc(envio.nombre)}` : ''}</title><style>
+    ${fuente}
     @page { size: ${z.w}mm ${z.h}mm; margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: #fff; }
-    body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; color: #111; }
-    .bar { padding: 8px; text-align: center; background: #fff; border-bottom: 1px solid #ddd; }
+    body { font-family: 'Saira Condensed', 'Arial Narrow', Arial, sans-serif; color: #000; }
+    .bar { padding: 8px; text-align: center; background: #fff; border-bottom: 1px solid #ddd; font-family: Arial, sans-serif; }
     .bar button { padding: 8px 16px; font-weight: 600; cursor: pointer; }
-    .page { width: ${z.w}mm; height: ${z.h}mm; background: #fff; padding: ${mm(7)}; margin: 0 auto; }
-    .box { width: 100%; height: 100%; border: ${mm(0.5)} solid ${LINE}; background: #fff; display: flex; flex-direction: column; }
-    .row { border-bottom: ${mm(0.5)} solid ${LINE}; padding: ${mm(4)} ${mm(6)}; }
-    .t { font-size: ${mm(9)}; font-weight: 500; line-height: 1.15; letter-spacing: .03em; text-transform: uppercase; }
-    .t b { font-weight: 500; } .t .v { text-transform: none; letter-spacing: 0; margin-left: ${mm(2)}; font-weight: 400; }
-    .r1 { display: flex; gap: ${mm(8)}; flex: 0 0 auto; }
-    .r1 > div { flex: 1; min-width: 0; word-break: break-word; }
-    .r2 { flex: 1; } .r2 .t { margin-bottom: ${mm(2)}; }
-    .ln { display: flex; align-items: baseline; gap: ${mm(3)}; font-size: ${mm(11)}; line-height: 1.15; margin: ${mm(3)} ${mm(5)}; }
-    .ln .lb { white-space: nowrap; color: #222; font-weight: 600; }
-    .ln .vl { flex: 1; border-bottom: ${mm(0.3)} dotted rgba(0,0,0,.45); min-height: ${mm(11)}; font-weight: 700; padding-left: ${mm(2)}; word-break: break-word; }
-    .two { display: flex; gap: ${mm(8)}; } .two .ln { flex: 1; margin-right: 0; }
-    .r3 { text-align: center; padding: ${mm(4)} ${mm(6)}; border-bottom: 0; }
-    .r3 .a { font-size: ${mm(11)}; font-weight: 600; letter-spacing: .04em; } .r3 .b { font-size: ${mm(7.5)}; font-weight: 500; margin-top: ${mm(1.5)}; text-transform: uppercase; }
-    .foot { border-top: ${mm(0.5)} solid ${LINE}; padding: ${mm(4)} ${mm(6)}; display: flex; justify-content: space-between; align-items: center; margin-top: auto; background: #fff; }
-    .pill { background: #fff; padding: ${mm(1)} 0; display: flex; gap: ${mm(3)}; align-items: center; }
-    .pill .ic { width: ${mm(14)}; height: ${mm(16)}; border: ${mm(0.4)} solid ${LINE}; padding: ${mm(1.2)}; }
-    .pill .ic svg { width: 100%; height: 100%; }
-    .lgt { font-size: ${mm(7)}; font-style: italic; font-weight: 500; letter-spacing: .04em; }
+    .page { width: ${z.w}mm; height: ${z.h}mm; padding-top: ${mm(21)}; margin: 0 auto; background: #fff; }
+    table { width: ${mm(ANCHO)}; margin: 0 auto; border-collapse: collapse; table-layout: fixed; }
+    td { border: ${mm(0.35)} solid #000; text-align: center; vertical-align: middle; font-size: ${mm(9.88)}; line-height: 1.05; padding: 0 ${mm(1.9)}; overflow: hidden; word-break: break-word; }
+    td.v { font-weight: 700; }
+    td.v30 { font-weight: 700; font-size: ${mm(10.58)}; }
+    tr.gris td { background: #E7E6E6; }
+    td.aviso { position: relative; padding: 0; }
+    td.aviso .ic { position: absolute; top: 50%; transform: translateY(-50%); height: ${mm(36)}; width: ${mm(36)}; object-fit: contain; }
+    td.aviso .ic.i { left: ${mm(4)}; } td.aviso .ic.d { right: ${mm(4)}; }
+    td.aviso .marca { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: ${mm(71.5)}; height: ${mm(27.6)}; object-fit: contain; filter: opacity(28%); }
+    td.aviso .txt { position: relative; font-weight: 700; line-height: 1.12; }
     @media print { .no-print { display: none; } .page { margin: 0; } }
   </style></head><body>
   ${toolbar ? '<div class="no-print bar"><button onclick="window.print()">Imprimir / Guardar como PDF</button></div>' : ''}
-  <div class="page"><div class="box">
-    <div class="row r1">
-      <div class="t">Origen:<span class="v">${esc(envio.origen || 'Arequipa')}</span></div>
-      <div class="t">Destino:<span class="v">${esc(envio.destino || '')}</span></div>
-    </div>
-    <div class="row r2">
-      <div class="t">Destinatario:</div>
-      ${line('NOMBRE COMPLETO:', envio.nombre)}
-      ${line(`${docTipo}:`, doc)}
-      ${line('CEL.:', envio.telefono)}
-    </div>
-    <div class="row r3">
-      <div class="a">¡ATENCIÓN!</div>
-      <div class="b">Contenido de la caja altamente frágil</div>
-      <div class="b">NO TIRAR LA CAJA</div>
-    </div>
-    <div class="foot">
-      <div class="pill">${ICONS.map((i) => `<span class="ic">${i}</span>`).join('')}</div>
-      <div class="pill">${logo}</div>
-    </div>
-  </div></div></body></html>`;
+  <div class="page"><table>
+    <colgroup>${COLS.map((c) => `<col style="width:${mm(c)}">`).join('')}</colgroup>
+    ${fila(ROWS[0], `<td>ORIGEN:</td><td class="v" style="${ajuste(envio.origen || 'Arequipa', 9.88, 13)}">${up(envio.origen || 'Arequipa')}</td><td>DESTINO:</td><td class="v30" style="${ajuste(envio.destino, 10.58, 17)}">${up(envio.destino)}</td>`)}
+    ${fila(ROWS[1], '<td colspan="4" class="v">DESTINATARIO</td>').replace('<tr ', '<tr class="gris" ')}
+    ${fila(ROWS[2], `<td>NOMBRE:</td><td colspan="3" class="v" style="${ajuste(envio.nombre, 9.88, 40)}">${up(envio.nombre)}</td>`)}
+    ${fila(ROWS[3], `<td>DNI/RUC:</td><td colspan="3" class="v">${esc(doc)}</td>`)}
+    ${fila(ROWS[4], `<td>TELÉFONO:</td><td colspan="3" class="v">${esc(String(envio.telefono || '').trim())}</td>`)}
+    ${fila(ROWS[5], `<td colspan="4" class="aviso">
+      <img class="marca" src="${esc(logo)}" alt="">
+      <img class="ic i" src="${base}/img/rotulo/fragil-1.jpg" alt="Frágil">
+      <img class="ic d" src="${base}/img/rotulo/fragil-2.jpg" alt="Frágil">
+      <div class="txt">¡ATENCIÓN!<br>CONTENIDO ALTAMENTE FRÁGIL<br>NO TIRAR LA CAJA</div>
+    </td>`)}
+  </table></div></body></html>`;
 }

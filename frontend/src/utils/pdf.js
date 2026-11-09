@@ -36,8 +36,12 @@ const PT = 0.75; // 1 px (96 ppp) = 0.75 pt
 
 const nombreDe = (html, defecto) => {
   const m = /<title>([^<]*)<\/title>/i.exec(html || '');
-  const t = (m ? m[1].replace(/&amp;/g, '&') : defecto || 'documento').trim();
-  return t.replace(/[\\/:*?"<>|]+/g, '-') || 'documento';
+  return limpiarNombre(m ? m[1].replace(/&amp;/g, '&') : defecto || 'documento');
+};
+// Sin tildes ni signos raros: algunos navegadores descartan el nombre (y bajan "download") si los lleva
+const limpiarNombre = (t) => {
+  return String(t || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[ñÑ]/g, (c) => (c === 'ñ' ? 'n' : 'N'))
+    .replace(/[\\/:*?"<>|]+/g, '-').replace(/[^\x20-\x7E]/g, '').trim() || 'documento';
 };
 
 const esperarImagenes = (doc) => Promise.all([...doc.images].map((img) => (img.complete ? null : new Promise((ok) => { img.onload = ok; img.onerror = ok; setTimeout(ok, 4000); }))));
@@ -62,7 +66,37 @@ const limpiar = (s) => [...s].map((ch) => {
   return (c >= 32 && c <= 126) || (c >= 160 && c <= 255) || WINANSI_EXTRA.has(ch) ? ch : '';
 }).join('');
 
-const familia = (ff) => (/courier|mono/i.test(ff) ? 'courier' : /times|georgia|(^|,)\s*serif/i.test(ff) ? 'times' : 'helvetica');
+// Fuentes propias que se incrustan en el PDF (archivos TTF en public/fonts). La primera fuente de la lista CSS decide.
+const FUENTES_PDF = {
+  'saira condensed': { nombre: 'SairaCondensed', normal: '/fonts/SairaCondensed-Regular.ttf', bold: '/fonts/SairaCondensed-Bold.ttf' }
+};
+const primeraFuente = (ff) => String(ff || '').split(',')[0].replace(/["']/g, '').trim().toLowerCase();
+const familia = (ff) => (FUENTES_PDF[primeraFuente(ff)] ? `propia:${primeraFuente(ff)}`
+  : /courier|mono/i.test(ff) ? 'courier' : /times|georgia|(^|,)\s*serif/i.test(ff) ? 'times' : 'helvetica');
+
+// Descarga una fuente TTF y la registra en el PDF; devuelve el nombre a usar (o null si no se pudo)
+const fuentesCache = new Map();
+async function registrarFuente(pdf, clave, estilo) {
+  const f = FUENTES_PDF[clave];
+  const est = estilo.startsWith('bold') ? 'bold' : 'normal';
+  const url = f && f[est];
+  if (!url) return null;
+  try {
+    if (!fuentesCache.has(url)) {
+      const buf = await (await fetch(url)).arrayBuffer();
+      let bin = '';
+      const bytes = new Uint8Array(buf);
+      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+      fuentesCache.set(url, btoa(bin));
+    }
+    const archivo = `${f.nombre}-${est}.ttf`;
+    pdf.addFileToVFS(archivo, fuentesCache.get(url));
+    pdf.addFont(archivo, f.nombre, est);
+    return { nombre: f.nombre, est };
+  } catch (e) {
+    return null;
+  }
+}
 const estiloFuente = (cs) => {
   const bold = (parseInt(cs.fontWeight, 10) || 400) >= 600;
   const it = cs.fontStyle === 'italic' || cs.fontStyle === 'oblique';
@@ -302,6 +336,15 @@ export async function descargarPDF(html, formato = 'a4', nombre) {
     pdf.setProperties({ title: nombre || nombreDe(html), creator: 'ERP Genia Creativa' });
     const imgs = new Map();
     for (const p of prims) if (p.tipo === 'img' || p.tipo === 'svg') p.png = await aPNG(p, imgs);
+    // Fuentes propias (p. ej. la del rótulo de envío): se incrustan; si no cargan, se usa Helvetica
+    const registradas = new Map();
+    for (const p of prims) {
+      if (p.tipo !== 'texto' || !String(p.fam).startsWith('propia:')) continue;
+      const k = `${p.fam}|${p.est}`;
+      if (!registradas.has(k)) registradas.set(k, await registrarFuente(pdf, p.fam.slice(7), p.est));
+      const r = registradas.get(k);
+      if (r) { p.fam = r.nombre; p.est = r.est; } else p.fam = 'helvetica';
+    }
 
     inicios.forEach((ini, n) => {
       if (n > 0) pdf.addPage([anchoHojaPt, altoHojaPt], orientacion);
@@ -375,7 +418,7 @@ export async function descargarPDF(html, formato = 'a4', nombre) {
       }
       pdf.restoreGraphicsState();
     });
-    pdf.save(`${nombre || nombreDe(html)}.pdf`);
+    pdf.save(`${nombre ? limpiarNombre(nombre) : nombreDe(html)}.pdf`);
   } finally {
     iframe.remove();
   }

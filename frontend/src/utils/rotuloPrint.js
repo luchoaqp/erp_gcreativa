@@ -7,7 +7,9 @@ import { esc } from './quotePrint';
 const SIZES = { a4: { w: 297, h: 210, k: 1 }, a5: { w: 210, h: 148, k: 0.707 } };
 // Columnas y filas de la plantilla (mm)
 const COLS = [55.4, 62.6, 46.7, 92.9];
-const ROWS = [13.3, 14.1, 13.3, 13.3, 14.1, 40.0];
+// Filas de la plantilla con 30 % más de alto; la última crece lo necesario para el aviso, el logo y los íconos
+const ROWS = [13.3, 14.1, 13.3, 13.3, 14.1, 40.0].map((h) => +(h * 1.3).toFixed(1));
+const ICONO = 54; // íconos de frágil: 50 % más grandes que antes (36 mm)
 const ANCHO = COLS.reduce((a, b) => a + b, 0); // 257.6 mm
 
 const origen = () => (typeof window !== 'undefined' ? window.location.origin : '');
@@ -40,11 +42,12 @@ export function buildRotuloHTML({ envio = {}, store = {}, format = 'a4', toolbar
     td.v { font-weight: 700; }
     td.v30 { font-weight: 700; font-size: ${mm(10.58)}; }
     tr.gris td { background: #E7E6E6; }
-    td.aviso { position: relative; padding: 0; }
-    td.aviso .ic { position: absolute; top: 50%; transform: translateY(-50%); height: ${mm(36)}; width: ${mm(36)}; object-fit: contain; }
+    td.aviso { position: relative; padding: ${mm(4)} 0; }
+    td.aviso .ic { position: absolute; top: 50%; transform: translateY(-50%); height: ${mm(ICONO)}; width: ${mm(ICONO)}; object-fit: contain; }
     td.aviso .ic.i { left: ${mm(4)}; } td.aviso .ic.d { right: ${mm(4)}; }
-    td.aviso .marca { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: ${mm(71.5)}; height: ${mm(27.6)}; object-fit: contain; filter: opacity(28%); }
-    td.aviso .txt { position: relative; font-weight: 700; line-height: 1.12; }
+    td.aviso .centro { min-height: ${mm(ICONO)}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: ${mm(3)}; }
+    td.aviso .txt { font-weight: 700; line-height: 1.12; }
+    td.aviso .logo { width: ${mm(71.5)}; height: ${mm(27.6)}; object-fit: contain; }
     @media print { .no-print { display: none; } .page { margin: 0; } }
   </style></head><body>
   ${toolbar ? '<div class="no-print bar"><button onclick="window.print()">Imprimir / Guardar como PDF</button></div>' : ''}
@@ -56,10 +59,12 @@ export function buildRotuloHTML({ envio = {}, store = {}, format = 'a4', toolbar
     ${fila(ROWS[3], `<td>DNI/RUC:</td><td colspan="3" class="v">${esc(doc)}</td>`)}
     ${fila(ROWS[4], `<td>TELÉFONO:</td><td colspan="3" class="v">${esc(String(envio.telefono || '').trim())}</td>`)}
     ${fila(ROWS[5], `<td colspan="4" class="aviso">
-      <img class="marca" src="${esc(logo)}" alt="">
       <img class="ic i" src="${base}/img/rotulo/fragil-1.jpg" alt="Frágil">
       <img class="ic d" src="${base}/img/rotulo/fragil-2.jpg" alt="Frágil">
-      <div class="txt">¡ATENCIÓN!<br>CONTENIDO ALTAMENTE FRÁGIL<br>NO TIRAR LA CAJA</div>
+      <div class="centro">
+        <div class="txt">¡ATENCIÓN!<br>CONTENIDO ALTAMENTE FRÁGIL<br>NO TIRAR LA CAJA</div>
+        <img class="logo" src="${esc(logo)}" alt="">
+      </div>
     </td>`)}
   </table></div></body></html>`;
 }

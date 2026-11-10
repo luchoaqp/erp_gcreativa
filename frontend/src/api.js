@@ -63,6 +63,7 @@ export const productsAPI = {
   update: (id, data) => apiFetch(`/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) => apiFetch(`/products/${id}`, { method: 'DELETE' }),
   setActive: (id, activo) => apiFetch(`/products/${id}/activo`, { method: 'PATCH', body: JSON.stringify({ activo }) }),
+  convertirPack: (id) => apiFetch(`/products/${id}/convertir-pack`, { method: 'POST' }),
   packs: (params = '') => apiFetch(`/products/packs/list${params}`),
   reviewPack: (id, actualizar_precios) => apiFetch(`/products/packs/${id}/revisar`, { method: 'POST', body: JSON.stringify({ actualizar_precios }) }),
   brands: () => apiFetch('/products/brands'),
@@ -218,6 +219,7 @@ export const salesAPI = {
   saveComprobanteDraft: (id, data) => apiFetch(`/sales/${id}/comprobante-borrador`, { method: 'PUT', body: JSON.stringify(data) }),
   createComprobante: (id, data) => apiFetch(`/sales/${id}/comprobantes`, { method: 'POST', body: JSON.stringify(data) }),
   annulComprobante: (id, cid) => apiFetch(`/sales/${id}/comprobantes/${cid}/anular`, { method: 'POST' }),
+  cambiarFechaComprobante: (id, cid, fecha) => apiFetch(`/sales/${id}/comprobantes/${cid}/fecha`, { method: 'PUT', body: JSON.stringify({ fecha }) }),
   annulSale: (id) => apiFetch(`/sales/${id}/anular`, { method: 'POST' })
 };
 

@@ -33,7 +33,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [kardexFocus, setKardexFocus] = useState(null);
   const [salesSearch, setSalesSearch] = useState(null);
-  const [nuevaCotizacion, setNuevaCotizacion] = useState(0); // botón "Nueva Cotización" del encabezado
+  const [nuevaCotizacion, setNuevaCotizacion] = useState(0);
+  const [reporteInicial, setReporteInicial] = useState(null); // abrir un reporte directo (p. ej. Utilidades desde el dashboard) // botón "Nueva Cotización" del encabezado
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [storeSettings, setStoreSettings] = useState(null);
@@ -174,6 +175,7 @@ export default function App() {
               onNavigateCustomers={() => setActiveTab('customers')}
               onNavigateInventory={() => setActiveTab('inventory')}
               onNavigateReports={() => setActiveTab('reports')}
+              onNavigateUtilidades={() => { setReporteInicial({ key: 'utilidades', t: Date.now() }); setActiveTab('reportes'); }}
             />
           )}
 
@@ -210,7 +212,7 @@ export default function App() {
 
           {activeTab === 'shipments' && <Shipments />}
 
-          {activeTab === 'reportes' && <ReportCenter onNavigate={(tab) => setActiveTab(tab)} />}
+          {activeTab === 'reportes' && <ReportCenter inicial={reporteInicial} onNavigate={(tab) => setActiveTab(tab)} />}
 
           {activeTab === 'customers' && <Customers user={user} />}
 

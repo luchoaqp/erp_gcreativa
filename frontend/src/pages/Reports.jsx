@@ -79,6 +79,7 @@ export default function Reports({ user, onNavigatePOS, initialSearch }) {
   const [paymentsFor, setPaymentsFor] = useState(null);
   const [compFor, setCompFor] = useState(null);
   const [editFor, setEditFor] = useState(null);
+  const [fechaFor, setFechaFor] = useState(null); // { s, c, fecha }: cambiar la fecha de emisión de una nota de venta (una vez)
   const [printData, setPrintData] = useState(null);
   const [cfg, setCfg] = useState({});
   const [store, setStore] = useState({});
@@ -152,6 +153,13 @@ export default function Reports({ user, onNavigatePOS, initialSearch }) {
     const c = s.comprobantes[0];
     if (!c || !window.confirm(`¿Anular el comprobante ${compNumber(c)}?`)) return;
     try { await salesAPI.annulComprobante(s.id, c.id); refresh(); } catch (e) { alert(e.message); }
+  };
+
+  const guardarFecha = async () => {
+    const { s, c, fecha } = fechaFor;
+    if (!fecha) return;
+    if (!window.confirm(`¿Cambiar la fecha de emisión de ${compNumber(c)} al ${fecha.split('-').reverse().join('/')}?\n\nSolo se puede cambiar una vez. La venta pasará a esa fecha en los reportes.`)) return;
+    try { await salesAPI.cambiarFechaComprobante(s.id, c.id, fecha); setFechaFor(null); refresh(); } catch (e) { alert(e.message); }
   };
 
   const tabStyle = (active) => ({
@@ -303,6 +311,7 @@ export default function Reports({ user, onNavigatePOS, initialSearch }) {
                             { label: 'Gestionar pagos', on: () => setPaymentsFor(s), show: !anulada },
                             { label: 'Generar comprobante', on: () => setCompFor(s), show: !anulada && !comp && s.saldo <= 0.009 },
                             { label: 'Editar venta', on: () => setEditFor(s), show: isAdmin && !anulada && !comp },
+                            { label: 'Cambiar fecha de emisión', on: () => { setMenuFor(null); setFechaFor({ s, c: comp, fecha: String(comp.fecha || '').slice(0, 10) }); }, show: isAdmin && !!comp && comp.tipo === 'nota_venta' && !Number(comp.fecha_editada) },
                             { label: 'Duplicar venta', on: () => duplicateSale(s), show: !anulada },
                             { label: 'Anular comprobante', on: () => annulComp(s), show: isAdmin && !!comp, danger: true },
                             { label: 'Anular venta', on: () => annulSale(s), show: isAdmin && !anulada, danger: true }
@@ -330,6 +339,20 @@ export default function Reports({ user, onNavigatePOS, initialSearch }) {
       {compFor && (
         <ComprobanteModal sale={compFor} cfg={cfg} store={store} onClose={() => setCompFor(null)}
           onDone={(yaMostrado) => { const s = compFor; setCompFor(null); refresh(); if (!yaMostrado) openPrint(s); }} />
+      )}
+      {fechaFor && (
+        <div className="modal-overlay" onClick={() => setFechaFor(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <h3 style={{ margin: '0 0 6px', fontSize: 18 }}>Cambiar fecha de emisión</h3>
+            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 12 }}>{compNumber(fechaFor.c)} · {fechaFor.s.cliente_nombre || 'Cliente Varios'}. Solo se puede cambiar <strong>una vez</strong>; la venta pasa a esa fecha en los reportes.</div>
+            <input type="date" value={fechaFor.fecha} max={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}
+              onChange={(e) => setFechaFor({ ...fechaFor, fecha: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #E2E8F0', fontSize: 15 }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+              <button type="button" className="pm-btn-outline" onClick={() => setFechaFor(null)}>Cancelar</button>
+              <button type="button" className="btn-primary" style={{ width: 'auto', padding: '9px 18px' }} onClick={guardarFecha} disabled={!fechaFor.fecha}>Guardar fecha</button>
+            </div>
+          </div>
+        </div>
       )}
       {editFor && <SaleEditModal saleId={editFor.id} sym={sym} onClose={() => setEditFor(null)} onSaved={() => { setEditFor(null); refresh(); }} />}
       {printData && <PrintModal title={printData.title} docs={printData.docs} phone={printData.phone} onClose={() => setPrintData(null)} />}

@@ -168,7 +168,8 @@ class ReportHubController extends Controller
             $ventas = self::r2($r['ventas']);
             $costo = self::r2($r['costo']);
             $ut = self::r2($ventas - $costo);
-            return ['producto' => $r['producto'], 'categoria' => $r['categoria'], 'cantidad' => self::num($r['cantidad']), 'ventas' => $ventas, 'costo' => $costo, 'utilidad' => $ut, 'margen' => $ventas > 0 ? self::r2(($ut / $ventas) * 100) : 0];
+            $cant = self::num($r['cantidad']);
+            return ['producto' => $r['producto'], 'categoria' => $r['categoria'], 'cantidad' => $cant, 'ventas' => $ventas, 'costo_unit' => $cant > 0 ? self::r2($costo / $cant) : 0, 'costo' => $costo, 'utilidad' => $ut, 'margen' => $ventas > 0 ? self::r2(($ut / $ventas) * 100) : 0];
         }, $rows);
         $ventas = self::sum($data, 'ventas');
         $costo = self::sum($data, 'costo');
@@ -177,7 +178,7 @@ class ReportHubController extends Controller
         usort($top, fn ($a, $b) => $b['utilidad'] <=> $a['utilidad']);
         $top = array_slice($top, 0, 10);
         return [
-            'columns' => [self::col('producto', 'Producto'), self::col('categoria', 'Categoría'), self::int('cantidad', 'Cant.'), self::money('ventas', 'Ventas'), self::money('costo', 'Costo'), self::money('utilidad', 'Utilidad'), ['key' => 'margen', 'label' => 'Margen', 'type' => 'pct', 'align' => 'right']],
+            'columns' => [self::col('producto', 'Producto'), self::col('categoria', 'Categoría'), self::int('cantidad', 'Cant.'), self::money('ventas', 'Ventas'), self::money('costo_unit', 'Costo unit.'), self::money('costo', 'Costo'), self::money('utilidad', 'Utilidad'), ['key' => 'margen', 'label' => 'Margen', 'type' => 'pct', 'align' => 'right']],
             'rows' => $data,
             'kpis' => [['Ventas netas (sin IGV)', $ventas, 'money'], ['Costo real de ventas', $costo, 'money'], ['Utilidad bruta', $ut, 'money'], ['Margen bruto', $ventas > 0 ? self::r2(($ut / $ventas) * 100) : 0, 'pct']],
             'chart' => ['type' => 'hbar', 'labels' => array_column($top, 'producto'), 'values' => array_column($top, 'utilidad')],

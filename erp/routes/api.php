@@ -35,6 +35,7 @@ Route::middleware('jwt')->prefix('products')->group(function () {
     Route::post('excel/importar', [C\ProductExcelController::class, 'importProducts']);
     Route::get('imagenes/pendientes', [C\ProductController::class, 'pendingThumbs']);
     Route::post('{id}/miniatura', [C\ProductController::class, 'saveThumb']);
+    Route::post('{id}/convertir-pack', [C\ProductController::class, 'convertirAPack'])->middleware('roles:admin');
     Route::get('{id}', [C\ProductController::class, 'getProductById']);
     Route::post('/', [C\ProductController::class, 'createProduct']);
     Route::put('{id}', [C\ProductController::class, 'updateProduct']);
@@ -121,6 +122,7 @@ Route::middleware('jwt')->prefix('sales')->group(function () {
     Route::put('{id}/comprobante-borrador', [C\SalesController::class, 'saveComprobanteBorrador'])->middleware('acceso:sales');
     Route::post('{id}/comprobantes', [C\SalesController::class, 'createComprobante'])->middleware('acceso:sales');
     Route::post('{id}/comprobantes/{cid}/anular', [C\SalesController::class, 'annulComprobante'])->middleware('roles:admin');
+    Route::put('{id}/comprobantes/{cid}/fecha', [C\SalesController::class, 'cambiarFechaComprobante'])->middleware('roles:admin');
     Route::post('{id}/anular', [C\SalesController::class, 'annulSale'])->middleware('roles:admin');
 });
 

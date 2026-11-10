@@ -52,7 +52,7 @@ class ProductController extends Controller
         try {
             $q = $this->query();
             $g = fn ($k) => $q[$k] ?? null;
-            $sql = "\n      SELECT p.*, " . self::STOCK_SQL . " AS stock,\n        c.nombre AS categoria_nombre, c.color_badge, o.nombre AS ocasion_nombre, m.nombre AS marca_nombre,\n        (SELECT GROUP_CONCAT(pc2.categoria_id) FROM producto_categorias pc2 WHERE pc2.producto_id = p.id) AS categorias_ids,\n        (SELECT GROUP_CONCAT(c2.nombre ORDER BY c2.nombre SEPARATOR ', ') FROM producto_categorias pc3 JOIN categorias c2 ON c2.id = pc3.categoria_id WHERE pc3.producto_id = p.id) AS categorias_nombres\n      FROM productos p\n      LEFT JOIN categorias c ON p.categoria_id = c.id\n      LEFT JOIN ocasiones o ON p.ocasion_id = o.id\n      LEFT JOIN marcas m ON p.marca_id = m.id\n      WHERE 1=1";
+            $sql = "\n      SELECT p.*, p.stock AS stock_propio, " . self::STOCK_SQL . " AS stock,\n        c.nombre AS categoria_nombre, c.color_badge, o.nombre AS ocasion_nombre, m.nombre AS marca_nombre,\n        (SELECT GROUP_CONCAT(pc2.categoria_id) FROM producto_categorias pc2 WHERE pc2.producto_id = p.id) AS categorias_ids,\n        (SELECT GROUP_CONCAT(c2.nombre ORDER BY c2.nombre SEPARATOR ', ') FROM producto_categorias pc3 JOIN categorias c2 ON c2.id = pc3.categoria_id WHERE pc3.producto_id = p.id) AS categorias_nombres\n      FROM productos p\n      LEFT JOIN categorias c ON p.categoria_id = c.id\n      LEFT JOIN ocasiones o ON p.ocasion_id = o.id\n      LEFT JOIN marcas m ON p.marca_id = m.id\n      WHERE 1=1";
             $params = [];
             if ($g('estado') === 'deshabilitados') $sql .= ' AND p.activo = 0';
             elseif ($g('estado') !== 'todos') $sql .= ' AND p.activo = 1';
@@ -204,7 +204,8 @@ class ProductController extends Controller
         // Producto nuevo que reutiliza la foto de otro (duplicar): se copia el archivo
         if (!Js::t($id) && ImageStore::isStored($data['imagen_url'])) $data['imagen_url'] = ImageStore::copyProductImage($data['imagen_url']);
         if (Js::t($id)) {
-            $old = Db::query('SELECT stock, imagen_url FROM productos WHERE id = ?', [$id])[0] ?? null;
+            $old = Db::query('SELECT stock, imagen_url, precio_costo FROM productos WHERE id = ?', [$id])[0] ?? null;
+            $costoAnterior = $old ? Js::num($old['precio_costo']) : null;
             $stockAnterior = $old ? Js::num($old['stock']) : 0;
             $oldImage = $old ? $old['imagen_url'] : null;
             $cols = array_keys($data);
@@ -231,6 +232,11 @@ class ProductController extends Controller
                 StockProv::adjustProv($productId, $nuevo - $stockAnterior, Js::or(Js::num($data['precio_costo']), 0));
                 Kardex::logMovement(['producto_id' => $productId, 'tipo' => $nuevo > $stockAnterior ? 'ingreso' : 'salida', 'cantidad' => abs($nuevo - $stockAnterior), 'motivo' => 'Ajuste de stock', 'ref_tipo' => 'producto', 'ref_id' => $productId]);
             }
+        }
+
+        // El stock cargado a mano (lote "AJUSTE") no tiene compra detrás: su costo sigue al precio de compra de la ficha
+        if (Js::t($id) && isset($costoAnterior) && array_key_exists('precio_costo', $data) && abs(Js::num($data['precio_costo']) - $costoAnterior) > 0.0001) {
+            Db::query("UPDATE producto_lotes SET costo_unit = ? WHERE producto_id = ? AND codigo = 'AJUSTE'", [Js::or(Js::num($data['precio_costo']), 0), $productId]);
         }
 
         // Presentaciones (precio unitario según cantidad)
@@ -542,6 +548,33 @@ class ProductController extends Controller
         } catch (\Throwable $e) {
             Db::rollback();
             return $this->sendError($e, 'Error al actualizar el lote');
+        }
+    }
+
+    /**
+     * Pasa a "Boxes y Packs" un producto armado con insumos (pestaña Producción): conserva sus insumos como contenido
+     * del pack. El pack no tiene stock propio (su disponible sale de lo que lleva), así que su stock propio queda en 0.
+     */
+    public function convertirAPack($id)
+    {
+        try {
+            Db::begin();
+            $p = Db::query('SELECT id, nombre, stock, es_pack, precio_costo FROM productos WHERE id = ? FOR UPDATE', [$id])[0] ?? null;
+            if (!$p) throw new HttpError(404, 'Producto no encontrado');
+            if (Js::t($p['es_pack'])) throw new HttpError(400, 'Este producto ya está en Boxes y Packs');
+            $n = Db::query('SELECT COUNT(*) AS n FROM producto_componentes WHERE producto_id = ?', [$id])[0]['n'] ?? 0;
+            if (!(Js::num($n) > 0)) throw new HttpError(400, 'El producto no tiene insumos cargados (pestaña Producción): agrégalos antes de pasarlo a pack.');
+            $stock = Js::num($p['stock']);
+            if ($stock > 0) {
+                StockProv::adjustProv($id, -$stock, Js::num($p['precio_costo']));
+                Kardex::logMovement(['producto_id' => $id, 'tipo' => 'salida', 'cantidad' => $stock, 'motivo' => 'Pasó a Boxes y Packs (el pack usa el stock de lo que lleva)', 'ref_tipo' => 'producto', 'ref_id' => $id]);
+            }
+            Db::query('UPDATE productos SET es_pack = 1, requiere_insumos = 0, stock = 0 WHERE id = ?', [$id]);
+            Db::commit();
+            return $this->json(['success' => true, 'message' => "«{$p['nombre']}» ahora está en Boxes y Packs" . ($stock > 0 ? " (su stock propio de {$stock} quedó en 0)" : '')]);
+        } catch (\Throwable $e) {
+            Db::rollback();
+            return $this->sendError($e, 'No se pudo pasar a pack');
         }
     }
 }

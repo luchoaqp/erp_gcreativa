@@ -242,6 +242,13 @@ function ProductList({ categories, onNew, onEdit, onDuplicate, reload = 0 }) {
     if (!window.confirm(`¿Eliminar "${r.nombre}"?\n\nSi el producto ya está en algún pedido, compra o cotización, solo se deshabilitará.`)) return;
     try { const res = await productsAPI.delete(r.id); setNotice(res.message || 'Listo'); load(); } catch (e) { setErr(e.message); }
   };
+  // Producto armado con insumos (pestaña Producción) → Boxes y Packs
+  const pasarAPack = async (r) => {
+    setRowMenu(null);
+    const stockPropio = Number(r.stock_propio ?? r.stock) || 0;
+    if (!window.confirm(`¿Pasar "${r.nombre}" a Boxes y Packs?\n\nSus insumos quedan como el contenido del pack y su disponible se calculará con lo que lleva dentro.${stockPropio > 0 ? `\nSu stock propio (${stockPropio}) quedará en 0.` : ''}\n\nLo encontrarás en la pestaña "Boxes y Packs".`)) return;
+    try { const res = await productsAPI.convertirPack(r.id); setNotice(res.message || 'Listo'); load(); } catch (e) { setErr(e.message); }
+  };
   const allSel = rows.length > 0 && selected.length === rows.length;
 
   const cell = (c, r) => {
@@ -336,6 +343,7 @@ function ProductList({ categories, onNew, onEdit, onDuplicate, reload = 0 }) {
                       <button onClick={() => { setRowMenu(null); onEdit(r.id); }}><Edit2 size={15} /> Editar</button>
                       <button onClick={() => { setRowMenu(null); onDuplicate(r.id); }}><Copy size={15} /> Duplicar (variante)</button>
                       <button onClick={() => { setRowMenu(null); setProvView(r); }}><Boxes size={15} /> Stock por proveedor</button>
+                      {!!Number(r.requiere_insumos) && <button onClick={() => pasarAPack(r)}><Package size={15} /> Pasar a Boxes y Packs</button>}
                       <button onClick={() => setActivo([r.id], r.activo ? 0 : 1)}><Power size={15} /> {r.activo ? 'Deshabilitar' : 'Habilitar'}</button>
                       <button style={{ color: '#B91C1C' }} onClick={() => eliminar(r)}><Trash2 size={15} /> Eliminar</button>
                     </FloatingMenu>

@@ -27,7 +27,7 @@ const display = (c, v) => {
   return ESTADOS[v] || TIPOS[v] || String(v);
 };
 
-export default function ReportCenter({ onNavigate = () => {} }) {
+export default function ReportCenter({ onNavigate = () => {}, inicial = null }) {
   const [reports, setReports] = useState([]);
   const [grupo, setGrupo] = useState('todos');
   const [q, setQ] = useState('');
@@ -55,6 +55,12 @@ export default function ReportCenter({ onNavigate = () => {} }) {
     try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch (e) { /* sin guardado */ }
     setOpen(r);
   };
+  // Abrir un reporte directo al entrar (p. ej. la tarjeta "Utilidad neta" del dashboard abre Utilidades)
+  useEffect(() => {
+    if (!inicial || !reports.length) return;
+    const r = reports.find((x) => x.key === inicial.key);
+    if (r) setOpen(r);
+  }, [inicial, reports]);
   const setView = (v) => { setVista(v); try { localStorage.setItem('reportes_vista', v); } catch (e) { /* sin guardado */ } };
 
   if (open) return open.viz ? <AnalyticView report={open} store={store} onBack={() => setOpen(null)} /> : <ReportView report={open} store={store} onBack={() => setOpen(null)} />;

@@ -62,7 +62,7 @@ class SalesController extends Controller
             $sql .= ' ORDER BY p.id DESC LIMIT 1000';
             $rows = Db::query($sql, $params);
             $ids = array_column($rows, 'id');
-            $comps = count($ids) ? Db::query("SELECT id, pedido_id, tipo, serie, numero FROM comprobantes WHERE estado = 'emitido' AND pedido_id IN (?)", [$ids]) : [];
+            $comps = count($ids) ? Db::query("SELECT id, pedido_id, tipo, serie, numero, fecha, fecha_editada FROM comprobantes WHERE estado = 'emitido' AND pedido_id IN (?)", [$ids]) : [];
             $sales = array_map(function ($r) use ($comps) {
                 $total = Js::num($r['total']);
                 $pagado = self::r2($r['pagado']);
@@ -282,6 +282,28 @@ class SalesController extends Controller
         } catch (\Throwable $e) {
             Db::rollback();
             return $this->sendError($e, 'Error al anular el comprobante');
+        }
+    }
+
+    /** Cambia la fecha de emisión de una nota de venta (una sola vez). La venta se mueve a esa fecha en los reportes. */
+    public function cambiarFechaComprobante($id, $cid)
+    {
+        try {
+            $f = Js::str(Js::get($this->body(), 'fecha'));
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $f) || !checkdate((int) substr($f, 5, 2), (int) substr($f, 8, 2), (int) substr($f, 0, 4))) throw new HttpError(400, 'Fecha no válida');
+            if ($f > date('Y-m-d')) throw new HttpError(400, 'La fecha de emisión no puede ser futura');
+            Db::begin();
+            $c = Db::query("SELECT id, tipo, fecha, fecha_editada FROM comprobantes WHERE id = ? AND pedido_id = ? AND estado = 'emitido' FOR UPDATE", [$cid, $id])[0] ?? null;
+            if (!$c) throw new HttpError(404, 'El comprobante no existe o está anulado');
+            if ($c['tipo'] !== 'nota_venta') throw new HttpError(400, 'Solo se puede cambiar la fecha de una nota de venta');
+            if (Js::t($c['fecha_editada'])) throw new HttpError(400, 'La fecha de esta nota de venta ya se cambió una vez');
+            $hora = substr(Js::str($c['fecha']), 11, 8) ?: '12:00:00';
+            Db::query('UPDATE comprobantes SET fecha = ?, fecha_editada = 1 WHERE id = ?', ["{$f} {$hora}", $cid]);
+            Db::commit();
+            return $this->json(['success' => true, 'message' => 'Fecha de emisión actualizada']);
+        } catch (\Throwable $e) {
+            Db::rollback();
+            return $this->sendError($e, 'No se pudo cambiar la fecha');
         }
     }
 

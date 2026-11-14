@@ -176,6 +176,14 @@ export const expensesAPI = {
   annul: (id) => apiFetch(`/expenses/${id}/anular`, { method: 'POST' })
 };
 
+export const inventoryExitsAPI = {
+  list: (params = '') => apiFetch(`/inventory-exits${params}`),
+  getById: (id) => apiFetch(`/inventory-exits/${id}`),
+  nextCode: () => apiFetch('/inventory-exits/next-code'),
+  create: (data) => apiFetch('/inventory-exits', { method: 'POST', body: JSON.stringify(data) }),
+  annul: (id) => apiFetch(`/inventory-exits/${id}/anular`, { method: 'POST' })
+};
+
 export const catalogsAPI = {
   list: () => apiFetch('/catalogs'),
   create: (data) => apiFetch('/catalogs', { method: 'POST', body: JSON.stringify(data) }),

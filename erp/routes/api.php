@@ -167,6 +167,15 @@ Route::middleware(['jwt', 'acceso:purchases'])->prefix('expenses')->group(functi
     Route::post('{id}/anular', [C\ExpenseController::class, 'annul'])->middleware('roles:admin');
 });
 
+// ---------- Salidas de inventario (merma, fallados, errores de producción) ----------
+Route::middleware(['jwt', 'acceso:inventory'])->prefix('inventory-exits')->group(function () {
+    Route::get('next-code', [C\InventoryExitController::class, 'nextCode']);
+    Route::get('/', [C\InventoryExitController::class, 'list']);
+    Route::post('/', [C\InventoryExitController::class, 'create']);
+    Route::get('{id}', [C\InventoryExitController::class, 'getOne']);
+    Route::post('{id}/anular', [C\InventoryExitController::class, 'annul'])->middleware('roles:admin');
+});
+
 // ---------- Catálogos (enlaces para clientes) ----------
 Route::middleware('jwt')->prefix('catalogs')->group(function () {
     Route::get('/', [C\CatalogController::class, 'list']);

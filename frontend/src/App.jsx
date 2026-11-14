@@ -13,6 +13,7 @@ import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
 import Purchases from './pages/Purchases';
 import Expenses from './pages/Expenses';
+import InventoryExits from './pages/InventoryExits';
 import Catalogs from './pages/Catalogs';
 import Workshop from './pages/Workshop';
 import Kardex from './pages/Kardex';
@@ -220,6 +221,7 @@ export default function App() {
 
           {activeTab === 'purchases' && <Purchases user={user} />}
           {activeTab === 'expenses' && <Expenses user={user} />}
+          {activeTab === 'salidas' && <InventoryExits user={user} />}
           {activeTab === 'catalogs' && <Catalogs user={user} />}
           {activeTab === 'workshop' && <Workshop user={user} />}
 

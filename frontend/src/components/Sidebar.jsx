@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, ShoppingBag, Truck, Gift, Users, BarChart3, Settings, Database,
-  LogOut, Sparkles, PackageSearch, Coins, Send, FileBarChart, Store, ShoppingCart, X, Layers, ShieldCheck, FileText, Briefcase, Boxes, Wrench, ChevronDown, Wallet, BookOpen, Cog, PackageOpen, Globe, ExternalLink
+  LogOut, Sparkles, PackageSearch, Coins, Send, FileBarChart, Store, ShoppingCart, X, Layers, ShieldCheck, FileText, Briefcase, Boxes, Wrench, ChevronDown, Wallet, BookOpen, Cog, PackageOpen, Globe, ExternalLink, PackageMinus
 } from 'lucide-react';
 import './sidebar-groups.css';
 
@@ -20,6 +20,7 @@ const ITEMS = {
   kardex_valorizado: { id: 'kardex_valorizado', label: 'Kardex valorizado', icon: Coins },
   shipments: { id: 'shipments', label: 'Envíos', icon: Send },
   reportes: { id: 'reportes', label: 'Reportes', icon: FileBarChart },
+  salidas: { id: 'salidas', label: 'Salidas de inventario', icon: PackageMinus },
   categories: { id: 'categories', label: 'Categorías', icon: Layers },
   customers: { id: 'customers', label: 'Clientes', icon: Users },
   suppliers: { id: 'suppliers', label: 'Proveedores', icon: Store },
@@ -34,7 +35,7 @@ const ITEMS = {
 const NAV = [
   { type: 'item', id: 'dashboard' },
   { type: 'group', id: 'comercial', label: 'Comercial', icon: Briefcase, items: ['pos', 'quotes', 'reports', 'orders', 'shipments', 'purchases'] },
-  { type: 'group', id: 'productos', label: 'Productos', icon: PackageOpen, items: ['inventory', 'categories', 'catalogs'] },
+  { type: 'group', id: 'productos', label: 'Productos', icon: PackageOpen, items: ['inventory', 'salidas', 'categories', 'catalogs'] },
   { type: 'group', id: 'gestion', label: 'Gestión', icon: Boxes, items: ['expenses', 'kardex', 'kardex_valorizado', 'reportes', 'workshop'] },
   { type: 'group', id: 'clientes', label: 'Clientes y Proveedores', icon: Users, items: ['customers', 'suppliers'] },
   { type: 'group', id: 'operaciones', label: 'Operaciones', icon: Wrench, items: ['users', 'settings', 'backup'] },
@@ -58,7 +59,7 @@ export default function Sidebar({
   });
 
   // Kardex comparte el permiso de Productos y Envíos el de Pedidos
-  const PERM_OF = { kardex: 'inventory', kardex_valorizado: 'inventory', expenses: 'purchases', catalogs: 'inventory', web: 'inventory', workshop: 'inventory', shipments: 'orders', reportes: 'reports' };
+  const PERM_OF = { salidas: 'inventory', kardex: 'inventory', kardex_valorizado: 'inventory', expenses: 'purchases', catalogs: 'inventory', web: 'inventory', workshop: 'inventory', shipments: 'orders', reportes: 'reports' };
   const isAllowed = (rawId) => {
     const id = PERM_OF[rawId] || rawId;
     if (id === 'dashboard') return true;

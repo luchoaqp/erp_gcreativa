@@ -62,7 +62,9 @@ class DashboardController extends Controller
                 $gastosMes = Js::num(Js::or($g[0]['t'] ?? null, 0));
             } catch (\Throwable $e) {
             }
-            // Utilidad neta del mes = ventas netas (sin IGV) − costo real de lo vendido − gastos del mes
+            // Mermas del mes: costo de lo que salió del inventario sin venderse (fallados, errores de producción…)
+            $mermasMes = InventoryExitController::costoEntre(date('Y-m-01'), date('Y-m-d'));
+            // Utilidad neta del mes = ventas netas (sin IGV) − costo real de lo vendido − gastos del mes − mermas
             $utilidadMes = ['ventas' => 0, 'costo' => 0];
             try {
                 $utilidadMes = ReportHubController::ventasYCosto(date('Y-m-01'), date('Y-m-d'));
@@ -94,7 +96,8 @@ class DashboardController extends Controller
                     'gastos_mes' => $gastosMes,
                     'ventas_netas_mes' => $utilidadMes['ventas'],
                     'costo_ventas_mes' => $utilidadMes['costo'],
-                    'utilidad_neta_mes' => round($utilidadMes['ventas'] - $utilidadMes['costo'] - $gastosMes, 2),
+                    'mermas_mes' => round($mermasMes, 2),
+                    'utilidad_neta_mes' => round($utilidadMes['ventas'] - $utilidadMes['costo'] - $gastosMes - $mermasMes, 2),
                 ],
                 'entregas_hoy' => $entregasDetalle,
                 'ventas_por_categoria' => $ventasPorCategoria,

@@ -250,13 +250,6 @@ export default function PackForm({ packId, catalog, categories, onClose, onSaved
                           })}
                         </div>
                       )}</div>
-                    <div className="pm-f"><label>Ocasión especial <button type="button" style={linkBtn} onClick={() => setNewOcc('')}>+ Nueva</button></label>
-                      {newOcc !== null ? (
-                        <div className="pm-row"><input autoFocus className="pm-in" value={newOcc} onChange={(e) => setNewOcc(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveOccasion(); } }} placeholder="Nombre" />
-                          <button type="button" className="pm-plus" onClick={saveOccasion} aria-label="Guardar ocasión"><Plus size={18} /></button></div>
-                      ) : (
-                        <select className="pm-in" value={f.ocasion_id} onChange={(e) => set({ ocasion_id: e.target.value })}><option value="">Sin ocasión</option>{ocasiones.map((o) => <option key={o.id} value={o.id}>{o.icono ? o.icono + ' ' : ''}{o.nombre}</option>)}</select>
-                      )}</div>
                     <div className="pm-f"><label>Marca <button type="button" style={linkBtn} onClick={() => setNewBrand('')}>+ Nueva</button></label>
                       {newBrand !== null ? (
                         <div className="pm-row"><input autoFocus className="pm-in" value={newBrand} onChange={(e) => setNewBrand(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveBrand(); } }} placeholder="Nombre" />

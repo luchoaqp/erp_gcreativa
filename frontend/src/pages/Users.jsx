@@ -36,7 +36,7 @@ const MODULE_DEFINITIONS = [
   { id: 'quotes', label: 'Cotizaciones', icon: FileText, desc: 'Crear presupuestos con vigencia, IGV opcional, PDF/ticket y convertirlos en venta' },
   { id: 'orders', label: 'Pedidos', icon: Truck, desc: 'Ver el tablero de pedidos, estados de entrega y etapas del flujo' },
   { id: 'inventory', label: 'Productos', icon: Gift, desc: 'Gestionar productos, packs, precios, insumos y stock' },
-  { id: 'categories', label: 'Categorías & Ocasiones', icon: Layers, desc: 'Crear y organizar líneas de regalos y fechas especiales' },
+  { id: 'categories', label: 'Categorías', icon: Layers, desc: 'Crear y organizar las líneas de productos' },
   { id: 'customers', label: 'Clientes', icon: Users, desc: 'Gestión de clientes, tipos de cliente y fechas especiales' },
   { id: 'purchases', label: 'Compras', icon: ShoppingCart, desc: 'Registrar compras a proveedores, ingresar stock al almacén y ver compras realizadas' },
   { id: 'suppliers', label: 'Proveedores', icon: Truck, desc: 'Gestión de proveedores y sus datos de contacto' },

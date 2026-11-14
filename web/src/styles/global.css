@@ -248,6 +248,21 @@ p { margin: 0 0 1em; }
 .producto__precio { margin: 0; font-family: var(--fuente-titulo); font-weight: 700; font-size: var(--t-lg); }
 .producto__precio span { display: block; font-family: var(--fuente-texto); font-weight: 500; font-size: var(--t-xs); color: var(--ciruela-suave); }
 
+/* Galería: puntos sobre la foto para ver las otras fotos del producto */
+.producto__foto { position: relative; }
+.producto__puntos { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 8px; }
+.producto__puntos button { width: 22px; height: 22px; padding: 0; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; }
+.producto__puntos button::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: rgb(255 255 255 / .7); box-shadow: 0 0 0 1.5px rgb(0 0 0 / .25); transition: transform .15s; }
+.producto__puntos button[aria-pressed="true"]::before { background: #fff; transform: scale(1.3); }
+.producto__puntos button:focus-visible { outline: 2px solid var(--rosa-logo); border-radius: 50%; }
+
+/* Caja final: "¿No encuentras lo que buscas? Cuéntanos tu idea" */
+.producto--idea { align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 28px 20px; border: 2px dashed var(--rosa-logo); background: var(--petalo); min-height: 260px; }
+.producto--idea__icono { font-size: 2.4rem; line-height: 1; }
+.producto--idea h3 { margin: 0; font-size: 1.25rem; }
+.producto--idea p { margin: 0; color: var(--ciruela-suave); font-size: var(--t-sm); max-width: 26ch; }
+.producto--idea .boton { margin-top: 6px; }
+
 /* Móvil: dos columnas compactas para ver más regalos sin tanto scroll */
 @media (max-width: 600px) {
   .grilla { grid-template-columns: repeat(2, 1fr); gap: 12px; }

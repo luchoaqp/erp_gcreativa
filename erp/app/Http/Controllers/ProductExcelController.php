@@ -19,7 +19,7 @@ class ProductExcelController extends Controller
     private const COLS_PROD = [
         ['tipo', 'Tipo', ['tipo']], ['codigo', 'Código', ['codigo', 'cod', 'codigointerno']], ['nombre', 'Nombre', ['nombre', 'producto', 'descripcioncorta']],
         ['descripcion', 'Descripción', ['descripcion', 'detalle']], ['categorias', 'Categorías', ['categorias', 'categoria']],
-        ['ocasion', 'Ocasión', ['ocasion', 'ocasiones']], ['marca', 'Marca', ['marca']], ['unidad', 'Unidad', ['unidad', 'unidaddemedida', 'um']],
+        ['marca', 'Marca', ['marca']], ['unidad', 'Unidad', ['unidad', 'unidaddemedida', 'um']],
         ['precio_costo', 'Precio compra', ['preciocompra', 'costo', 'preciocosto', 'pcompra']], ['precio_venta', 'Precio venta', ['precioventa', 'precio', 'pventa']],
         ['stock', 'Stock', ['stock', 'stockactual', 'cantidad']], ['stock_minimo', 'Stock mínimo', ['stockminimo', 'minimo']],
         ['codigo_barras', 'Código de barras', ['codigodebarras', 'codigobarras', 'barras', 'ean']],
@@ -119,7 +119,7 @@ class ProductExcelController extends Controller
             ['1. Llena la hoja "Productos": una fila por producto o pack. Solo Nombre y Precio venta son obligatorios.'],
             ['2. Si el Código ya existe en el sistema, el producto se ACTUALIZA (las celdas vacías conservan el valor actual). Si el Código no existe o está vacío, se CREA uno nuevo (con código automático si lo dejas vacío).'],
             ['3. Importante: si dejas el Código vacío en un producto que ya existe, se creará un duplicado. Para modificar productos existentes, exporta primero y edita el archivo exportado.'],
-            ['4. Categorías: puedes poner varias separadas por ; (ejemplo: Cumpleaños; Peluches). Las categorías, ocasiones y marcas que no existan se crean automáticamente.'],
+            ['4. Categorías: puedes poner varias separadas por ; (ejemplo: Cumpleaños; Peluches). Las categorías y marcas que no existan se crean automáticamente.'],
             ['5. Unidad: Unidad, Kilogramo, Metro, Litro, Caja, Docena, Paquete o Juego (también sirven los códigos NIU, KGM, MTR, LTR, BX, DZN, PK, SET). Vacío = Unidad.'],
             ['6. Personalizable / Destacado / Activo / Es insumo: escribe SI o NO. Activo vacío = SI.'],
             ['7. Stock: en productos nuevos genera un movimiento de Kardex "Stock inicial"; en productos existentes, si cambia, genera un "Ajuste de stock". Los packs no llevan stock: se calcula con sus componentes.'],
@@ -144,7 +144,7 @@ class ProductExcelController extends Controller
     ];
     private const EJEMPLO_PRES = [['TAZ-001', 1, 'UNIDAD', 12], ['TAZ-001', 12, 'DOCENA', 10], ['TAZ-001', 50, 'AL POR MAYOR', 8.5]];
     private const EJEMPLO_PACK = [['BOX-001', 'TAZ-001', 1, ''], ['BOX-001', 'PEL-010', 1, ''], ['BOX-001', 'INS-001', 1, '']];
-    private const WIDTHS_PROD = [11, 14, 36, 34, 26, 16, 14, 11, 13, 13, 9, 12, 18, 14, 11, 9, 11, 13, 40];
+    private const WIDTHS_PROD = [11, 14, 36, 34, 26, 14, 11, 13, 13, 9, 12, 18, 14, 11, 9, 11, 13, 40];
 
     private static function buildWorkbook(array $prod, array $pres, array $pack): string
     {
@@ -185,7 +185,7 @@ class ProductExcelController extends Controller
                 $img = $p['imagen_url'];
                 $esPack = Js::t($p['es_pack']);
                 return [
-                    $esPack ? 'PACK' : 'PRODUCTO', $p['codigo'], $p['nombre'], Js::or($p['descripcion'], ''), Js::or($p['cats'], $p['cat1'], ''), Js::or($p['ocasion_nombre'], ''), Js::or($p['marca_nombre'], ''),
+                    $esPack ? 'PACK' : 'PRODUCTO', $p['codigo'], $p['nombre'], Js::or($p['descripcion'], ''), Js::or($p['cats'], $p['cat1'], ''), Js::or($p['marca_nombre'], ''),
                     self::UNIDADES_NOMBRE[$p['unidad']] ?? 'Unidad', $esPack ? '' : Js::num($p['precio_costo']), Js::num($p['precio_venta']), $esPack ? '' : Js::num($p['stock']), Js::num($p['stock_minimo']),
                     Js::or($p['codigo_barras'], ''), $sn($p['es_personalizable']), $sn($p['destacado']), $sn($p['activo']), $sn($p['es_insumo']), $p['precio_insumo'] === null ? '' : Js::num($p['precio_insumo']),
                     (Js::t($img) && !preg_match('/unsplash\.com/', (string) $img) && !str_starts_with((string) $img, 'data:') && !str_starts_with((string) $img, '/uploads/')) ? $img : '',

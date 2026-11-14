@@ -214,8 +214,16 @@ Route::get('report-hub/{key}', [C\ReportHubController::class, 'run'])->middlewar
 Route::middleware('jwt')->prefix('web-catalog')->group(function () {
     Route::get('/', [C\WebCatalogController::class, 'preview']);
     Route::get('productos', [C\WebCatalogController::class, 'products']);
-    Route::put('productos/{id}', [C\WebCatalogController::class, 'setVisible'])->middleware('roles:admin,vendedor');
-    Route::post('publicar', [C\WebCatalogController::class, 'publish'])->middleware('roles:admin,vendedor');
+    Route::middleware('roles:admin,vendedor')->group(function () {
+        Route::post('productos', [C\WebCatalogController::class, 'createProducto']);
+        Route::put('productos/{id}', [C\WebCatalogController::class, 'updateProducto']);
+        Route::delete('productos/{id}', [C\WebCatalogController::class, 'deleteProducto']);
+        Route::post('ocasiones', [C\WebCatalogController::class, 'createOcasion']);
+        Route::put('ocasiones-orden', [C\WebCatalogController::class, 'ordenOcasiones']);
+        Route::put('ocasiones/{id}', [C\WebCatalogController::class, 'updateOcasion']);
+        Route::delete('ocasiones/{id}', [C\WebCatalogController::class, 'deleteOcasion']);
+        Route::post('publicar', [C\WebCatalogController::class, 'publish']);
+    });
 });
 
 // ---------- Textos, portada y campañas de la web (NUEVO) ----------

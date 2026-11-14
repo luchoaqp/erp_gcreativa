@@ -3,7 +3,7 @@
 // - Al tocar una ocasión: todos sus regalos. "Ver todos": el catálogo completo.
 // La URL guarda la vista (?catalogo=navidad, ?catalogo=todos) para poder compartir el enlace.
 import { cargarCatalogo } from '../lib/catalogo.js';
-import { etiquetasCatalogos, grillaProductos, seleccionDestacada } from '../lib/render.js';
+import { etiquetasCatalogos, grillaProductos, seleccionDestacada, cajaIdea } from '../lib/render.js';
 
 const filtros = document.getElementById('catalogo-filtros');
 const grilla = document.getElementById('catalogo-grilla');
@@ -38,7 +38,8 @@ function pintar() {
     titulo.textContent = '⭐ Destacados';
     conteo.textContent = `Una selección de cada catálogo · ${plural(lista.length)}`;
   }
-  grilla.innerHTML = grillaProductos(lista, datos);
+  // Al final de los productos: "¿No encuentras lo que buscas? Cuéntanos tu idea"
+  grilla.innerHTML = lista.length ? grillaProductos(lista, datos) + cajaIdea(datos.textos, cat || null) : '';
   vacio.hidden = lista.length > 0;
 
   for (const b of filtros.querySelectorAll('[data-catalogo]')) {

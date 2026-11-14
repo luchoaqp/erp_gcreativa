@@ -164,7 +164,7 @@ class ProductController extends Controller
         $data = [
             'codigo' => $codigo, 'nombre' => $nombre, 'descripcion' => Js::slice(Js::str($v('descripcion') ?? ''), 0, 2000),
             'categoria_id' => Js::or($catIds[0] ?? null, null),
-            'ocasion_id' => Js::t($v('ocasion_id')) ? Js::num($b['ocasion_id']) : null,
+            'ocasion_id' => null, // las ocasiones son los catálogos de la web (Gestionar la web), ya no se asignan a productos
             'precio_costo' => self::r2($compras), 'precio_venta' => self::r2($precioVenta),
             'stock_minimo' => max(0, Js::round(Js::or(Js::num($v('stock_minimo')), 0))),
             'imagen_url' => Js::t($v('imagen_url')) ? Js::str($b['imagen_url']) : self::IMG_DEFAULT,

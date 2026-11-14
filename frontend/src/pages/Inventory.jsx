@@ -22,7 +22,6 @@ const PROD_COLS = [
   { id: 'precio_venta', label: 'P. unitario venta', def: true },
   { id: 'marca', label: 'Marca', def: true },
   { id: 'categoria', label: 'Categoría', def: true },
-  { id: 'ocasion', label: 'Ocasión especial', def: true },
   { id: 'insumo', label: 'Precio insumo', def: false },
   { id: 'estado', label: 'Estado', def: true }
 ];
@@ -262,7 +261,6 @@ function ProductList({ categories, onNew, onEdit, onDuplicate, reload = 0 }) {
       case 'precio_venta': return (<>S/ {money(r.precio_venta)}{r.escalas?.length > 0 && <span className="pm-extra">{r.escalas.length} presentación(es)</span>}</>);
       case 'marca': return r.marca_nombre || '';
       case 'categoria': return r.categoria_nombre || '';
-      case 'ocasion': return r.ocasion_nombre || '';
       case 'insumo': return r.es_insumo ? `S/ ${money(r.precio_insumo ?? r.precio_venta)}` : '';
       case 'estado': return r.activo ? <span className="pm-state on"><CheckCircle2 size={16} /> HABILITADO</span> : <span className="pm-state off"><XCircle size={16} /> DESHABILITADO</span>;
       default: return '';

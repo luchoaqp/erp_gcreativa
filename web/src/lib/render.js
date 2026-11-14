@@ -32,24 +32,28 @@ export function descripcionHTML(texto) {
 const GIROS = [-3, 2, -1.5, 3, -2.5, 1.5, -2, 2.5];
 
 /**
- * Tarjeta de producto.
- * cat = { catalogos, nombres } de normalizar(): las etiquetas muestran primero los catálogos (ocasiones).
+ * Tarjeta de producto: foto (con galería si tiene varias), tag de su ocasión, nombre, lo que incluye y precio.
+ * cat = { catalogos, nombres } de normalizar().
  */
 export function tarjetaProducto(p, cat = { catalogos: [], nombres: new Map() }) {
-  const msg = `Hola Genia Creativa, me interesa "${p.nombre}" (${p.sku}). ¿Me ayudan con mi pedido?`;
-  const deCatalogo = new Set(cat.catalogos.map((c) => c.slug));
-  const chips = [...(p.categorias || [])]
-    .sort((a, b) => Number(deCatalogo.has(b)) - Number(deCatalogo.has(a)))
-    .slice(0, 2)
-    .map((c) => `<li>${esc(cat.nombres.get(c) ?? c)}</li>`)
-    .join('');
+  const slug = p.ocasion || (p.categorias || [])[0] || '';
+  const oc = cat.catalogos.find((c) => c.slug === slug);
+  const ocNombre = oc ? oc.nombre : (cat.nombres.get(slug) ?? '');
+  const msg = `Hola Genia Creativa, me interesa "${p.nombre}"${ocNombre ? ` (${ocNombre})` : ''}${p.sku ? ` [${p.sku}]` : ''}. ¿Me ayudan con mi pedido?`;
+  const chips = ocNombre ? `<li>${oc?.icono ? `<span aria-hidden="true">${esc(oc.icono)}</span> ` : ''}${esc(ocNombre)}</li>` : '';
+  const fotos = (Array.isArray(p.imagenes) && p.imagenes.length ? p.imagenes : [p.imagen]).filter(Boolean);
+  const galeria = fotos.length > 1
+    ? `<div class="producto__puntos" role="group" aria-label="Fotos de ${esc(p.nombre)}">${fotos.map((f, i) =>
+        `<button type="button" data-foto="${esc(f)}" aria-label="Foto ${i + 1} de ${fotos.length}" aria-pressed="${i === 0}"></button>`).join('')}</div>`
+    : '';
   return `
 <article class="producto" data-categorias="${esc((p.categorias || []).join(' '))}">
   <div class="producto__foto">
-    <img src="${esc(p.imagen || SIN_FOTO)}" onerror="this.onerror=null;this.src='${SIN_FOTO}'" alt="${esc(p.nombre)}" width="800" height="800" loading="lazy" decoding="async">
+    <img src="${esc(fotos[0] || SIN_FOTO)}" onerror="this.onerror=null;this.src='${SIN_FOTO}'" alt="${esc(p.nombre)}" width="800" height="800" loading="lazy" decoding="async">
+    ${galeria}
   </div>
   <div class="producto__cuerpo">
-    ${chips ? `<ul class="producto__categorias" aria-label="Catálogos">${chips}</ul>` : ''}
+    ${chips ? `<ul class="producto__categorias" aria-label="Ocasión">${chips}</ul>` : ''}
     <h3 class="producto__nombre">${esc(p.nombre)}</h3>
     ${descripcionHTML(p.descripcion)}
     <div class="producto__pie">
@@ -62,6 +66,34 @@ export function tarjetaProducto(p, cat = { catalogos: [], nombres: new Map() }) 
 
 export function grillaProductos(lista, cat) {
   return lista.map((p) => tarjetaProducto(p, cat)).join('');
+}
+
+/** Caja al final de los productos: invita a contar una idea propia por WhatsApp (textos editables en el ERP) */
+export function cajaIdea(textos = {}, catalogo = null) {
+  const t = (k, def) => (typeof textos[k] === 'string' && textos[k].trim() ? textos[k] : def);
+  const msg = catalogo
+    ? `Hola Genia Creativa, no encontré lo que buscaba en el catálogo de ${catalogo.nombre}. Mi idea es: `
+    : 'Hola Genia Creativa, no encontré lo que buscaba en el catálogo. Mi idea es: ';
+  return `
+<article class="producto producto--idea">
+  <span class="producto--idea__icono" aria-hidden="true">💡</span>
+  <h3>${esc(t('idea_titulo', '¿No encuentras lo que buscas?'))}</h3>
+  <p>${esc(t('idea_texto', 'Cuéntanos tu idea y lo personalizamos para ti.'))}</p>
+  <a class="boton" href="${enlaceWhatsApp(msg)}" target="_blank" rel="noopener">${esc(t('idea_boton', 'Cuéntanos tu idea'))}</a>
+</article>`;
+}
+
+// Galería de la tarjeta: los puntos cambian la foto (un solo manejador para toda la página)
+if (typeof document !== 'undefined' && !window.__galeriaProductos) {
+  window.__galeriaProductos = true;
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('.producto__puntos [data-foto]');
+    if (!b) return;
+    const caja = b.closest('.producto__foto');
+    const img = caja.querySelector('img');
+    if (img) img.src = b.dataset.foto;
+    for (const x of caja.querySelectorAll('[data-foto]')) x.setAttribute('aria-pressed', String(x === b));
+  });
 }
 
 /** Etiquetas de catálogo: modo "enlace" (lleva al catálogo filtrado) o "filtro" (botones del Catálogo).

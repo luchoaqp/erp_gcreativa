@@ -53,6 +53,9 @@ class WebSiteController extends Controller
         // Catálogo
         'catalogo_titulo' => ['Nuestros catálogos', 80],
         'catalogo_texto' => ['Elige una ocasión y pide el regalo que te guste por WhatsApp. Los precios son referenciales y varían según la personalización.', 300],
+        'idea_titulo' => ['¿No encuentras lo que buscas?', 80],
+        'idea_texto' => ['Cuéntanos tu idea y lo personalizamos para ti.', 200],
+        'idea_boton' => ['Cuéntanos tu idea', 40],
         // Contacto
         'contacto_titulo' => ['Hablemos de tu regalo', 80],
         'contacto_texto' => ['Respondemos por WhatsApp en horario de atención. Para pedidos corporativos, cuéntanos cuántas unidades necesitas y para qué fecha.', 300],
@@ -128,7 +131,7 @@ class WebSiteController extends Controller
     public function show()
     {
         try {
-            $ocasiones = Db::query('SELECT id, nombre, icono FROM ocasiones ORDER BY id');
+            $ocasiones = Db::query('SELECT id, nombre, icono FROM ocasiones ORDER BY orden, id');
             foreach ($ocasiones as &$o) $o['slug'] = WebCatalogController::slug((string) $o['nombre']);
             unset($o);
             return $this->json([
@@ -182,7 +185,7 @@ class WebSiteController extends Controller
     }
 
     /** Foto de campaña: base64 (nueva), ruta ya guardada o vacío */
-    private static function imagen($v, $actual = null, string $prefijo = 'campana'): ?string
+    public static function imagen($v, $actual = null, string $prefijo = 'campana'): ?string
     {
         if (!is_string($v) || trim($v) === '') return null;
         $v = trim($v);
@@ -199,7 +202,7 @@ class WebSiteController extends Controller
             return "/uploads/web/{$name}";
         }
         // Solo se aceptan rutas propias (fotos subidas antes o las de la web)
-        if (preg_match('#^/(uploads/web|img)/[A-Za-z0-9._/-]+$#', $v) && !str_contains($v, '..')) return $v;
+        if (preg_match('#^/(uploads/web|uploads/productos|img)/[A-Za-z0-9._/-]+$#', $v) && !str_contains($v, '..')) return $v;
         return $actual;
     }
 

@@ -1,5 +1,6 @@
 // Datos del catálogo que publica el ERP en /data/catalogo.json.
-// Los "catálogos" de la web son las OCASIONES del ERP que tienen al menos un producto publicado.
+// Los "catálogos" de la web son las OCASIONES (se gestionan en erp.gcreativa.com/catalogo-web) que tienen
+// al menos un producto publicado. Cada producto de la web pertenece a una ocasión, con su foto y su precio.
 import { sitio, tonosCatalogos } from '../data/sitio.js';
 import { cargarSitio } from './sitio.js';
 
@@ -9,7 +10,7 @@ export function cargarCatalogo() {
   pedido ??= Promise.all([
     fetch(sitio.urlCatalogo, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))),
     cargarSitio(),
-  ]).then(([datos, web]) => normalizar(datos, web?.portada?.boton_destino));
+  ]).then(([datos, web]) => ({ ...normalizar(datos, web?.portada?.boton_destino), textos: web?.textos || {} }));
   return pedido;
 }
 

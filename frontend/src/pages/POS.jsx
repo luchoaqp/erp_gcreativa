@@ -97,7 +97,7 @@ export default function POS({ user, onOrderCreated, onGoToSales }) {
       if (prodRes.success) setProducts(prodRes.products);
       if (catRes.success) {
         setCategories(catRes.categories || []);
-        if (catRes.occasions) setOccasions(catRes.occasions);
+        // Las ocasiones ya no se usan en el ERP (son los catálogos de la web): sin filtro por ocasión
       }
     } catch (err) {
       console.error('Error cargando catálogo POS:', err);

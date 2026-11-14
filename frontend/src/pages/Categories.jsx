@@ -271,10 +271,10 @@ export default function Categories() {
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: '700', color: '#1C2A38', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Layers size={28} color="var(--primary)" />
-            Gestión de Categorías & Ocasiones
+            Gestión de Categorías
           </h1>
           <p style={{ color: '#788A9B', fontSize: '14px', marginTop: '4px', margin: 0 }}>
-            Líneas de producto y ocasiones especiales para catálogo, tienda y punto de venta.
+            Líneas de producto para el catálogo, la tienda y el punto de venta. Las ocasiones (catálogos de la web) se gestionan en Página web › Gestionar la web.
           </p>
         </div>
 
@@ -288,26 +288,6 @@ export default function Categories() {
             <span>Nueva Categoría</span>
           </button>
 
-          <button 
-            onClick={handleOpenNewOccasion}
-            style={{ 
-              background: 'var(--primary-light)', 
-              color: 'var(--primary)', 
-              border: '1.5px solid #FFD5CA',
-              borderRadius: '12px',
-              padding: '10px 18px', 
-              fontSize: '13.5px', 
-              fontWeight: '700',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            <PartyPopper size={18} />
-            <span>Nueva Ocasión</span>
-          </button>
         </div>
       </div>
 
@@ -320,15 +300,6 @@ export default function Categories() {
             <div className="stat-panel-subtitle">{activasCategorias} activas para ventas</div>
           </div>
           <div className="stat-panel-watermark"><Layers size={70} /></div>
-        </div>
-
-        <div className="stat-panel-card stat-panel-blue">
-          <div>
-            <div className="stat-panel-value">{totalOcasiones}</div>
-            <div className="stat-panel-title">Ocasiones Especiales</div>
-            <div className="stat-panel-subtitle">Momentos y celebraciones</div>
-          </div>
-          <div className="stat-panel-watermark"><PartyPopper size={70} /></div>
         </div>
 
         <div className="stat-panel-card stat-panel-green">
@@ -386,26 +357,6 @@ export default function Categories() {
             <span>Categorías de Regalo ({categories.length})</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('occasions')}
-            style={{
-              padding: '9px 18px',
-              borderRadius: '10px',
-              fontSize: '13.5px',
-              fontWeight: '700',
-              background: activeTab === 'occasions' ? 'var(--primary)' : '#F4F7F6',
-              color: activeTab === 'occasions' ? '#FFFFFF' : '#5A6E82',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            <PartyPopper size={16} />
-            <span>Ocasiones Especiales ({occasions.length})</span>
-          </button>
         </div>
 
         <div className="search-container" style={{ maxWidth: '300px', margin: 0 }}>

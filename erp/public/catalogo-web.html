@@ -130,6 +130,45 @@
   .textos legend { font-weight: 700; padding: 0 6px; }
   .textos .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
   .textos .acciones { position: sticky; bottom: 0; background: var(--fondo); padding: 10px 0; display: flex; justify-content: flex-end; gap: 8px; }
+  /* Productos web por ocasión */
+  .tabs .nueva-oc { color: var(--baya); border-style: dashed; font-weight: 700; }
+  .oc-barra { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: #fff; border: 1px solid var(--linea); border-radius: 14px; padding: 10px 14px; margin: 4px 0 6px; }
+  .oc-barra[hidden] { display: none; }
+  .oc-barra strong { font-size: 16px; margin-right: auto; }
+  .oc-barra .meta { margin-right: 8px; }
+  .pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .pcard { background: #fff; border: 1px solid var(--linea); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+  .pcard.oculto { opacity: .6; }
+  .pcard__foto { position: relative; aspect-ratio: 1; background: #f6eef3 center / cover no-repeat; display: grid; place-items: center; color: var(--gris); font-size: 12px; }
+  .pcard__foto .estrella { position: absolute; top: 6px; right: 6px; background: rgb(255 255 255 / .9); font-size: 20px; padding: 3px 8px; }
+  .pcard__n { position: absolute; left: 8px; bottom: 8px; background: rgb(0 0 0 / .55); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
+  .pcard__cuerpo { padding: 10px 12px 6px; flex: 1; }
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 600; color: var(--baya); background: var(--baya-suave); border-radius: 999px; padding: 2px 9px; margin-bottom: 6px; }
+  .pcard__nombre { font-weight: 700; line-height: 1.25; }
+  .pcard__inc { color: var(--gris); font-size: 12.5px; margin: 4px 0; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .pcard__precio { font-weight: 800; color: var(--tinta); margin-top: 4px; }
+  .pcard__precio small { font-weight: 500; color: var(--gris); }
+  .pcard__acc { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding: 8px 12px 12px; border-top: 1px solid var(--linea); }
+  .pcard__acc .pub { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--gris); margin-right: auto; }
+  .pcard__acc .interruptor { width: 40px; height: 22px; }
+  .pcard__acc .interruptor span::after { width: 16px; height: 16px; }
+  .pcard__acc .interruptor input:checked + span::after { left: 21px; }
+  .copiar { position: relative; }
+  .sugerencias { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid var(--linea); border-radius: 10px; box-shadow: 0 10px 24px -12px rgb(0 0 0 / .3); max-height: 240px; overflow-y: auto; }
+  .sugerencias button { display: flex; gap: 8px; align-items: center; width: 100%; text-align: left; border-radius: 0; background: #fff; padding: 7px 10px; font-size: 13px; }
+  .sugerencias button:hover { background: var(--fondo); }
+  .sugerencias img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; }
+  .checks { display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; margin: 2px 0 10px; }
+  .checks label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .previa-prod { max-width: 280px; margin: 0 auto; }
+  .previa-prod .pcard__foto { border-radius: 0; }
+  .previa-prod ul { margin: 4px 0; padding-left: 18px; font-size: 12.5px; color: var(--gris); }
+  .previa-prod .pd-p { font-size: 12.5px; color: var(--gris); margin: 4px 0; }
+  .previa-prod .pd-pie { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px 12px; }
+  .previa-prod .pd-btn { background: var(--baya); color: #fff; border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 700; }
+  .emojis { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .emojis button { padding: 4px 7px; background: var(--fondo); border-radius: 8px; font-size: 18px; }
+  .ventana.chica { max-width: 460px; }
   @media (max-width: 760px) {
     .editor-grid, .textos .grid2, .campo-fila { grid-template-columns: 1fr; }
   }
@@ -160,25 +199,23 @@
   </nav>
 
   <section id="sec-productos">
-  <div class="vistas" role="tablist" aria-label="Agrupar por">
-    <button type="button" role="tab" data-vista="ocasion" aria-selected="true">Ocasiones</button>
-    <button type="button" role="tab" data-vista="categoria" aria-selected="false">Categorías</button>
-  </div>
-  <div class="tabs" id="tabs" role="tablist" aria-label="Filtrar"></div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Ocasiones"></div>
+  <div class="oc-barra" id="oc-barra" hidden></div>
 
   <div class="barra">
-    <input type="search" id="buscar" placeholder="Buscar por nombre o código…" aria-label="Buscar producto">
+    <input type="search" id="buscar" placeholder="Buscar producto…" aria-label="Buscar producto">
     <div class="estado" role="group" aria-label="Estado en la web">
       <button type="button" data-estado="todos" aria-pressed="true">Todos</button>
-      <button type="button" data-estado="web" aria-pressed="false">En la web</button>
+      <button type="button" data-estado="web" aria-pressed="false">Publicados</button>
       <button type="button" data-estado="fav" aria-pressed="false">★ Favoritos</button>
-      <button type="button" data-estado="noweb" aria-pressed="false">Sin publicar</button>
+      <button type="button" data-estado="noweb" aria-pressed="false">Ocultos</button>
     </div>
+    <button type="button" class="principal" id="nuevo-prod">+ Nuevo producto</button>
   </div>
   <p class="resumen" id="resumen"></p>
-  <p class="ayuda">★ Favorito: aparece primero en "Destacados" de la web y como portada de su catálogo. Los catálogos de la web son las <b>ocasiones</b>.</p>
+  <p class="ayuda">Cada <b>ocasión</b> es un catálogo de la web y sus productos son propios: el mismo producto puede estar en varias ocasiones con otra foto, otro diseño y otro precio (usa «Duplicar»). ★ Favorito: sale en «Destacados» y como portada de su catálogo.</p>
 
-  <div class="lista" id="lista"><p class="vacio">Cargando…</p></div>
+  <div class="pgrid" id="lista"><p class="vacio">Cargando…</p></div>
   </section>
 
   <!-- ===================== PORTADA Y CAMPAÑAS ===================== -->
@@ -254,14 +291,89 @@
     </div>
   </form>
 </div>
+<!-- Editor de producto web -->
+<div class="velo" id="editor-prod" hidden>
+  <form class="ventana" id="form-prod" autocomplete="off">
+    <div class="ventana__cab">
+      <strong id="prod-titulo">Producto</strong>
+      <button type="button" class="secundario" data-cerrar-prod>Cerrar</button>
+    </div>
+    <div class="ventana__cuerpo">
+      <div class="editor-grid">
+        <div>
+          <div class="campo copiar">Copiar datos de un producto del ERP (opcional)
+            <input type="search" id="copiar-q" placeholder="Busca por nombre o código…">
+            <div class="sugerencias" id="copiar-sug" hidden></div>
+          </div>
+          <label class="campo">Ocasión *
+            <select name="ocasion_id" required></select>
+          </label>
+          <label class="campo">Nombre *
+            <input name="nombre" maxlength="160" placeholder="Ej. Taza 11 oz + blister personalizado" required>
+          </label>
+          <label class="campo">Precio (se muestra como «Desde S/») *
+            <input name="precio" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" required>
+          </label>
+          <label class="campo">Qué incluye
+            <textarea name="incluye" maxlength="2000" rows="5" placeholder="Incluye:&#10;• Taza blanca 11 oz personalizada&#10;• Caja blister"></textarea>
+          </label>
+          <p class="ayuda" style="margin-top:-6px">Las líneas que empiezan con • o - salen como lista.</p>
+          <div class="checks">
+            <label><input type="checkbox" name="activo" checked> Publicado en la web</label>
+            <label><input type="checkbox" name="favorito"> ★ Favorito</label>
+          </div>
+          <div class="fotos" id="prod-fotos">
+            <div class="foto" data-pfoto="1"><span>Foto principal</span><div class="foto__img"></div><label class="mini">Cambiar<input type="file" accept="image/*" hidden></label><button type="button" class="mini quitar">Quitar</button></div>
+            <div class="foto" data-pfoto="2"><span>Foto 2</span><div class="foto__img"></div><label class="mini">Cambiar<input type="file" accept="image/*" hidden></label><button type="button" class="mini quitar">Quitar</button></div>
+            <div class="foto" data-pfoto="3"><span>Foto 3</span><div class="foto__img"></div><label class="mini">Cambiar<input type="file" accept="image/*" hidden></label><button type="button" class="mini quitar">Quitar</button></div>
+          </div>
+          <p class="ayuda">La foto principal va en la tarjeta; las otras se ven al tocarla. Usa fotos cuadradas; se reducen solas a 1400 px.</p>
+        </div>
+        <div>
+          <div class="previa-tit">Así se verá en la web</div>
+          <div class="pcard previa-prod" id="prod-previa"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ventana__pie">
+      <button type="button" class="secundario" data-cerrar-prod>Cancelar</button>
+      <button type="submit" class="principal" id="guardar-prod">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<!-- Editor de ocasión -->
+<div class="velo" id="editor-oc" hidden>
+  <form class="ventana chica" id="form-oc" autocomplete="off">
+    <div class="ventana__cab">
+      <strong id="oc-titulo">Ocasión</strong>
+      <button type="button" class="secundario" data-cerrar-oc>Cerrar</button>
+    </div>
+    <div class="ventana__cuerpo">
+      <label class="campo">Nombre *
+        <input name="nombre" maxlength="60" placeholder="Ej. Día de la Madre" required>
+      </label>
+      <label class="campo">Emoji
+        <input name="icono" maxlength="8" placeholder="🎁">
+      </label>
+      <div class="emojis" id="emojis"></div>
+      <p class="ayuda">Cada ocasión es un catálogo de la web (una etiqueta en «Nuestros catálogos»). Solo se muestra si tiene productos publicados.</p>
+    </div>
+    <div class="ventana__pie">
+      <button type="button" class="secundario" data-cerrar-oc>Cancelar</button>
+      <button type="submit" class="principal">Guardar</button>
+    </div>
+  </form>
+</div>
+
 <script>
   const TOKEN = (() => { try { return localStorage.getItem('token_tienda_regalos'); } catch (e) { return null; } })();
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const on = (v) => !!Number(v);
-  let productos = [], ocasiones = [], categorias = [];
-  const estado = { vista: 'ocasion', tab: 'todas', filtro: 'todos', q: '' };
-  try { Object.assign(estado, JSON.parse(sessionStorage.getItem('catalogo-web-vista') || '{}'), { q: '' }); } catch (e) { /* sin guardado */ }
+  let productos = [], ocasiones = [], erp = [];
+  const estado = { tab: 'todas', filtro: 'todos', q: '' };
+  try { Object.assign(estado, JSON.parse(sessionStorage.getItem('catalogo-web-vista2') || '{}'), { q: '' }); } catch (e) { /* sin guardado */ }
 
   function aviso(tipo, texto) { const a = $('aviso'); a.className = 'aviso ' + tipo; a.textContent = texto; }
 
@@ -273,115 +385,264 @@
     return j;
   }
 
-  const enTab = (p, tab = estado.tab, vista = estado.vista) =>
-    tab === 'todas' ? true
-    : tab === 'sin' ? (vista === 'ocasion' ? !p.ocasion_id : !p.categoria_ids.length)
-    : vista === 'ocasion' ? String(p.ocasion_id) === tab
-    : p.categoria_ids.map(String).includes(tab);
+  const ocDe = (id) => ocasiones.find((o) => o.id == id);
+  const ocTxt = (o) => o ? `${o.icono ? o.icono + ' ' : ''}${o.nombre}` : 'Sin ocasión';
+  const soles = (n) => 'S/ ' + Number(n || 0).toFixed(2);
+  const fotosDe = (p) => [p.imagen1, p.imagen2, p.imagen3].filter(Boolean);
   const enFiltro = (p) =>
     estado.filtro === 'todos' ? true
-    : estado.filtro === 'web' ? on(p.web_visible)
-    : estado.filtro === 'fav' ? on(p.destacado)
-    : !on(p.web_visible);
+    : estado.filtro === 'web' ? on(p.activo)
+    : estado.filtro === 'fav' ? on(p.favorito)
+    : !on(p.activo);
 
   function pintarTabs() {
-    const grupos = estado.vista === 'ocasion'
-      ? ocasiones.map((o) => ({ id: String(o.id), texto: `${o.icono ? o.icono + ' ' : ''}${o.nombre}` }))
-      : categorias.map((c) => ({ id: String(c.id), texto: c.nombre }));
-    const tabs = [{ id: 'todas', texto: 'Todas' }, ...grupos, { id: 'sin', texto: estado.vista === 'ocasion' ? 'Sin ocasión' : 'Sin categoría' }]
-      .map((t) => ({ ...t, n: productos.filter((p) => enTab(p, t.id)).length }))
-      .filter((t) => t.id === 'todas' || t.n > 0);
-    if (!tabs.some((t) => t.id === estado.tab)) estado.tab = 'todas';
+    if (estado.tab !== 'todas' && !ocDe(estado.tab)) estado.tab = 'todas';
+    const tabs = [{ id: 'todas', texto: 'Todas', n: productos.length }, ...ocasiones.map((o) => ({ id: String(o.id), texto: ocTxt(o), n: productos.filter((p) => p.ocasion_id == o.id).length }))];
     $('tabs').innerHTML = tabs.map((t) =>
-      `<button type="button" role="tab" data-tab="${esc(t.id)}" aria-selected="${t.id === estado.tab}">${esc(t.texto)}<span class="n">${t.n}</span></button>`).join('');
-    for (const b of document.querySelectorAll('[data-vista]')) b.setAttribute('aria-selected', String(b.dataset.vista === estado.vista));
+      `<button type="button" role="tab" data-tab="${esc(t.id)}" aria-selected="${t.id === String(estado.tab)}">${esc(t.texto)}<span class="n">${t.n}</span></button>`).join('')
+      + '<button type="button" class="nueva-oc" data-nueva-oc>+ Nueva ocasión</button>';
     for (const b of document.querySelectorAll('[data-estado]')) b.setAttribute('aria-pressed', String(b.dataset.estado === estado.filtro));
+    const o = ocDe(estado.tab);
+    const barra = $('oc-barra');
+    barra.hidden = !o;
+    if (o) {
+      const i = ocasiones.indexOf(o);
+      barra.innerHTML = `<strong>${esc(ocTxt(o))}</strong><span class="meta">${o.publicados} publicado(s) de ${o.total}</span>
+        <button type="button" class="mini" data-oc-mover="-1" ${i === 0 ? 'disabled' : ''} title="Mover antes en la web">← Antes</button>
+        <button type="button" class="mini" data-oc-mover="1" ${i === ocasiones.length - 1 ? 'disabled' : ''} title="Mover después en la web">Después →</button>
+        <button type="button" class="mini" data-oc-editar>Editar ocasión</button>
+        <button type="button" class="mini peligro" data-oc-eliminar>Eliminar</button>`;
+    }
+  }
+
+  function tarjeta(p) {
+    const fotos = fotosDe(p);
+    return `
+      <div class="pcard ${on(p.activo) ? '' : 'oculto'}">
+        <div class="pcard__foto" style="${fondo(fotos[0])}">${fotos[0] ? '' : 'Sin foto'}
+          <button type="button" class="estrella" data-fav="${p.id}" aria-pressed="${on(p.favorito)}" title="Favorito en la web" aria-label="Favorito: ${esc(p.nombre)}">${on(p.favorito) ? '★' : '☆'}</button>
+          ${fotos.length > 1 ? `<span class="pcard__n">${fotos.length} fotos</span>` : ''}
+        </div>
+        <div class="pcard__cuerpo">
+          <span class="tag">${esc(ocTxt(ocDe(p.ocasion_id)))}</span>
+          <div class="pcard__nombre">${esc(p.nombre)}</div>
+          ${p.incluye ? `<div class="pcard__inc">${esc(p.incluye)}</div>` : ''}
+          <div class="pcard__precio"><small>Desde</small> ${soles(p.precio)}</div>
+        </div>
+        <div class="pcard__acc">
+          <label class="pub"><span class="interruptor"><input type="checkbox" data-pub="${p.id}" ${on(p.activo) ? 'checked' : ''} aria-label="Publicar ${esc(p.nombre)}"><span></span></span>${on(p.activo) ? 'Publicado' : 'Oculto'}</label>
+          <button type="button" class="mini" data-editar-prod="${p.id}">Editar</button>
+          <button type="button" class="mini" data-duplicar="${p.id}" title="Copiar a otra ocasión con otra foto y precio">Duplicar</button>
+          <button type="button" class="mini peligro" data-eliminar-prod="${p.id}" aria-label="Eliminar ${esc(p.nombre)}">✕</button>
+        </div>
+      </div>`;
   }
 
   function pintar() {
-    try { sessionStorage.setItem('catalogo-web-vista', JSON.stringify({ vista: estado.vista, tab: estado.tab, filtro: estado.filtro })); } catch (e) { /* sin guardado */ }
+    try { sessionStorage.setItem('catalogo-web-vista2', JSON.stringify({ tab: estado.tab, filtro: estado.filtro })); } catch (e) { /* sin guardado */ }
     pintarTabs();
     const q = estado.q.trim().toLowerCase();
-    const lista = productos.filter((p) => enTab(p) && enFiltro(p) && (!q || (p.nombre + ' ' + (p.codigo || '')).toLowerCase().includes(q)));
-    const enWeb = productos.filter((p) => on(p.web_visible) && on(p.activo));
-    $('resumen').innerHTML = `Mostrando <b>${lista.length}</b> · <b>${enWeb.length}</b> en la web · <b>${enWeb.filter((p) => on(p.destacado)).length}</b> favoritos publicados`;
-    $('lista').innerHTML = lista.length ? lista.map((p) => `
-      <div class="item ${on(p.activo) ? '' : 'inactivo'}">
-        <label class="interruptor" title="Mostrar en la web">
-          <input type="checkbox" data-id="${p.id}" ${on(p.web_visible) ? 'checked' : ''} aria-label="Mostrar ${esc(p.nombre)} en la web">
-          <span></span>
-        </label>
-        ${p.imagen_url ? `<img src="${esc(p.imagen_url)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'sinfoto'}))">` : '<div class="sinfoto"></div>'}
-        <div>
-          <div class="nombre">${esc(p.nombre)}</div>
-          <div class="meta">${esc(p.codigo || '')} · S/ ${Number(p.precio_venta).toFixed(2)}${p.ocasion ? ' · ' + esc(p.ocasion) : ''}${p.categoria ? ' · ' + esc(p.categoria) : ''}${on(p.activo) ? '' : ' · deshabilitado (no se publica)'}</div>
-          <textarea class="desc" data-desc="${p.id}" maxlength="2000" rows="${Math.min(6, Math.max(1, String(p.web_descripcion || '').split('\n').length))}" placeholder="Descripción para clientes (ej. Incluye: • 2 tazas…)">${esc(p.web_descripcion || '')}</textarea>
-          <label class="descweb"><input type="checkbox" data-descweb="${p.id}" ${Number(p.desc_web ?? 1) ? 'checked' : ''}> Mostrar la descripción en la web</label>
-        </div>
-        <button type="button" class="estrella" data-fav="${p.id}" aria-pressed="${on(p.destacado)}" title="Favorito en la web" aria-label="Favorito: ${esc(p.nombre)}">${on(p.destacado) ? '★' : '☆'}</button>
-      </div>`).join('') : '<p class="vacio">No hay productos en esta vista.</p>';
-  }
-
-  async function guardar(p, cambios, okTexto) {
-    await api('/web-catalog/productos/' + p.id, { method: 'PUT', body: JSON.stringify(cambios) });
-    Object.assign(p, cambios);
-    aviso('info', okTexto + ' Pulsa «Publicar web» para que se vea.');
+    const lista = productos.filter((p) => (estado.tab === 'todas' || p.ocasion_id == estado.tab) && enFiltro(p) && (!q || p.nombre.toLowerCase().includes(q)));
+    const pub = productos.filter((p) => on(p.activo));
+    $('resumen').innerHTML = `Mostrando <b>${lista.length}</b> · <b>${pub.length}</b> publicados · <b>${pub.filter((p) => on(p.favorito)).length}</b> favoritos · <b>${ocasiones.filter((o) => o.publicados > 0).length}</b> catálogos visibles`;
+    $('lista').innerHTML = lista.length ? lista.map(tarjeta).join('')
+      : `<p class="vacio">${ocasiones.length ? 'No hay productos aquí todavía. Pulsa «+ Nuevo producto».' : 'Primero crea una ocasión con «+ Nueva ocasión».'}</p>`;
   }
 
   async function cargar() {
     if (!TOKEN) { aviso('error', 'Primero inicia sesión en el ERP.'); $('lista').innerHTML = '<p class="vacio"><a href="/">Ir a iniciar sesión</a></p>'; return; }
     try {
       const j = await api('/web-catalog/productos');
-      productos = j.productos.map((p) => ({ ...p, categoria_ids: p.categoria_ids || [] }));
-      ocasiones = j.ocasiones || [];
-      categorias = j.categorias || [];
-      if (!j.destino) aviso('info', 'Falta configurar CATALOGO_WEB_PATH en el .env del ERP: puedes marcar productos, pero aún no se podrá publicar.');
+      productos = j.productos || []; ocasiones = j.ocasiones || []; erp = j.erp || [];
+      if (!j.destino) aviso('info', 'Falta configurar CATALOGO_WEB_PATH en el .env del ERP: puedes preparar productos, pero aún no se podrá publicar.');
       pintar();
     } catch (e) { aviso('error', e.message); }
   }
+  // Recalcula los contadores de las ocasiones en el navegador (sin recargar)
+  function contar() {
+    for (const o of ocasiones) { const s = productos.filter((p) => p.ocasion_id == o.id); o.total = s.length; o.publicados = s.filter((p) => on(p.activo)).length; }
+  }
 
-  document.querySelector('.vistas').addEventListener('click', (ev) => {
-    const b = ev.target.closest('[data-vista]'); if (!b) return;
-    estado.vista = b.dataset.vista; estado.tab = 'todas'; pintar();
-  });
   $('tabs').addEventListener('click', (ev) => {
+    if (ev.target.closest('[data-nueva-oc]')) return abrirOcasion(null);
     const b = ev.target.closest('[data-tab]'); if (!b) return;
     estado.tab = b.dataset.tab; pintar();
   });
-  document.querySelector('.estado').addEventListener('click', (ev) => {
+  document.querySelector('#sec-productos .estado').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-estado]'); if (!b) return;
     estado.filtro = b.dataset.estado; pintar();
   });
   $('buscar').addEventListener('input', (ev) => { estado.q = ev.target.value; pintar(); });
+  $('nuevo-prod').addEventListener('click', () => {
+    if (!ocasiones.length) { aviso('info', 'Primero crea una ocasión con «+ Nueva ocasión».'); return; }
+    abrirProducto(null);
+  });
 
+  async function cambiar(p, cambios, okTexto) {
+    const j = await api('/web-catalog/productos/' + p.id, { method: 'PUT', body: JSON.stringify(cambios) });
+    Object.assign(p, j.producto); contar();
+    aviso('info', okTexto + ' Pulsa «Publicar web» para que se vea.');
+  }
   $('lista').addEventListener('change', async (ev) => {
-    const t = ev.target;
-    if (t.dataset.id) {
-      const p = productos.find((x) => x.id == t.dataset.id);
-      try { await guardar(p, { web_visible: t.checked ? 1 : 0 }, 'Cambios guardados.'); pintar(); }
-      catch (e) { t.checked = !t.checked; aviso('error', e.message); }
-    } else if (t.dataset.desc) {
-      const p = productos.find((x) => x.id == t.dataset.desc);
-      try { await guardar(p, { web_descripcion: t.value.trim() }, 'Descripción guardada (también se usa en cotizaciones y documentos).'); }
-      catch (e) { aviso('error', e.message); }
-    } else if (t.dataset.descweb) {
-      const p = productos.find((x) => x.id == t.dataset.descweb);
-      try { await guardar(p, { desc_web: t.checked ? 1 : 0 }, t.checked ? 'La descripción se mostrará en la web.' : 'La descripción no se mostrará en la web.'); }
-      catch (e) { t.checked = !t.checked; aviso('error', e.message); }
-    }
+    const t = ev.target; if (!t.dataset.pub) return;
+    const p = productos.find((x) => x.id == t.dataset.pub);
+    try { await cambiar(p, { activo: t.checked ? 1 : 0 }, t.checked ? 'Producto publicado.' : 'Producto oculto.'); pintar(); }
+    catch (e) { t.checked = !t.checked; aviso('error', e.message); }
   });
   $('lista').addEventListener('click', async (ev) => {
-    const b = ev.target.closest('[data-fav]'); if (!b) return;
-    const p = productos.find((x) => x.id == b.dataset.fav);
-    const nuevo = on(p.destacado) ? 0 : 1;
+    const b = ev.target.closest('button'); if (!b) return;
+    const id = b.dataset.fav || b.dataset.editarProd || b.dataset.duplicar || b.dataset.eliminarProd;
+    const p = productos.find((x) => x.id == id); if (!p) return;
     try {
-      await guardar(p, { destacado: nuevo }, nuevo ? '★ Marcado como favorito.' : 'Quitado de favoritos.');
-      if (nuevo && !on(p.web_visible)) aviso('info', '★ Marcado como favorito. Ojo: este producto aún no está activado para la web.');
-      pintar();
+      if (b.dataset.fav) { await cambiar(p, { favorito: on(p.favorito) ? 0 : 1 }, on(p.favorito) ? 'Quitado de favoritos.' : '★ Marcado como favorito.'); pintar(); }
+      else if (b.dataset.editarProd) abrirProducto(p);
+      else if (b.dataset.duplicar) abrirProducto(p, true);
+      else if (b.dataset.eliminarProd) {
+        if (!confirm(`¿Eliminar «${p.nombre}» de ${ocTxt(ocDe(p.ocasion_id))}?`)) return;
+        await api('/web-catalog/productos/' + p.id, { method: 'DELETE' });
+        productos = productos.filter((x) => x !== p); contar(); pintar(); aviso('info', 'Producto eliminado. Pulsa «Publicar web» para que se vea.');
+      }
     } catch (e) { aviso('error', e.message); }
   });
+
+  /* ---------- Ocasiones ---------- */
+  $('oc-barra').addEventListener('click', async (ev) => {
+    const b = ev.target.closest('button'); if (!b) return;
+    const o = ocDe(estado.tab); if (!o) return;
+    try {
+      if (b.dataset.ocMover) {
+        const ids = ocasiones.map((x) => x.id); const i = ids.indexOf(o.id); const k = i + Number(b.dataset.ocMover);
+        if (k < 0 || k >= ids.length) return;
+        [ids[i], ids[k]] = [ids[k], ids[i]];
+        const j = await api('/web-catalog/ocasiones-orden', { method: 'PUT', body: JSON.stringify({ ids }) });
+        ocasiones = j.ocasiones; pintar(); aviso('info', 'Orden de los catálogos guardado. Pulsa «Publicar web» para que se vea.');
+      } else if (b.hasAttribute('data-oc-editar')) abrirOcasion(o);
+      else if (b.hasAttribute('data-oc-eliminar')) {
+        if (!confirm(`¿Eliminar la ocasión «${o.nombre}»?`)) return;
+        const j = await api('/web-catalog/ocasiones/' + o.id, { method: 'DELETE' });
+        ocasiones = j.ocasiones; estado.tab = 'todas'; pintar(); aviso('info', j.message);
+      }
+    } catch (e) { aviso('error', e.message); }
+  });
+  const fo = $('form-oc');
+  let ocEditando = null;
+  const EMOJIS = ['🎁', '💐', '❤️', '💝', '🎄', '🎓', '🎂', '👨‍🍼', '👩‍🍼', '🧑‍🏫', '👷', '⚕️', '💼', '🎉', '🌸', '🍫', '☕', '✏️', '📦', '⭐'];
+  $('emojis').innerHTML = EMOJIS.map((e) => `<button type="button" data-emoji="${e}">${e}</button>`).join('');
+  $('emojis').addEventListener('click', (ev) => { const b = ev.target.closest('[data-emoji]'); if (b) fo.icono.value = b.dataset.emoji; });
+  function abrirOcasion(o) {
+    ocEditando = o;
+    $('oc-titulo').textContent = o ? `Editar ocasión: ${o.nombre}` : 'Nueva ocasión';
+    fo.nombre.value = o ? o.nombre : ''; fo.icono.value = o ? (o.icono || '') : '🎁';
+    $('editor-oc').hidden = false; fo.nombre.focus();
+  }
+  const cerrarOcasion = () => { $('editor-oc').hidden = true; ocEditando = null; };
+  for (const b of document.querySelectorAll('[data-cerrar-oc]')) b.addEventListener('click', cerrarOcasion);
+  fo.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    try {
+      const datos = { nombre: fo.nombre.value, icono: fo.icono.value };
+      const j = ocEditando
+        ? await api('/web-catalog/ocasiones/' + ocEditando.id, { method: 'PUT', body: JSON.stringify(datos) })
+        : await api('/web-catalog/ocasiones', { method: 'POST', body: JSON.stringify(datos) });
+      const nueva = !ocEditando;
+      ocasiones = j.ocasiones; contar();
+      if (nueva) { const o = ocasiones[ocasiones.length - 1]; if (o) estado.tab = String(o.id); }
+      cerrarOcasion(); pintar(); aviso('info', j.message + (nueva ? '. Ahora agrégale productos.' : ''));
+    } catch (e) { aviso('error', e.message); }
+  });
+
+  /* ---------- Editor de producto ---------- */
+  const fp = $('form-prod');
+  let prodEditando = null; // { id, fotos: [..3], producto_id }
+  let sucioProd = false;
+  function abrirProducto(p, duplicar = false) {
+    const base = p || { ocasion_id: estado.tab !== 'todas' ? estado.tab : (ocasiones[0]?.id || ''), nombre: '', precio: '', incluye: '', activo: 1, favorito: 0, imagen1: null, imagen2: null, imagen3: null, producto_id: null };
+    prodEditando = { id: p && !duplicar ? p.id : null, fotos: [base.imagen1 || null, base.imagen2 || null, base.imagen3 || null], producto_id: base.producto_id || null };
+    $('prod-titulo').textContent = duplicar ? `Duplicar «${p.nombre}» en otra ocasión` : p ? `Editar: ${p.nombre}` : 'Nuevo producto';
+    fp.ocasion_id.innerHTML = (duplicar ? '<option value="">— Elige la ocasión —</option>' : '') + ocasiones.map((o) => `<option value="${o.id}">${esc(ocTxt(o))}</option>`).join('');
+    fp.ocasion_id.value = duplicar ? '' : String(base.ocasion_id || '');
+    fp.nombre.value = base.nombre || ''; fp.precio.value = base.precio !== '' && base.precio != null ? Number(base.precio).toFixed(2) : '';
+    fp.incluye.value = base.incluye || ''; fp.activo.checked = on(base.activo); fp.favorito.checked = duplicar ? false : on(base.favorito);
+    $('copiar-q').value = ''; $('copiar-sug').hidden = true;
+    sucioProd = false; pintarProd();
+    $('editor-prod').hidden = false;
+    (duplicar ? fp.ocasion_id : fp.nombre).focus();
+  }
+  function incluyeHTML(t) {
+    const lineas = String(t || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    let html = '', lista = [];
+    const cerrar = () => { if (lista.length) { html += `<ul>${lista.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`; lista = []; } };
+    for (const l of lineas) { const m = /^[•·\-–—*]\s*(.+)$/.exec(l); if (m) lista.push(m[1]); else { cerrar(); html += `<div class="pd-p">${esc(l)}</div>`; } }
+    cerrar(); return html;
+  }
+  function pintarProd() {
+    prodEditando.fotos.forEach((src, i) => {
+      const box = fp.querySelector(`[data-pfoto="${i + 1}"] .foto__img`);
+      box.style.cssText = fondo(src); box.textContent = src ? '' : 'Sin foto';
+    });
+    const f = prodEditando.fotos.filter(Boolean);
+    $('prod-previa').innerHTML = `
+      <div class="pcard__foto" style="${fondo(f[0])}">${f[0] ? '' : 'Sin foto'}${f.length > 1 ? `<span class="pcard__n">${f.length} fotos</span>` : ''}</div>
+      <div class="pcard__cuerpo"><span class="tag">${esc(ocTxt(ocDe(fp.ocasion_id.value)))}</span>
+        <div class="pcard__nombre">${esc(fp.nombre.value || 'Nombre del producto')}</div>${incluyeHTML(fp.incluye.value)}</div>
+      <div class="pd-pie"><div class="pcard__precio"><small>Desde</small><br>${soles(fp.precio.value)}</div><span class="pd-btn">Pedir</span></div>`;
+  }
+  fp.addEventListener('input', (ev) => { if (ev.target.id === 'copiar-q') return; sucioProd = true; pintarProd(); });
+  fp.ocasion_id.addEventListener('change', () => { sucioProd = true; pintarProd(); });
+  // Copiar datos de un producto del ERP
+  $('copiar-q').addEventListener('input', () => {
+    const q = $('copiar-q').value.trim().toLowerCase();
+    const res = q.length < 2 ? [] : erp.filter((x) => `${x.nombre} ${x.codigo || ''}`.toLowerCase().includes(q)).slice(0, 8);
+    $('copiar-sug').hidden = !res.length;
+    $('copiar-sug').innerHTML = res.map((x) => `<button type="button" data-erp="${x.id}">${x.imagen_url ? `<img src="${esc(x.imagen_url)}" alt="">` : ''}<span>${esc(x.nombre)}<br><small class="meta">${esc(x.codigo || '')} · ${soles(x.precio_venta)}</small></span></button>`).join('');
+  });
+  $('copiar-sug').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-erp]'); if (!b) return;
+    const x = erp.find((e) => e.id == b.dataset.erp); if (!x) return;
+    fp.nombre.value = x.nombre; fp.precio.value = Number(x.precio_venta).toFixed(2);
+    if (x.web_descripcion) fp.incluye.value = x.web_descripcion;
+    if (x.imagen_url && !prodEditando.fotos[0]) prodEditando.fotos[0] = x.imagen_url;
+    prodEditando.producto_id = x.id;
+    $('copiar-sug').hidden = true; $('copiar-q').value = x.nombre;
+    sucioProd = true; pintarProd();
+    aviso('info', 'Datos copiados del ERP. Cámbialos como quieras para esta ocasión.');
+  });
+  $('prod-fotos').addEventListener('change', async (ev) => {
+    const inp = ev.target; const box = inp.closest('[data-pfoto]'); if (!box || !inp.files?.[0]) return;
+    try { prodEditando.fotos[box.dataset.pfoto - 1] = await reducir(inp.files[0]); sucioProd = true; pintarProd(); }
+    catch (e) { aviso('error', e.message); }
+    inp.value = '';
+  });
+  $('prod-fotos').addEventListener('click', (ev) => {
+    const b = ev.target.closest('.quitar'); if (!b) return;
+    prodEditando.fotos[b.closest('[data-pfoto]').dataset.pfoto - 1] = null; sucioProd = true; pintarProd();
+  });
+  function cerrarProducto() {
+    if (sucioProd && !confirm('Tienes cambios sin guardar en este producto. ¿Salir sin guardar?')) return;
+    sucioProd = false; $('editor-prod').hidden = true; prodEditando = null;
+  }
+  for (const b of document.querySelectorAll('[data-cerrar-prod]')) b.addEventListener('click', cerrarProducto);
+  fp.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    if (!fp.ocasion_id.value) { aviso('error', 'Elige la ocasión del producto.'); fp.ocasion_id.focus(); return; }
+    const b = $('guardar-prod'); b.disabled = true; b.textContent = 'Guardando…';
+    const [imagen1, imagen2, imagen3] = prodEditando.fotos.map((f) => f || '');
+    const datos = { ocasion_id: fp.ocasion_id.value, nombre: fp.nombre.value, precio: fp.precio.value, incluye: fp.incluye.value, activo: fp.activo.checked ? 1 : 0, favorito: fp.favorito.checked ? 1 : 0, producto_id: prodEditando.producto_id, imagen1, imagen2, imagen3 };
+    const nuevo = !prodEditando.id;
+    try {
+      const j = nuevo
+        ? await api('/web-catalog/productos', { method: 'POST', body: JSON.stringify(datos) })
+        : await api('/web-catalog/productos/' + prodEditando.id, { method: 'PUT', body: JSON.stringify(datos) });
+      if (nuevo) productos.push(j.producto); else Object.assign(productos.find((x) => x.id == j.producto.id), j.producto);
+      contar(); sucioProd = false; $('editor-prod').hidden = true; prodEditando = null;
+      estado.tab = String(j.producto.ocasion_id); pintar();
+      aviso('info', (nuevo ? 'Producto creado' : 'Producto guardado') + ' en ' + ocTxt(ocDe(j.producto.ocasion_id)) + '. Pulsa «Publicar web» para que se vea.');
+    } catch (e) { aviso('error', e.message); }
+    finally { b.disabled = false; b.textContent = 'Guardar'; }
+  });
+
   $('publicar').addEventListener('click', async () => {
-    if (sucio && !confirm('Tienes cambios sin guardar (textos o campaña). Se publicará lo último que guardaste. ¿Continuar?')) return;
+    if ((sucio || sucioProd) && !confirm('Tienes cambios sin guardar. Se publicará lo último que guardaste. ¿Continuar?')) return;
     const b = $('publicar'); b.disabled = true; b.textContent = 'Publicando…';
     try { const j = await api('/web-catalog/publicar', { method: 'POST', body: '{}' }); aviso('ok', j.message); }
     catch (e) { aviso('error', e.message); }
@@ -524,7 +785,14 @@
   }
   for (const b of document.querySelectorAll('[data-cerrar]')) b.addEventListener('click', cerrarEditor);
   $('editor').addEventListener('mousedown', (ev) => { if (ev.target === $('editor')) cerrarEditor(); });
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && !$('editor').hidden) cerrarEditor(); });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Escape') return;
+    if (!$('editor-oc').hidden) cerrarOcasion();
+    else if (!$('editor-prod').hidden) cerrarProducto();
+    else if (!$('editor').hidden) cerrarEditor();
+  });
+  $('editor-prod').addEventListener('mousedown', (ev) => { if (ev.target === $('editor-prod')) cerrarProducto(); });
+  $('editor-oc').addEventListener('mousedown', (ev) => { if (ev.target === $('editor-oc')) cerrarOcasion(); });
   fc.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const b = $('guardar-camp'); b.disabled = true; b.textContent = 'Guardando…';
@@ -556,7 +824,8 @@
       ['Lo que nos importa', [['valores_titulo', 'Título'], ['valor1_titulo', 'Valor 1'], ['valor1_texto', 'Valor 1 · texto', true], ['valor2_titulo', 'Valor 2'], ['valor2_texto', 'Valor 2 · texto', true], ['valor3_titulo', 'Valor 3'], ['valor3_texto', 'Valor 3 · texto', true]]],
     ]],
     ['catalogo', 'Catálogo', [
-      ['Encabezado', [['catalogo_titulo', 'Título'], ['catalogo_texto', 'Texto', true]], 'Los productos y catálogos se gestionan en la pestaña «Productos» y con las ocasiones del ERP.'],
+      ['Encabezado', [['catalogo_titulo', 'Título'], ['catalogo_texto', 'Texto', true]], 'Los productos y las ocasiones (catálogos) se gestionan en la pestaña «Productos».'],
+      ['Caja al final de cada catálogo', [['idea_titulo', 'Título'], ['idea_boton', 'Botón'], ['idea_texto', 'Texto', true]], 'Aparece después de los productos e invita a escribir por WhatsApp con su idea.'],
     ]],
     ['contacto', 'Contacto y pie de página', [
       ['Encabezado', [['contacto_titulo', 'Título'], ['contacto_form_titulo', 'Título del formulario'], ['contacto_texto', 'Texto', true]]],
@@ -630,7 +899,7 @@
     } catch (e) { aviso('error', e.message); }
     finally { btn.disabled = false; btn.textContent = 'Guardar textos y fotos'; }
   });
-  window.addEventListener('beforeunload', (e) => { if (sucio) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', (e) => { if (sucio || sucioProd) { e.preventDefault(); e.returnValue = ''; } });
 
   verSeccion((() => { try { return sessionStorage.getItem('web-seccion') || 'productos'; } catch (e) { return 'productos'; } })());
   cargar();

@@ -237,14 +237,14 @@ export default function Dashboard({ user, onNavigatePOS, onNavigateOrders, onNav
               )}
             </div>
 
-            {/* Ventas por ocasiones especiales */}
+            {/* Ventas por categoría */}
             <div className="chart-box">
               <div className="chart-box-header">
-                <div><div className="chart-box-title">Ventas por Ocasiones Especiales</div><div className="chart-box-subtitle">Según la ocasión asignada a cada producto</div></div>
+                <div><div className="chart-box-title">Ventas por categoría</div><div className="chart-box-subtitle">Según la categoría principal de cada producto</div></div>
                 <div className="chart-badge" style={{ background: '#EDE9FE', color: '#6D28D9' }}>{fmt0(totOc)}</div>
               </div>
               {ocs.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#788A9B', fontSize: 13, padding: '30px 8px' }}>Aún no hay ventas con ocasión. Asigna una ocasión (Día de la Madre, Navidad…) a tus productos para verlas aquí.</div>
+                <div style={{ textAlign: 'center', color: '#788A9B', fontSize: 13, padding: '30px 8px' }}>Aún no hay ventas con comprobante emitido.</div>
               ) : (
                 <div className="payment-channels-list">
                   {ocs.slice(0, 7).map((o, i) => (

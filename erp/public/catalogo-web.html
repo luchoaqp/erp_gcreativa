@@ -386,6 +386,8 @@
   }
 
   const ocDe = (id) => ocasiones.find((o) => o.id == id);
+  // Las campañas usan la misma lista de ocasiones: al crear, editar, ordenar o borrar una, se actualiza al instante
+  function sincronizarOc() { if (web) web.ocasiones = ocasiones.map((o) => ({ id: o.id, nombre: o.nombre, icono: o.icono, slug: o.slug })); }
   const ocTxt = (o) => o ? `${o.icono ? o.icono + ' ' : ''}${o.nombre}` : 'Sin ocasión';
   const soles = (n) => 'S/ ' + Number(n || 0).toFixed(2);
   const fotosDe = (p) => [p.imagen1, p.imagen2, p.imagen3].filter(Boolean);
@@ -453,7 +455,7 @@
     if (!TOKEN) { aviso('error', 'Primero inicia sesión en el ERP.'); $('lista').innerHTML = '<p class="vacio"><a href="/">Ir a iniciar sesión</a></p>'; return; }
     try {
       const j = await api('/web-catalog/productos');
-      productos = j.productos || []; ocasiones = j.ocasiones || []; erp = j.erp || [];
+      productos = j.productos || []; ocasiones = j.ocasiones || []; erp = j.erp || []; sincronizarOc();
       if (!j.destino) aviso('info', 'Falta configurar CATALOGO_WEB_PATH en el .env del ERP: puedes preparar productos, pero aún no se podrá publicar.');
       pintar();
     } catch (e) { aviso('error', e.message); }
@@ -515,12 +517,12 @@
         if (k < 0 || k >= ids.length) return;
         [ids[i], ids[k]] = [ids[k], ids[i]];
         const j = await api('/web-catalog/ocasiones-orden', { method: 'PUT', body: JSON.stringify({ ids }) });
-        ocasiones = j.ocasiones; pintar(); aviso('info', 'Orden de los catálogos guardado. Pulsa «Publicar web» para que se vea.');
+        ocasiones = j.ocasiones; sincronizarOc(); pintar(); aviso('info', 'Orden de los catálogos guardado. Pulsa «Publicar web» para que se vea.');
       } else if (b.hasAttribute('data-oc-editar')) abrirOcasion(o);
       else if (b.hasAttribute('data-oc-eliminar')) {
         if (!confirm(`¿Eliminar la ocasión «${o.nombre}»?`)) return;
         const j = await api('/web-catalog/ocasiones/' + o.id, { method: 'DELETE' });
-        ocasiones = j.ocasiones; estado.tab = 'todas'; pintar(); aviso('info', j.message);
+        ocasiones = j.ocasiones; sincronizarOc(); estado.tab = 'todas'; pintar(); aviso('info', j.message);
       }
     } catch (e) { aviso('error', e.message); }
   });
@@ -545,7 +547,7 @@
         ? await api('/web-catalog/ocasiones/' + ocEditando.id, { method: 'PUT', body: JSON.stringify(datos) })
         : await api('/web-catalog/ocasiones', { method: 'POST', body: JSON.stringify(datos) });
       const nueva = !ocEditando;
-      ocasiones = j.ocasiones; contar();
+      ocasiones = j.ocasiones; sincronizarOc(); contar();
       if (nueva) { const o = ocasiones[ocasiones.length - 1]; if (o) estado.tab = String(o.id); }
       cerrarOcasion(); pintar(); aviso('info', j.message + (nueva ? '. Ahora agrégale productos.' : ''));
     } catch (e) { aviso('error', e.message); }
